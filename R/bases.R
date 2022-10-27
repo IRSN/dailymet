@@ -1,0 +1,323 @@
+##' Find the phases \eqn{\phi_k} and the amplitudes \eqn{\gamma_k}
+##' for \eqn{k = 1}, ..., \eqn{K} such that
+##' \deqn{ 
+##'  \alpha_ 0 + \sum_{k=1}^K \alpha_k \cos\{\omega_k t\} +
+##'    \beta_k \sin\{\omega_k t \}
+##'  = \text{Cst} + \sum_{k=1}^K \gamma_k \sin\{ \omega_k [t - \phi_k] \}
+##' }
+##' where \eqn{\omega_k = 2 \pi k /365.25} and where the coefficients
+##' \eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{trigCoef}
+##' vector.
+##'  
+##' @title Phases of Sine Waves from the Trigonometric Coefficients
+##'
+##' @param trigCoef A numeric vector with (odd) length \eqn{2K +1}
+##'     having suitable names related to the trigonometric basis
+##'   \code{\link{tsDesign}}.
+##' 
+##' @return A numeric vector of length \eqn{K} containing the phases
+##'     \eqn{\phi_k}. This vector has as its attribute
+##'     \code{"amplitude"} another numeric vector with length \eqn{K}
+##'     containing the amplitudes \eqn{\gamma_k}.
+##'
+##' @section Caution: the vector \code{trigCoef} must be \emph{named}
+##'     with suitable element names in order to allow a reliable
+##'     extraction of the coefficients \eqn{\alpha_k} and
+##'     \eqn{\beta_k}. These correspond to the names
+##'     \itemize{
+##'        \item{"Cst" }{the constant \eqn{\alpha_0}}
+##'        \item{"cosj1", "cosj2", ... }{coefficients for the cosine terms
+##'            \eqn{\alpha_1}, \eqn{\alpha_2}, ..., \eqn{\alpha_K}}
+##'        \item{"sinj1", "sinj2", ... }{coefficients for the sine terms
+##'            \eqn{\beta_1}, \eqn{\beta_2}, ..., \eqn{\beta_K}}
+##'     }
+##' @export
+##' 
+##' 
+sinPhases <- function(trigCoef)  {
+    df <- length(co <- trigCoef)
+    if (!(df %% 2)) {
+        stop("'df' must be an odd integer")
+    }
+    K <- (df - 1) / 2
+    nm <- "Cst"
+    nmSin <- character(0)
+    for(j in 1:K) {
+        nm <- c(nm, paste0(c("cosj", "sinj"), j))
+        nmSin <- c(nmSin, paste0("sinjPhi", j))
+    }
+    if (length(setdiff(names(trigCoef), nm))) {
+        stop("Up to the order 'names(trigCoef)' should be ",
+             paste0("c(", paste(paste0("\'", nm, "\'"),
+                                collapse = ", "), ")"))
+    }
+    gamma <- phi <- rep(0.0, K)
+    for (j in 1:K) {
+        omegaj <- 2 * pi * j / 365.25 
+        ind <- paste0(c("cosj", "sinj"), j)
+        alphaBeta <- co[ind]
+        gamma[j] <- sqrt(alphaBeta[1]^2 + alphaBeta[2]^2)
+        phi[j] <- - asin(alphaBeta[1] / gamma[j]) 
+        if (alphaBeta[2] <= 0) {
+            phi[j] <- pi - phi[j]
+        }
+        phi[j] <- phi[j] / omegaj
+        ## phi[j] <-  atan(alphaBeta[1] / alphaBeta[2]) / omegaj
+    }
+    names(phi) <- names(gamma) <- paste0("sinjPhi", 1:K)
+    attr(phi, "amplitude") <- gamma
+    phi
+}
+
+## ****************************************************************************
+##' Create designs for time series regression (linear regression or
+##' quantile regression) for meteorological time series.
+##'
+##' The choice is for now between polynomial functions that can be
+##' used to describe a trend) and trigonometric functions with period
+##' one year (365.25 days) that can be used for the seasonality.
+##'
+##' \itemize{
+##'  
+##'     \item{"polynom" }{
+##'
+##'         Can be used to describe a polynomial with degree
+##'         \code{<= df - 1}.  The \code{df} basis functions are named
+##'         \code{"Cst"}, then: \code{"t1"}, \code{"t2"}, ...
+##' 
+##'     }
+##'
+##'     \item{"trigo" }{
+##' 
+##'          The basis contains \code{df = 2 * K + 1} trigonometric
+##'          functions given in the order of increasing
+##'          harmonics. These are: the constant function \code{"Cst"}
+##'          and then the \code{K} couples of one cosine function and
+##'          one sine function, with names \code{"cosj1"},
+##'          \code{"sinj1"}, \code{"cosj2"}, \code{"sinj2"}, ...
+##'
+##'     }
+##'
+##'     \item{"sinwave" }{
+##'
+##'          With \code{K = df \%/\% 2}, the \code{K + 1} basis
+##'          functions are the constant \code{"Cst"}, then \code{K}
+##'          sine wave functions in the order of increasing harmonics
+##'          with names \code{"sinjPhi1"}, \code{"sinjPhi2"}, ...
+##'
+##'     } 
+##' }
+##'
+##' @title Designs For Time Series Regression
+##' 
+##' @param dt A \code{POSIXct} or \code{Date} object.
+##' 
+##' @param type Type of design.
+##'
+##' @param df Number of basis functions, or "degree of freedom".
+##'
+##' @param period Not used. Can only be one year and is used only in
+##'     the trigonometric case.
+##'
+##' @param phi Numeric vector of phases used only when \code{type} is
+##'     \code{"sinwave"}.
+##'
+##' @param origin An origin for the time. Used only in the polynomial
+##'     case. The same value must be used in fits and predictions.
+##'
+##' @return A list with an element named \code{X} containing the
+##'     matrix.
+##'
+##' @note For both designs \code{"trigo"} and \code{"sinwave"},
+##'     \code{df} must be taken as an \emph{odd} integer, in order to
+##'     allow the use of an arbitrary phase for each of the harmonics.
+##'     Mind that the corresponding bases are (nearly) orthogonal only
+##'     when full years are used.
+##' 
+##' @export
+##'
+##'
+tsDesign <- function(dt,
+                     type = c("polynom", "trigo", "sinwave"),
+                     df = 3,
+                     period = "year",
+                     phi = NULL,
+                     keepTrig = FALSE,
+                     origin = NULL) {
+    
+    dtNum <- as.numeric(diff(head(dt)), units = "days")
+
+    mc <- match.call()
+    
+    dt <- as.POSIXct(dt, tz = "GMT")
+    type <- match.arg(type)
+    
+    if (type == "polynom") {
+        if (is.null(origin)) origin <- mean(dt)
+        t <- as.numeric(difftime(dt, origin, units = "days")) / 365.25
+        e <- 0:(df - 1)
+        X <- outer(t, e, FUN = "^")
+        colnames(X) <- c("Cst", paste("t", 1:(df - 1), sep = ""))
+        rownames(X) <- format(dt , "%Y-%m-%d")
+    } else if (type == "trigo") {
+
+        if (!(df %% 2)) stop("'df' must be an odd integer")
+        origin <- as.POSIXct(NA)
+        K <- floor(df / 2)
+        J <- as.numeric(format(dt, "%j"))
+        nJ <- length(J)
+        tt <- outer(2 * pi * J / 365.25, 1:K, FUN = "*")
+        X <- cbind(cos(tt), sin(tt))
+        colnames(X) <- c(paste("cosj", 1:K, sep = ""),
+                         paste("sinj", 1:K, sep = ""))
+        rownames(X) <- format(dt , "%Y-%m-%d")
+        ## put the columns in order cos, sin, cos, sin, ... with
+        ## increasing harmonics
+        ind <- rep(1:K, each = 2)
+        ev <- seq(2, 2 * K, by = 2)
+        ind[ev] <- ind[ev] + K
+        X <- X[ , ind, drop = FALSE]
+        ## add a constant column
+        X <- cbind("Cst" = rep(1, nJ), X)
+    } else if (type == "sinwave") {
+        if (!(df %% 2)) stop("'df' must be an odd integer")
+        origin <- as.POSIXct(NA)
+        K <- floor(df / 2)
+        if ((length(phi) != K) || !is.numeric(phi)) {
+            stop("'phi' must be a numeric vector with length ",
+                 "(df - 1) / 2 = ", K)
+        }
+        X <- sinBasis(dt = dt, df = df, phi, keepTrig = FALSE) 
+    }
+
+    L <- list(call = mc,
+              origin = origin,
+              X = X)
+    
+    class(L) <- "tDesign"
+    
+    L
+    
+}
+
+##' Basis of sine wave functions \eqn{s_k(t)} with the phases
+##' \eqn{\phi_k} given in \code{phi} corresponding to the periods
+##' \eqn{365.25 / k}.
+##'
+##' For a time \eqn{t} the value of the \eqn{k}-th function is given
+##' by
+##' 
+##'  \deqn{s_k(t) := \sin\{2 \pi k [j_t - \phi_k] / 365.25)}{
+##'    s_k(t) := sin(2 * pi * k * [j_t - \phi_k] / 365.25)}
+##'
+##' for \eqn{k=1} to {K}, where \eqn{j_t} is the Julian day
+##' corresponding to \eqn{t}. This function is useful to provide a
+##' basis of functions with yearly seasonality that are suitable for
+##' meteorological variables. For instance the phase for the first
+##' harmonic of the daily temperature in France is such that the
+##' annual maximal temperature "normally" happen at the end of July.
+##' 
+##' @title Create a Basis of Sine Waves with Given Phases
+##'
+##' @param dt A vector with class \code{"Date"} or \code{"POSIXct"}
+##'     representing the days at which the sine waves basis functions
+##'     are to be evaluated.
+##' 
+##' @param df Odd number as in \code{\link{tsDesign}}.
+##'
+##' @param phi Vector of \eqn{K} phases where \eqn{K} is equal to
+##'     \code{(df - 1) / 2}.
+##'
+##' @param cst Logical. If \code{TRUE} a constant column with value
+##'     1.0 is added as a first column.
+##' 
+##' @param keepTrig Logical. If \code{TRUE}, the cos-sin functions are
+##'     are joined as columns of the result. So the returned matrix
+##'     then does not correspond to a basis. Used mainly for test.
+##' 
+##' @return A numeric matrix containing as columns the \eqn{K} basis
+##'     functions \eqn{s_k(t)}, and with its rows corresponding to the
+##'     time \eqn{t} given by \code{Date}. The names of the \eqn{K}
+##'     sine wave function have the prefix \code{"sinjPhi"} so are
+##'     \code{"sinjPhi1"}, \code{"sinPhij2"}, ... This is aimed to
+##'     recall that the phases \eqn{\phi_k} were given. If \code{cst}
+##'     is \code{TRUE} and \code{keepTrig} a constant column with
+##'     value 1.0 is added, and if \code{keepTrig} is \code{TRUE} the
+##'     trigonometric functions (with phase zero) are added as well.
+##'
+##' @note This functions uses the \code{\link{tsDesign}} function with
+##'     \code{type = "trigo"}.
+##'
+##' @section Caution: This function is likely to be removed. It is
+##'     safer to use \code{\link{tsDesign}} with the argument
+##'     \code{phi}. 
+##'
+##' @export
+##' 
+##' @examples
+##' ## Use only full years to maintain near orthogonality
+##' df <- subset(Rennes, Year <= 2020 & Year >= 1960)
+##' K <- 3
+##' ## Design of trigonometric functions
+##' desTrig <- tsDesign(dt = df$Date, df = 2 * K + 1, type = "trigo")
+##' fit <- lm(formula = Temp ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
+##'           data = data.frame(df, desTrig$X))
+##' betaHat <- coef(fit)
+##'
+##' ## find the phases
+##' phiHat <- sinPhases(betaHat)
+##' gamma <- attr(phiHat, "amplitude")
+##'
+##' ## Design of sine waves with prescribed phases
+##' desSin <- tsDesign(dt = df$Date, df = 2 * K + 1,
+##'                    type = "sinwave", phi = phiHat)
+##' fit2 <- lm(formula = Temp ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 -1,
+##'            data = data.frame(df, desSin$X))
+##' ## should be zero
+##' max(abs(predict(fit) - predict(fit2)))
+##'
+##' ## the amplitude and the coef
+##' rbind(coef(fit2), c(NA, gamma))
+##' j <- 3
+##' indTrig <- paste0(c("cosj", "sinj"), j)
+##' indSin <- paste0("sinjPhi", j)
+##' plot(desTrig$X[1:366 , indTrig] %*% betaHat[indTrig], type = "l",
+##'      col = "SpringGreen3", xlab = "", ylab = paste("harmonic", j))
+##' lines(desSin$X[1:366, indSin] * gamma[j], col = "red", lwd = 2, lty = "dashed")
+##' 
+sinBasis <- function(dt, df = 7, phi, cst = TRUE, keepTrig = FALSE) {
+    if (!(df %% 2)) {
+        stop("'df' must be an odd integer")
+    }
+    K <- (df - 1) / 2
+    if (length(phi) != K) {
+        stop("'phi' must be of length (df - 1) / 2")
+    }
+    
+    trigDesign <- tsDesign(dt = dt, df = df, type = "trigo")
+    sinPhi <- array(NA, dim = c(nrow(trigDesign$X), K),
+                    dimnames = list(rownames(trigDesign$X),
+                                paste0("sinjPhi", 1:K)))
+
+    ## Use the addition of angles
+    ##
+    ## sin(angle - phi) = sin(angle) * cos(phi) - cos(angle) * sin(phi)
+    ## 
+    for(j in 1:K) {
+        omegaj <- 2 * pi * j / 365.25 
+        nm <- paste0(c("cosj", "sinj"), j)
+        angle <- omegaj * phi[j]
+        sinPhi[ , j] <- trigDesign$X[ , nm] %*% c(-sin(angle), cos(angle))
+    }
+    
+    if (keepTrig) {
+        res <- cbind(trigDesign$X, sinPhi)
+    } else {
+        res <- sinPhi
+        if (cst) {
+            res <- cbind(Cst = 1, res)
+        }
+    }
+    
+    res   
+}

@@ -1,0 +1,84 @@
+Code;Name;Lat;Lon;Alt;LongName;ShortName;Zone;Desc;OldCode;Resol40;Clim
+07005;ABBEVILLE;50.136000;1.834000;69;Abbeville;Abbev;Somme;abbeville;abbev;1;NW
+07015;LILLE-LESQUIN;50.570000;3.097500;47;Lille-Lesquin;Lille;Nord;lille-lesquin;;1;C
+07020;PTE DE LA HAGUE;49.725167;-1.939833;6;Pointe de la Hague;La-Hague;Manche;cap-de-la-hague;;1;NW
+07027;CAEN-CARPIQUET;49.180000;-0.456167;67;Caen-Carpiquet;Caen;Calvados;caen-carpiquet;caen;1;NW
+07037;ROUEN-BOOS;49.383000;1.181667;151;Rouen-Boos;Rouen;Seine-Maritime;rouen-boos;rouen;1;C
+07072;REIMS-PRUNAY;49.209667;4.155333;95;Reims-Prunay;Reims;Marne;reims-prunay;reims;1;C
+07110;BREST-GUIPAVAS;48.444167;-4.412000;94;Brest-Guipavas;Brest;Finistère;brest-guipavas;brest;1;NW
+07117;'PLOUMANAC''H';48.825833;-3.473167;55;'Ploumanac''h';Ploumanach;Finistère;ploumanac-h-perros;;1;NW
+07130;RENNES-ST JACQUES;48.068833;-1.734000;36;Rennes-Saint-Jacques;Rennes;Ille-et-Vilaine;rennes-st-jacques;renne;1;NW
+07139;ALENCON;48.445500;0.110167;143;Alençon;Alencon;Orne;alencon-valframbert;alenc;1;C
+07149;ORLY;48.716833;2.384333;89;Orly-Athis-Mons;Orly;Val-de-Marne;orly-athis-mons;;1;C
+07168;TROYES-BARBEREY;48.324667;4.020000;112;Troyes-Barberey;Troyes;Aube;troyes-barberey;;1;C
+07181;NANCY-OCHEY;48.581000;5.959833;336;Nancy-Ochey;Nancy;Meurthe-et-Moselle;nancy-ochey;nancy;1;NE
+07190;STRASBOURG-ENTZHEIM;48.549500;7.640333;150;Strasbourg-Entzheim;Strasbourg;Bas-Rhin;strasbourg-entzheim;stras;1;NE
+07207;BELLE ILE-LE TALUT;47.294333;-3.218333;34;Belle Île-Le Talut;Belle-Ile;Morbihan;belle-ile-le-talut;;1;NW
+07222;NANTES-BOUGUENAIS;47.150000;-1.608833;26;Nantes-Bouguenais;Nantes;Loire-Atlantique;nantes-atlantique;nante;1;NW
+07240;TOURS;47.444500;0.727333;108;Tours;Tours;Indre-et-Loire;tours-parcay-meslay;;1;NW
+07255;BOURGES;47.059167;2.359833;161;Bourges;Bourges;Cher;bourges;;1;C
+07280;DIJON-LONGVIC;47.267833;5.088333;219;Dijon-Longvic;Dijon;'Côte-d''Or';dijon-longvic;;1;NE
+07299;BALE-MULHOUSE;47.614333;7.510000;263;Bâle-Mulhouse;Bale;Haut-Rhin;bale-mulhouse;;1;NE
+07314;PTE DE CHASSIRON;46.046833;-1.411500;11;Pointe de Chassiron;Pte-Chassiron;Charente-Maritime;pointe-de-chassiron;;1;SW
+07335;POITIERS-BIARD;46.593833;0.314333;123;Poitiers-Biard;Poitiers;Vienne;poitiers-biard;poiti;1;NW
+07434;LIMOGES-BELLEGARDE;45.861167;1.175000;402;Limoges-Bellegarde;Limoges;Haute-Vienne;limoges-bellegarde;;1;SW
+07460;CLERMONT-FD;45.786833;3.149333;331;Clermond-Ferrand;Clermont-Fd;Puy-de-Dôme;clermont-ferrand-aulnat;clfer;1;C
+07471;LE PUY-LOUDES;45.074500;3.764000;833;Le Puy-Loudes;Le-Puy;Haute-Loire;le-puy-loudes;lepuy;1;Mont
+07481;LYON-ST EXUPERY;45.726500;5.077833;235;Lyon-Saint-Exupéry;Lyon;Rhône;lyon-st-exupery;;1;NE
+07510;BORDEAUX-MERIGNAC;44.830667;-0.691333;47;Bordeaux-Mérignac;Bordeaux;Gironde;bordeaux-merignac;borde;1;SW
+07535;GOURDON;44.745000;1.396667;260;Gourdon;Gourdon;Lot;gourdon;gourd;1;SW
+07558;MILLAU;44.118500;3.019500;712;Millau;Millau;Aveyron;millau;;1;Mont
+07577;MONTELIMAR;44.581167;4.733000;73;Montélimar;Montelimar;Drôme;montelimar-ancone;mteli;1;Med
+07591;EMBRUN;44.565667;6.502333;871;Embrun;Embrun;Hautes-Alpes;embrun;embru;1;Mont
+07607;MONT-DE-MARSAN;43.909833;-0.500167;59;Mont-de-Marsan;Mt-Marsan;Landes;mont-de-marsan;;1;SW
+07621;TARBES-OSSUN;43.188000;0.000000;360;Tarbes-Ossun;Tarbes;Hautes-Pyrénées;tarbes-ossun-lourdes;;1;SW
+07627;ST GIRONS;43.005333;1.106833;414;Saint-Girons;St-Girons;Ariège;saint-girons-antichan;ssgir;1;Mont
+07630;TOULOUSE-BLAGNAC;43.621000;1.378833;151;Toulouse-Blagnac;Toulouse;Haute-Garonne;toulouse-blagnac;toulo;1;Med
+07643;MONTPELLIER;43.577000;3.963167;2;Montpellier;Montpellier;Hérault;montpellier-frejorgues;;1;Med
+07650;MARIGNANE;43.437667;5.216000;9;Marignane;Marignane;Bouches-du-Rhône;marseille-marignane-marseille-provence;;1;Med
+07661;CAP CEPET;43.079333;5.940833;115;Cap Cépet;Cap-Cepet;Var;saint-mandrier-sur-mer-cap-cepet;;1;Med
+07690;NICE;43.648833;7.209000;2;Nice;Nice;Alpes Maritimes;nice-cote-d-azur;nice;1;Med
+07747;PERPIGNAN;42.737167;2.872833;42;Perpignan;Perpignan;Pyrénéees-Orientales;perpignan-rivesaltes;perpi;1;Med
+07761;AJACCIO;41.918000;8.792667;5;Ajaccio;Ajaccio;Corse;ajaccio-campo-dell-oro;ajacc;1;Med
+07790;BASTIA;42.540667;9.485167;10;Bastia;Bastia;Corse;bastia-poretta;basti;1;Med
+61968;GLORIEUSES;-11.582667;47.289667;3;Îles Glorieuses;Glorieuses;Terres australes et antartiques;iles-glorieuses;;1;
+61970;JUAN DE NOVA;-17.054667;42.712000;9;Île Juan de Nova;Juan-de-Nova;Terres australes et antartiques;ile-juan-de-nova;;1;
+61972;EUROPA;-22.344167;40.340667;6;Île Europa;Europa;Terres australes et antartiques;ile-europa;;1;
+61976;TROMELIN;-15.887667;54.520667;7;Île Tromelin;Tromelin;Terres australes et antartiques;serge-frolow-ile-tromelin;;1;
+61980;GILLOT-AEROPORT;-20.892500;55.528667;8;Gillot-aéroport;Gillot;La Réunion;saint-denis-gillot;;1;
+61996;NOUVELLE AMSTERDAM;-37.795167;77.569167;27;Île de la Nouvelle Amsterdam;Nvelle-Amsterdam;Terres australes et antartiques;ile-d-amsterdam-martin-de-vivies;;1;
+61997;CROZET;-46.432500;51.856667;146;Île de Crozet;Crozet;Terres australes et antartiques;Ile-crozet;;1;
+61998;KERGUELEN;-49.352333;70.243333;29;Île Kerguelen;Kerguelen;Terres australes et antartiques;iles-kerguelen-port-aux-francais;;1;
+67005;PAMANDZI;-12.805500;45.282833;7;Pamandzi;Pamandzi;Mayotte;dzaoudzi-pamanzi-mayotte;;1;
+71805;ST-PIERRE;46.766333;-56.179167;21;Saint-Pierre;St-Pierre;Saint-Pierre et Miquelon;saint-pierre-et-miquelon-saint-pierre;;1;
+78890;LA DESIRADE METEO;16.335000;-61.004000;27;La Désirade;Desirade;Guadeloupe;la-desirade-guadeloupe;;1;
+78894;ST-BARTHELEMY METEO;17.901500;-62.852167;44;Saint-Barthélémy;St-Barthelemy;Guadeloupe;gustavia-saint-barthelemy;;1;
+78897;LE RAIZET AERO;16.264000;-61.516333;11;Le Raizet ;Le-Raizet;Guadeloupe;le-raizet-guadeloupe;;1;
+78922;TRINITE-CARAVEL;14.774500;-60.875333;26;La Trinité;Trinite;Martinique;trinite-caravelle-martinique;;1;
+78925;LAMENTIN-AERO;14.595333;-60.995667;3;Le Lamentin;Lamentin;Martinique;le-lamentin;;1;
+81401;SAINT LAURENT;5.485500;-54.031667;5;Saint-Laurent-du-Maroni;St-Laurent;Guyane;saint-laurent-du-maroni;;1;
+81405;CAYENNE-MATOURY;4.822333;-52.365333;4;Cayenne-Matouri;Cayenne;Guyane;cayenne-suzini-guyane;;1;
+81408;SAINT GEORGES;3.890667;-51.804667;6;Saint-Georges;St-Georges;Guyane;Saint-georges-de-l-oyapock;;1;
+81415;MARIPASOULA;3.640167;-54.028333;106;Maripasoula;Maripasoula;Guyane;maripasoula;;1;
+89642;'DUMONT D''URVILLE';-66.663167;140.001000;43;'Dumont d''Urville';Dumont-Urville;Terres australes et antartiques;terre-adelie-dumont-d-urville;;1;
+07524;AGEN-LA GARENNE;44.17222;0.5947222;58;Agen-La Garenne;Agen;Lot-et-Garonne;agen-la-garenne;agen;0;SW
+07230;ANGERS-BEAUCOUZE;47.47889;-0.614444;50;Angers-Beaucouzé;Angers;Maine-et-Loire;angers-beaucouze;anger;0;NW
+07055;BEAUVAIS-TILLE;49.44639; 2.127222;89;Beauvais-Tille;Beauvais;Oise;beauvais-tille;beauv;0;C
+07288;BESANCON-THISE;47.24889;5.988889;307;Besançon-Thise;Besancon;Doubs;besancon-thise;besan;0;NE
+07602;BIARRITZ-ANGLET;43.46944;-1.53444;71;Biarritz-Anglet;Biarritz;Pyrénées-Atlantiques;biarritz-anglet;biarr;0;SW
+07002;BOULOGNE-SUR-MER; 50.7325;1.599722;73;Boulogne-sur-Mer;Boulogne-s-Mer;Pas-de-Calais;boulogne;boulo;0;NW
+07148;BRETIGNY-SUR-ORGE;48.6;2.326667;78;Brétigny-Sur-Orge;Bretigny;Essonne;bretigny;breti;0;C
+07497;BOURG-ST-MAURICE;45.612778;6.763333;865;Bourg-Saint-Maurice;Bourg-St-Maurice;Savoie;bourg-st-maurice;bxssm;0;Mont
+07024;CHERBOURG-MAUPERTUS;49.65278; -1.463611;135;Cherbourg-Maupertus;Cherbourg;Manche;cherbourg-maupertus;cherb;0;NW
+07486;GRENOBLE-ST-GEOIRS;45.35667;5.325;384;Grenoble-Saint-Geoirs;Grenoble;Isère;grenoble-st-geoirs;greno;0;NE
+07316;LA ROCHELLE-AERODROME;46.17806;-1.193056;4;La Rochelle-Aérodrome;La-Rochelle;Charente-Maritime;la-rochelle-aerodrome;laroc;0;SW
+07150;LE BOURGET-AEROPORT;48.96722; 2.427778;49;Le Bourget-Aéroport;Le-Bourget;Seine-Saint-Denis;le-bourget;lebxe;0;C
+07235;LE MANS-ARNAGE;47.94667;0.195;51;Le Mans-Arnage;Le-Mans;Sarthe;le-mans-arnage;leman;0;C
+07156;PARIS-MONTSOURIS;48.82333;2.336667;75;Paris-Montsouris;Montsouris;Paris;paris-montsouris;mtsou;0;C
+07260;NEVERS-MARZY;46.99833;3.112778;175;Nevers-Marzy;Nevers;Nièvre;nevers-marzy;never;0;C
+07645;NIMES-COURBESSAC;43.85694; 4.406389;59;Nimes-Courbessac;Nîmes;Gard;nimes-courbessac;nimes;0;Med
+07610;PAU-UZEIN;43.381;-0.4164;183;Pau-Uzein;Pau;Pyrénées-Atlantiques;pau-uzein;pau;0;SW
+07475;ST ETIENNE-BOUTHEON;45.53306; 4.291667;400;Saint-Étienne-Bouthéon;St-Etienne;Loire;saint-etienne-boutheon;sseti;0;NE
+07169;ST DIZIER-ROBINSON;48.63139;4.903611;139;Saint-Dizier-Robinson;St-Dizier;Haute-Marne;saint-dizier-robinson;ssdiz;0;NE
+07090;METZ-FESCATY;49.06944;6.125556;192;Metz-Frescaty;Metz;Moselle;metz-frescaty;;0;NE
+ECA31;MARSEILLE-PALAIS-LONGCHAMP;43.30500;5.3966667;75;Marseille-Observatoire Longchamp;Marseille-Longchamp;Bouches-du-Rhône;Marseille-observatoire-longchamp;;0;Med
