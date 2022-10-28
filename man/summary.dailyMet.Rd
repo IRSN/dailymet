@@ -12,8 +12,15 @@
 \item{...}{Not used.}
 }
 \value{
-A summary object which is printed.
+A summary object which is mainly used for print.  It can
+    also be used to extract some pieces of information as list
+    elements.
 }
 \description{
 Summary method
+}
+\examples{
+summary(Rennes)
+summary(Rennes)$station
+
 }

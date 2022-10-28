@@ -1,3 +1,4 @@
+## *****************************************************************************
 ##' Find the phases \eqn{\phi_k} and the amplitudes \eqn{\gamma_k}
 ##' for \eqn{k = 1}, ..., \eqn{K} such that
 ##' \deqn{ 
@@ -200,6 +201,7 @@ tsDesign <- function(dt,
     
 }
 
+## *****************************************************************************
 ##' Basis of sine wave functions \eqn{s_k(t)} with the phases
 ##' \eqn{\phi_k} given in \code{phi} corresponding to the periods
 ##' \eqn{365.25 / k}.

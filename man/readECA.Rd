@@ -4,42 +4,52 @@
 \alias{readECA}
 \title{Read an ECA File and Add Extra Varables}
 \usage{
-readECA(file)
+readECA(file, out = c("dailyMet", "data.frame"), station = NA, code = NA)
 }
 \arguments{
 \item{file}{The file to read as in \code{\link{read.table}}.}
+
+\item{out}{The class of the returned object. The \code{"dailyMet"}
+S3 class with creator \code{\link{dailyMet}} extends the
+\code{data.frame} by attaching some information to the data as
+attributes. This information inclues the name of the
+meteorological variable.}
+
+\item{station, code}{Optional character vectors with length one
+that will be attached to the object when the output class is
+\code{"dailyMet"}.}
 }
 \value{
-A data frame with the temperature \code{Temp}, the date
+A data frame with the temperature \code{TX}, the date
     \code{Date} and several functions of the Date.
 
 A data frame with the columns
     \itemize{
         \item{Date, DateRef }{
-           the date and the "refrence" date (corresponding to
+           The date and the "refrence" date (corresponding to
            the same month and day) in a reference leap year chosen
            as 1972, since 1970 was not a leap year.
          }
-         \item{Temp }{
-           the temperature.
+         \item{TX }{
+           The temperature.
          }
          \item{Dec, YearDec }{
 
-            factors related to the decade as required in
+            Factors related to the decade as required in
             plots. \code{Dec} is the decade, and \code{YearDec} is
             the year in the decade with values from \code{"0"} to
             \code{"9"}.
 
          }
          \item{YearW, DayW }{
-            "winter" year and day. The winter year \code{YearW} is
+            "Winter" year and day. The winter year \code{YearW} is
              a character variable with values such as
              \code{"2022-23"}. The winter day is an integer
              between 1 (for the 1-st of August) and 366 (for the
              31-th of July in a leap year).
          }
          \item{JJA, DJF }{
-             logical variables for the periods in year
+             Logical variables for the periods in year
              \emph{June-July-August} and
              \emph{December-January-February}. }
     }

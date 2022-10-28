@@ -12,8 +12,6 @@ formatPerc <- function(x,
     else character(0)
 }
 
-
-
 ## ****************************************************************************
 ##' Compute clusters on the basis of a three-day period to separate
 ##' clusters.
@@ -152,6 +150,7 @@ clusters3 <- function(Date, y, u) {
 ##' 
 ##' @examples
 ##' df <- seasCenter(Rennes, j = "07-21")
+##' sort(unique(format(df$Date, "%m-%d")))
 ##' 
 seasCenter <- function(data, j, sw = 45) {
 
@@ -169,12 +168,12 @@ seasCenter <- function(data, j, sw = 45) {
     }
     left <- j - sw
     right <- j + sw
-    if (left <= 0) {
-        dfPer <- subset(data, Day >= left + 365 | Day <= right)
+    if (left < 0) {
+        dfPer <- subset(data, Day > left + 365 | Day < right)
     } else if (right > 365) {
-        dfPer <- subset(data, Day >= left | Day <= right - 365)
+        dfPer <- subset(data, Day > left | Day < right - 365)
     } else {
-        dfPer <- subset(data, Day >= left & Day <= right)
+        dfPer <- subset(data, Day > left & Day < right)
     }
     dfPer
 }
@@ -199,7 +198,7 @@ nonNaIntervals <- function(y) {
     ## cat("length(rl) = ", length(rl), "\n")
     ## start with a missing
     if (length(rl) == 1) {
-        return(list(start = 1, end = rl))
+        return(list(Start = 1, End = rl))
     }
     nrv <- length(rv)
     if (rv[1]) {
@@ -217,7 +216,39 @@ nonNaIntervals <- function(y) {
         end <- crl[ind]
     }
 
-    ## dur <- end - start
+    list(Start = start, End = end)
+}
+
+##' Find the last full year in a character vector representing
+##' successive dates.
+##'
+##' By "full" year, we mean a year with at least 365 days.
+##' 
+##' @title Find the Last Full Year
+##'
+##' @param dateTxt A character vector giving a date in POSIX format.
+##'
+##' @param leap Logical if \code{TRUE}, the last full leap year
+##' will be returned.
+##'
+##' @return A logical vector that can be used to subset. 
+##' 
+lastFullYear <- function(dateTxt, leap = FALSE,
+                         out = c("character", "logical")) {
+    out <- match.arg(out)
+    Year <- gsub("-.*$", "", dateTxt)
+    tY <- table(Year)
     
-    list(Start = start, End = end, Duration = NA)
+    ## This may be wrong if the last year is a leap
+    ## year with its last day missing... 
+    if (leap) {
+        ind1 <- (1:length(tY))[tY == 366]
+    } else {
+        ind1 <- (1:length(tY))[tY >= 365]
+    }
+    ind <- (Year == names(tY)[max(ind1)])
+
+    if (out == "character") return(dateTxt[ind])
+    else return(ind)
+                                   
 }

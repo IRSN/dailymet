@@ -1,0 +1,19 @@
+##' @name Rennes
+##' @title Maximum Daily temperature (TX) in Rennes-Saint-Jacques
+##'     (FR)
+##' @description An object with class \code{"dailyMet"} inheriting
+##'     from \code{"data.frame"}. 
+##'
+##' @note The data come from several sources. The \code{European
+##'     Climate Assesment & Dataset} \url{https://www.ecad.eu/} was
+##'     used for the data up to 2017, August. The different sources
+##'     used are supposed to simply make available the data collected
+##'     by Météo France, as is the case for ECA&D.
+##' 
+##' @seealso \code{\link{dailyMet}} for information of the
+##'     \code{"dailyMet"} class and \code{\link{stationsMF}} for some
+##'     information on the station.
+##' 
+##' @docType data
+##'
+NULL

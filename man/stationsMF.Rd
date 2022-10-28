@@ -13,42 +13,66 @@ stationsMF
 \description{
 A data frame with the following columns
 \itemize{
-     \item{Code, Name }{Code and name.}
-     \item{Lat, Lon, Alt }{
-
+     \item{\code{Code}, \code{Name} }{
+        Code and name.
+     }
+     \item{\code{Lat}, \code{Lon}, \code{Alt} }{
         Latitude, Longitude (decimal degrees) and Altitude
         (metres)
-
       }
-      \item{LongName }{
-
+      \item{\code{LongName} }{
          The long "exact" name in correct French. Mind spaces,
          accents and other special characters. Also compound names
          such can be a combination of two names, which is classical
          for airports.
-
       }
-      \item{Clim }{A factor giving the climatic class, with the followin codes. 
+      \item{\code{Clim} }{
+
+          A factor giving the climatic class, with the following
+          codes.
+
           \itemize{
-             \item{\code{"C"} }{\emph{Modified Oceanic}, mainly for Central zone
-               located at the North of Clermont-Ferrand.}
-             \item{\code{"Med"} }{\emph{Mediterranean}. This coevers the whole
-                   French Mediterranean coastline and at the South of Valence,
-                   including Toulouse.}
-             \item{\code{"NW"} }{\emph{North-West Oceanic}, mainy for
-                North-West. This covers the Atlantic coastline from les Sables
-                d'Olonne (South) to Dunkerque (North) and covers
-                French Brittany, Normandy and Picardie.}
-             \item{\code{"SW"} }{\emph{Aquitain Oceanic}, mainy for South-West.
-                This covers the Atlantic coasline from les Sables d'Olonnes (North)
-                to Hendaye (South).}
-             \item{\code{"NE"} }{\emph{Semi-Continental}, mainy for North-East.}
-             \item{\code{"Mont"} }{\emph{Montaneaous}. The Massif Central and
-                the French Alpes, and the French part of the Pyrenees.}
+             \item{\code{"C"} }{\emph{Modified Oceanic}, mainly
+                 for a Central zone located at the North of
+                 Clermont-Ferrand.}
+             \item{\code{"Med"} }{\emph{Mediterranean}. This covers
+                 the whole French Mediterranean coastline up to the
+                 South of Valence, including Toulouse.}
+             \item{\code{"NW"} }{\emph{North-West Oceanic}, mainy
+                 for North-West. This covers the Atlantic coastline
+                 from les Sables d'Olonne (South) to Dunkerque (North)
+                 and covers French Brittany, Normandy and Picardie.}
+             \item{\code{"SW"} }{\emph{Aquitain Oceanic}, mainy for
+                 South-West. This covers the Atlantic coasline from
+                 les Sables d'Olonnes (North) to Hendaye (South).}
+             \item{\code{"NE"} }{\emph{Semi-Continental}, mainy for
+                 North-East.}
+             \item{\code{"Mont"} }{\emph{Montaneaous}. The Massif
+                 Central and the French Alpes, and the French part
+                 of the Pyrenees.}
              \item{\code{""} }{Special: Tropical, Artic, ...} 
           }
       }
 
+  The values given in \code{Clim} are derived from the Wikipedia
+  page
+  \url{https://fr.wikipedia.org/wiki/Climat_de_la_France}. Note
+  however that the classification of stations is often done on the
+  basis of \emph{yearly} variables, hence can not fully account
+  for the variations that are seen at the daily level.
+
+}
+}
+\examples{
+\dontrun{
+    library(leaflet)
+    m <- leaflet() \%>\% addTiles;
+    m <- m \%>\% fitBounds(lng1 = -4.5, lat1 = 42.0, lng2 = 7.9, lat2 = 50.8)
+    m <- m \%>\% setView(2, 47.4, zoom = 6)
+    m <- m \%>\% addMarkers(lng = stationsMF[ , "Lon"],
+                          lat = stationsMF[ , "Lat"],
+                          popup = stationsMF[ , "ShortName"])
+    m
 }
 }
 \keyword{datasets}

@@ -1,19 +1,27 @@
-##' Create a \code{fevdList} object representing a collection of
+##' Create a \code{fevdTList} object representing a collection of
 ##' \code{fevd} objects that can be compared e.g. graphically.
 ##'
-##' All the objects must have the same type and \code{"GP"} or
-##' \code{"PP"}.
+##' This class is intended to be used for models differing only by
+##' their threshold.
 ##' 
-##' @title Create a \code{fevdList} Object
+##' \itemize{
+##'    \item{ }{All the objects must have the same type and \code{"GP"} or
+##'      \code{"PP"}.}
+##'    \item{ }{All the objects must have the same formulas:
+##'         \code{threshold.fun}, \code{location.fun}, \code{scale.fun}
+##'         and \code{shape.fun}}
+##' }
+##' 
+##' @title Create a \code{fevdTList} Object
 ##'
 ##' @param ... A collection of objects with class \code{"fevd"}
 ##' with the same \code{type}
 ##'
 ##' @export
 ##' 
-##' @return An object with class \code{"fevdList"}.
+##' @return An object with class \code{"fevdTList"}.
 ##' 
-fevdList <- function(...) {
+fevdTList <- function(...) {
      
     L <- list(...)
     if (!all(sapply(L, class) == "fevd")) {
@@ -32,15 +40,15 @@ fevdList <- function(...) {
 }
 
 
-##' @title Coerce into a \code{fevdList} object.
+##' @title Coerce into a \code{fevdTList} object.
 ##'
 ##' @param object An object to coerce, typically a list object.
 ##'
-##' @return An object with S3 class \code{"fevdList"}
+##' @return An object with S3 class \code{"fevdTList"}
 ##'
 ##' @export
 ##' 
-`as.fevdList` <- function(object, names) {
+`as.fevdTList` <- function(object, names) {
     
     if (!all(sapply(object, class) == "fevd")) {
         stop("all items in 'object' must have class ",
@@ -59,13 +67,13 @@ fevdList <- function(...) {
 
 #'
 ##' @export
-##' @method coef fevdList
+##' @method coef fevdTList
 ##' 
-`coef.fevdList` <- function(object, ...) {
+`coef.fevdTList` <- function(object, ...) {
     t(sapply(object, coef))
 }
 
-##' Extracts and show the coefficients of a \code{fevdList} object
+##' Extracts and show the coefficients of a \code{fevdTList} object
 ##' along with their standard deviations.
 ##' 
 ##' @title Coefficients and Standard Errors
@@ -78,7 +86,7 @@ fevdList <- function(...) {
 ##' @param ... Not used.
 ##' 
 ##' @export
-##' @method coSd fevdList
+##' @method coSd fevdTList
 ##'
 ##' @examples
 ##' u0 <- quantile(Fort$Prec, prob = c(0.95, 0.97, 0.98))
@@ -86,10 +94,10 @@ fevdList <- function(...) {
 ##' for (i in 1:3) {
 ##'    Fits[[i]] <- fevd(x = Prec, data = Fort, threshold = u0[i], type = "GP")
 ##' }
-##' class(Fits) <- "fevdList"
+##' class(Fits) <- "fevdTList"
 ##' coSd(Fits)
 ##' 
-`coSd.fevdList` <- function(object, sOnly = FALSE, ...) {
+`coSd.fevdTList` <- function(object, sOnly = FALSE, ...) {
     res <- sapply(object, coSd, sOnly)
     res <- t(res)
     if (!sOnly) res <- noquote(res)
@@ -98,8 +106,8 @@ fevdList <- function(...) {
 
 ##' @importFrom stats vcov
 ##' @export
-##' @method vcov fevdList
+##' @method vcov fevdTList
 ##' 
-`vcov.fevdList` <- function(object, ...) {
+`vcov.fevdTList` <- function(object, ...) {
     lapply(object, vcov)
 }

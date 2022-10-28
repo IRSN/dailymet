@@ -8,7 +8,9 @@ dailyMet(
   data,
   dateVar = "Date",
   metVar = "TX",
-  id = list(Code = NULL),
+  idVar = list(Code = NULL),
+  station = NA,
+  code = NA,
   trace = 0,
   ...
 )
@@ -26,12 +28,16 @@ variable is used and renamed into \code{"Date"}.}
 
 \item{metVar}{Name of the meteorological variable in `data`.}
 
-\item{...}{Not used yet}
-
 \item{idVar}{List defining of variables that can be found of
 created from those in the data.frame, and that will be kept
 under the prescribed name. See \bold{Examples}. \bold{NOT
 IMPLEMENTED}.}
+
+\item{station, code}{Character vectors with length one giving the
+name of the gauging station and the code. These will be
+attached to the data.}
+
+\item{...}{Not used yet}
 }
 \value{
 An object with S3 class \code{"dailyMet"} inheriting from
@@ -55,4 +61,42 @@ precomputed time variables such as the Julian day, ...
         the Julian day.}
 
 }
+
+The precomputed variables include the following ones.
+
+\itemize{
+
+    \item{\code{Day}, \code{DateRef} }{
+
+         Day in the year a.k.a. Julian day, and reference Date.
+         \code{Day} takes integer value between 1 and
+         366. \code{DateRef} is a refrence date, corresponding to
+         the day but in a non leap year taken as reference.  This
+         date allows to plot the series against the day in the
+          year still using months on the x axis.
+    }
+
+    \item{\code{DayW}, \code{DateRefW} }{
+
+         Similar to \code{Day} and \code{Year}, but for
+         "winter years" begining on the 1-st of August and ending
+         on the 31-th of July. Winter years are useful when the
+         interest is on event that usually happen in winter
+         (extreme sea levels, extreme snowfall, ...).
+
+    }
+
+    \item{JJA, DJF }{
+
+         Logical variables indicating the periods June-July-August 
+         and December-January-Febuary which are sometimes used in the
+         study of summer and winter extremes.
+
+    }
+      
+}
+}
+\note{
+We recommend to use the codes and names
+    \code{\link{stationsMF}}.
 }

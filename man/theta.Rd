@@ -2,7 +2,7 @@
 % Please edit documentation in R/fevdMethods.R
 \name{theta}
 \alias{theta}
-\title{Compute the GP or GEV Coefficients for an Object with class
+\title{Compute the GP or GEV Coefficients for an Object with Class
     \code{"fevd"}}
 \usage{
 theta(object, data = NULL)

@@ -31,5 +31,6 @@ form of the seasonality on a parameter.
 }
 \examples{
 df <- seasCenter(Rennes, j = "07-21")
+sort(unique(format(df$Date, "\%m-\%d")))
 
 }

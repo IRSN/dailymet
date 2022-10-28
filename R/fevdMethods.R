@@ -1,6 +1,6 @@
-##'
+## *****************************************************************************
 ##' @importFrom stats formula
-##' @export formula
+##' @export 
 ##' @method formula fevd
 ##' 
 formula.fevd <- function(object, ...) {
@@ -34,11 +34,11 @@ coef.fevd <- function(object, ...) {
     object$results$par
 }
 
-
+## *****************************************************************************
 ##' Extracts the coefficients and the corresponding standard deviation
 ##' for the estimated coefficients of fitted model.
 ##'
-##' @title Standard Deviations of the Estimated Coefficients
+##' @title Estimated Coefficients with Standard Errors
 ##'
 ##' @param object A fitted model.
 ##'
@@ -54,7 +54,7 @@ coSd <- function(object, ...) {
     UseMethod("coSd")
 }
 
-
+## *****************************************************************************
 ##' Extracts and show the coefficients of a \code{fevd} object along
 ##' with their standard deviations.
 ##' 
@@ -104,7 +104,6 @@ vcov.fevd <- function(object, ...) {
 
 
 ## *****************************************************************************
-
 ##' @description This method computes the parameters of the marginal
 ##'     distribution (\code{GP} or \code{GEV}) for the response. This
 ##'     marginal distribution depends on the covariates used in
@@ -401,7 +400,7 @@ residuals.fevd <- function (object,
 ##' Compute the GP or GEV coefficients as a matrix for an object with
 ##' class \code{"fevd"} as created using \code{extRemes::fevd}.
 ##' 
-##' @title Compute the GP or GEV Coefficients for an Object with class
+##' @title Compute the GP or GEV Coefficients for an Object with Class
 ##'     \code{"fevd"}
 ##'
 ##' @param object The object. It must represent the result of a POT

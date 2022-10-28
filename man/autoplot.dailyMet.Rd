@@ -4,17 +4,33 @@
 \alias{autoplot.dailyMet}
 \title{Autoplot a daily meteorological series.}
 \usage{
-\method{autoplot}{dailyMet}(object, group = c("decade", "year"))
+\method{autoplot}{dailyMet}(object, group = c("decade", "year", "yearW"), subset = NULL, ...)
 }
 \arguments{
 \item{object}{The object to be (gg)-ploted.}
 
 \item{group}{A character giving the grouping variable.}
+
+\item{subset}{A \code{\link[base]{subset}} method of the
+\code{"data.frame"} class.}
+
+\item{...}{Further arguments to be passed to \code{subset}.}
 }
 \value{
 An object inheriting from the \code{"ggplot"} class.
 }
 \description{
-Autoplot a daily meteorological series, usually a very long period
-of time, several dozens of years.
+Autoplot a daily meteorological series, usually covering a very
+long period of time such as several dozens of years.
+}
+\note{
+When required, the \code{subset} method used is that of the
+    \code{"data.frame"} class. This method is not available for
+    the \code{"dailyMet"} class since the regular sampling
+    condition is usually lost by subsetting.
+}
+\examples{
+autoplot(Rennes)
+autoplot(Rennes, group = "year", subset = year >= 2010)
+autoplot(Rennes, group = "yearW", subset = Year >= 2010 & DJF)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fevdMethods.R
 \name{coSd}
 \alias{coSd}
-\title{Standard Deviations of the Estimated Coefficients}
+\title{Estimated Coefficients with Standard Errors}
 \usage{
 coSd(object, ...)
 }

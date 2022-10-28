@@ -1,0 +1,351 @@
+##' Create a \code{rqTList} object representing a collection of
+##' \code{rq} objects that differ only by the value of \code{tau}.
+##' This class is useful to compare the object e.g., graphically.
+##'
+##' 
+##' @title Create a \code{rqTList} Object
+##'
+##' @param ... A collection of objects with class \code{"rq"}
+##' with the same \code{type}
+##'
+##' @section Caution: This class contains lists of \code{rq} objects
+##'     sharing the \emph{same formula} and only differing by the
+##'     value of the probability \code{tau}.
+##' 
+##' @return An object with class \code{"rqTList"}.
+##'
+##' @export
+##' 
+rqTList <- function(...) {
+     
+    L <- list(...)
+    if (!all(sapply(L, class) == "rq")) {
+        stop("all objects given in `...` must have class ",
+             "\"rq\"")
+    }
+
+    LF <- lapply(L, formula)
+    if (length(unique(LF)) > 1) {
+        stop("all objects given in ... must have the same formula")
+    }
+    
+    if (is.null(names(L))) {
+        Tau <- lapply(L, function(x) x$tau)
+        names(L) <- paste0("tau=", format(Tau))
+    }
+    
+    class(L) <- c("rqTList", "list")
+    L
+}
+
+
+##' @title Coerce into a \code{rqTList} object.
+##'
+##' @param object An object to coerce, typically a list object.
+##'
+##' @return An object with S3 class \code{"rqTList"}
+##'
+##' @note It is a good practice to use a \emph{named} list.
+##' 
+##' @export
+##' 
+`as.rqTList` <- function(object) {
+    
+    if (!all(sapply(object, class) == "rq")) {
+        stop("all items in 'object' must have class ",
+             "\"rq\"")
+    }
+    
+    LF <- lapply(object, formula)
+    if (length(unique(LF)) > 1) {
+        stop("all element of `object` must have the same formula")
+    }
+    
+    if (is.null(names(object))) {
+        Tau <- lapply(object, function(x) x$tau)
+        names(object) <- paste0("tau=", format(Tau))
+    }
+    
+    class(object) <- c("rqTList", "list")
+    object
+}
+
+#'
+##' @export
+##' @method coef rqTList
+##' 
+`coef.rqTList` <- function(object, ...) {
+    t(sapply(object, coef))
+}
+
+##' Extracts and show the coefficients of a \code{rqTList} object
+##' along with their standard deviations.
+##' 
+##' @title Coefficients and Standard Errors
+##' 
+##' @param object An object with class \code{"rq"}.
+##'
+##' @param sOnly Logical. If \code{TRUE} only the standard deviation
+##'     (a.k.a standard errors) wille be show.
+##'
+##' @param ... Not used.
+##' 
+##' @export
+##' @method coSd rqTList
+##'
+##' @examples
+##' u0 <- quantile(Fort$Prec, prob = c(0.95, 0.97, 0.98))
+##' Fits <- list()
+##' for (i in 1:3) {
+##'    Fits[[i]] <- rq(x = Prec, data = Fort, threshold = u0[i])
+##' }
+##' class(Fits) <- "rqTList"
+##' coSd(Fits)
+##' 
+`coSd.rqTList` <- function(object, sOnly = FALSE, ...) {
+    res <- sapply(object, coSd, sOnly)
+    res <- t(res)
+    if (!sOnly) res <- noquote(res)
+    res
+}
+
+# *****************************************************************************
+##' @importFrom stats formula
+##' @export
+##' @method formula rqTList
+##' 
+formula.rqTList <- function(object, ...) {
+
+    LF <- lapply(object, formula)
+    if (length(uF <- unique(LF)) > 1) {
+        stop("all element of `object` must have the same formula")
+    }
+    uF[[1]]
+    
+}
+
+# *****************************************************************************
+##'
+##' @title Probability for a Quantile Regression Object 
+##'
+##' @param object Quantile regression object.
+##' 
+##' @param ... Arguments for further methods.
+##'
+##' @return The vector of (non-exceedance) probabilitiies.
+##'
+##' @export
+##' 
+tau <- function(object, ...) {
+    UseMethod("tau")
+}
+
+
+# *****************************************************************************
+##' @export
+##'
+##' @method tau rqTList
+##'
+##' @rdname tau
+##' 
+tau.rqTList <- function(object, ...) {
+    sapply(object, function(x) x$tau)
+}
+
+##  *****************************************************************************
+##' Predict from a \code{rqTList} object.
+##' 
+##' @param object A \code{rqTList} object representing a list of
+##'     regression quantile models as created by the
+##'     \code{\link[quantreg]{rq}} function of the \pkg{quantreg}
+##'     package.
+##'
+##' @param newdata New data frame. Not allosed for now.
+##'
+##' @param lastFullYear Logical. If \code{TRUE}, only the last full
+##'     year in the data used to fit the quantile regressions will be
+##'     used. If the regression quantile uses only functions of the
+##'     date that have the one-year periodicity, the one should use
+##'     \code{lastFullYear = TRUE}.
+##'    
+##' @param out Character giving the format of the output. If
+##'     \code{"short"} a numeric matrix is returned with the formated
+##'     date as its rownames. If \code{"long"} a data frame with
+##'     columns \code{Date}, \code{u} and \code{tau} is returned.  The
+##'     long format is useful when ggplots areto be produced.
+##' 
+##' @param ... Further arguments passed to the \code{predict} method
+##'     of the class \code{"rq"}.
+##' 
+##' @return A matrix or a data frame, depending on the value or
+##'     \code{out}.
+##'
+##' @export
+##' @method predict rqTList
+##' 
+predict.rqTList <- function(object,  newdata,
+                            lastFullYear = TRUE,
+                            out = c("short", "long"), ...)  {
+
+    out <- match.arg(out)
+    nq <- length(object)
+    DateTxt <- rownames(object[[1]]$x)
+    
+    if (lastFullYear) {
+        ind <- lastFullYear(DateTxt, out = "logical")
+    } else ind <- rep(TRUE, length(DateTxt))
+   
+    Date <- as.Date(DateTxt[ind])
+
+    if (!missing(newdata)) {
+        stop("'newdata can not be given for now")
+    }
+
+    if (out == "short") {
+        pred <- array(NA, dim = c(length(Date), ncol = nq),
+                      dimnames = list(DateTxt[ind], names(object)))   
+        for (i in 1:nq) {
+            pred[ , i] <- predict(object[[i]], ...)[ind]
+        }
+    } else {
+        for (i in 1:nq) {
+            p <- predict(object[[i]], ...)[ind]
+            if (i == 1) {
+                pred <- data.frame(Date = Date, u = p, tau = object[[i]]$tau)  
+            } else {
+                newPred <- data.frame(Date = Date, u = p, tau = object[[i]]$tau)
+                rownames(newPred) <- NULL
+                pred <- rbind(pred, newPred, deparse.level = 0 )
+            }
+        }
+        pred <- within(pred, tau <- as.factor(tau))
+    }
+        
+    pred
+    
+}
+
+##' @export
+##' @method print rqTList
+##' 
+print.rqTList <- function(x, ...) {
+    cat("List of Quantile Regression results\n")
+    cat("\no Probabilities used\n")
+    print(tau(x))
+    cat("\no Formula used\n")
+    print(formula(x))
+    cat("\no Estimated coefficients\n")
+    print(round(coef(x), digits = 3))
+}
+
+## *****************************************************************************
+##'
+##' @title Compute an Estimate of the Tail Coefficient 'xi'
+##'
+##' @param object Object from which the estimation is to be done.
+##' 
+##' @param ... Arguments for further methods.
+##'
+##' @return Estimation(s) of \eqn{\xi} in a vector or data frame.
+##'
+##' @export
+##' 
+xi <- function(object, ...) {
+    UseMethod("xi")
+}
+
+
+## *****************************************************************************
+##' Estimate the tail coefficient \eqn{\xi} from quantiles.
+##' 
+##' Let \eqn{\tau_1 < \tau_2 < \tau_3} be the probabilities and
+##' \eqn{T_1 < T_2 < T_3} be
+##' the corresponding return periods \eqn{T_i = 1 / (1 - \tau_i)}. Let
+##' \eqn{q_1}, \eqn{q_2}, \eqn{q_3} be the corresponding quantiles as computed
+##' by quantile regression. Then we can find \eqn{\xi} by solving the equation
+##' \deqn{\dfrac{T_3^\xi - T_1^\xi}{T_2^\xi - T_1^\xi} =
+##'    \dfrac{q_3 - q_1}{q_2 - q_1}.}{[T_3^xi - T_1^xi] / [T_2^\xi - T_1^\xi] =
+##'  [q_3 - q_1] / [q_2 - q_1].} 
+##' The value of \eqn{\xi} then depends on the covariates used in the quantile
+##' regression. We only consider here the case where the quantiles depend on
+##' the date, with emphasis on the case where the quantile are periodic
+##' functions of the date with one-year period. The the value of \eqn{\xi}
+##' has also the one-year periodicity, and we can assess its variation
+##' on a one-year period which can be the last full year in the period used
+##' to estimate the quantiles.
+##' 
+##' @title Compute an Estimate of the Tail Coefficient 'xi' using
+##'     Quantile Regression Results
+##'
+##' @param object An object with class \code{"rqTList"}.
+##'
+##' @param tau A vector of 3 probabilities. This vector must be in
+##'     strictly increasing order and contain values that are found in
+##'     \code{tau(object)}. By default the three largest values in
+##'     \code{tau(object)} are used.
+##'
+##' @return A data frame with a \code{xiHat} column containing the
+##'     estimation.
+##'
+##' @section Caution: There may be a huge uncertainty on this
+##'     estimate, and it seems that the variations are somewhat
+##'     exaggerated. An alternative method is estimating \eqn{xi} by
+##'     using a moving time window in the year.
+##' 
+##' @export
+##' @method xi rqTList
+##' 
+xi.rqTList <- function(object,
+                       tau = NULL,
+                       lastFullYear = TRUE,
+                       plot = FALSE)  {
+    
+    tauObj <- tau(object)
+    if (missing(tau)) {
+        tau <- tauObj[length(object) - c(2, 1, 0)]
+    }
+    m <- match(tau, tauObj)
+    
+    if (any(is.na(m))) {
+        stop("the vector 'tau' given must have only values in ",
+             "`tau(object)`")
+    }
+    
+    if (length(tau) != 3 || is.unsorted(tau)) {
+        stop("'tau must have length 3 and be in sorted")
+    }
+    
+    ## return periods
+    T <- 1.0 / (1 - tau)
+    
+    f <- function(xi, val) {
+        (T[3]^xi - T[1]^xi) / (T[2]^xi - T[1]^xi) - val
+    }
+
+    ## matrix with thresholds as its columns
+    U <- predict(object, lastFullYear = lastFullYear, out = "short")
+    R <- (U[ , m[3]] - U[ , m[1]]) / (U[ , m[2]] - U[ , m[1]])
+    
+    xiHat <- rep(NA, 365)
+    for (i in 1:nrow(U)) {
+        resi <- try(uniroot(f = f, interval = c(-2, 2), val = R[i]))
+        if (!inherits(res, "try-error")) {
+            xiHat[i] <- resi$root
+        }
+    }
+    
+    res <- data.frame(Date = as.Date(rownames(U)), R = R, xiHat = xiHat)
+    
+    if (plot) {
+        g <- ggplot(data = res) +
+            geom_line(mapping = aes(x = Date, y = xiHat)) +
+            ggtitle(sprintf(paste0("Tail coefficient 'xi' estimated from the three ",
+                                   "quantiles with prob. %s"),
+                            paste(format(tau), collapse = ", "))) +
+            xlab("") + scale_x_date(breaks = "month", labels = date_format("%m")) 
+
+        print(g)
+    }
+
+    res
+}

@@ -8,6 +8,7 @@ Description: Provide utility functions to model meteorological variables
     with emphasis on the extremes 
 Depends: extRemes, quantreg, NHPoisson, ggplot2, scales
 Import: NSGEV, potomax, utils
+Suggests: leaflet
 License: GPL >= 2
 Encoding: UTF-8
 LazyData: true
