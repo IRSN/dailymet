@@ -126,8 +126,18 @@ order.
   formulas. Indeed, the Poisson-GP parameterisation is not independent
   of the threshold: if the GPD scale depends linearly of a covariate
   $x$ for a given threshold $u$, then for a higher threshold $u'>u$
-  the scale will depend on $x$ in a nonlinear fashion. See the
-  relation between the two POT parameterisation Poisson-GP and NHPP,
-  only the later being independent of the threshold.
+  the scale will generally depend on $x$ in a nonlinear fashion. See
+  the relation between the two POT parameterisation Poisson-GP and
+  NHPP, only the later being independent of the threshold.
 
 ### Example
+
+
+
+
+# Technical issues
+
+## Related to **quantreg**
+
+- An `rq`object as created by `quantreg::rq` does not store the data
+  used.
