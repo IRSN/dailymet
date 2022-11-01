@@ -1,0 +1,133 @@
+---
+author: Yves Deville
+title: "Introduction to the `dailymet`package"
+date: "`r Sys.Date()`"
+output:
+  html_document: 
+    toc: yes
+linkcolor: blue
+---
+
+# Goals
+
+- Use daily meteorological timeseries, mainly `TX`. 
+
+- Provide bases of functions of the date: trigonometric, polynomial, ...
+
+- Fit time-varying and non-stationary *POT models* with emphasis on
+the sensitivity to the *threshold choice*, thanks to dedicated classes
+of objects that we may call "TLists" for *list by threshold*.
+
+
+# The `dailyMet`class
+
+The package comes with the `Rennes` example.
+
+```{r Rennes, message=FALSE} 
+library(dailymet)
+class(Rennes)
+Rennes
+methods(class = "dailyMet")
+```
+
+So `Rennes` has class `"dailyMet"` which inherits from the
+`"data.frame"`class. The `print` method provides useful information. A
+method which is not implemented for the class `"dailyMet"` will be
+inherited from the `"data.frame"` class e.g., `head`, `tail`, `nrow`
+...
+
+
+```{r Rennes2, message=FALSE} 
+autoplot(Rennes)
+
+```
+
+Since the object embeds several variables related to the date, we can
+use these straightforwardly. Mind that the variable names are
+capitalised.
+
+```{r Rennes3, message=FALSE} 
+autoplot(Rennes, subset = Year >= 2010 & JJA, group = "year")
+
+```
+Splitting the timeseries in years is suitable when the interest is on
+the summer season. It the interest is instead on winter, then using 
+the "winter year" `YearW` will be better.
+
+
+```{r Rennes4, message=FALSE} 
+autoplot(Rennes, subset = Year >= 2010, group = "yearW")
+
+```
+
+Although no other data is shipped with the package, it has a sketch 
+of file-based database based on the information provided in 
+`stationsMF`
+
+```{r stations, message=FALSE} 
+findStationMF("troy")
+```
+
+The idea is that the name or description can be quite loose. The
+reliable identifier of a station is given in `Code`, which corresponds
+to Météo-France [données publiques
+Météo-France](https://donneespubliques.meteofrance.fr/)
+
+
+```{r stations2, message=FALSE} 
+head(stationsMF)
+```
+
+```{r stations3, echo=FALSE, message=FALSE} 
+library(leaflet)
+m <- leaflet() %>% addTiles;
+## m <- m %>% fitBounds(lng1 = -4.5, lat1 = 41.9, lng2 = 7.9, lat2 = 50.8)
+m <- m %>% setView(2, 47.1, zoom = 5)
+m <- m %>% addMarkers(lng = stationsMF[ , "Lon"],
+lat = stationsMF[ , "Lat"],
+popup = stationsMF[ , "ShortName"])
+m
+```
+
+See the help `stationsMF` for a **leaflet** map of these. Note that
+the codes of the main MF stations for the metropolitan area correspond
+rougthly to an ordering from North to South (decreasing latitude) and
+West to East (increasing longitude). This can be of some help.
+
+# Using *TList*s
+
+### What are TLists?
+
+A T list is a list of object sharing the same definition except for
+their threshold. The threshold is related to a probability `tau`
+corresponding to the probability  $\tau$ as used in quantile regression.
+
+- A `rqTList` object is a list of `rq` objects differing only by their
+probability `tau`, hence related to the same data, same formula, ...
+
+- A `fevdTList`object is a list of `fevd` objects representing
+  Poisson-GP POT models differing *only by their threshold* which is
+  given by quantile regression and corresponds to different
+  probabilities `tau`. Again the `fevd`objects are related to the same
+  data, to the same formulas, ...
+  
+Implicitly assumed, the vector `tau` should be in strictly increasing
+order.
+
+### Some important remarks
+
+- A `rq` object does not encode a full distribution nor even a tail
+  distribution. The `rq` objects may fail to be consistent and the
+  quantile may fail to increase with the proability $\tau$. See XXX
+  Northrop.
+
+- Stricly speaking, the `fevd` objects in a `fevdTList` object are
+  *different* Poisson-GP models, although they must have the same
+  formulas. Indeed, the Poisson-GP parameterisation is not independent
+  of the threshold: if the GPD scale depends linearly of a covariate
+  $x$ for a given threshold $u$, then for a higher threshold $u'>u$
+  the scale will depend on $x$ in a nonlinear fashion. See the
+  relation between the two POT parameterisation Poisson-GP and NHPP,
+  only the later being independent of the threshold.
+
+### Example
