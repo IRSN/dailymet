@@ -32,7 +32,7 @@
 ##' 
 ##'     \item{\code{DayW}, \code{DateRefW} }{
 ##'
-##'          Similar to \code{Day} and \code{Year}, but for
+##'          Similar to \code{Day} and \code{DateRef}, but for
 ##'          "winter years" begining on the 1-st of August and ending
 ##'          on the 31-th of July. Winter years are useful when the
 ##'          interest is on event that usually happen in winter
@@ -50,8 +50,6 @@
 ##'       
 ##' }
 ##' 
-##' 
-##' 
 ##' @title Create an Object with S3 Class \code{"dailyMet"}  
 ##'
 ##' @param data An object than can be coerced into a data frame with
@@ -66,13 +64,12 @@
 ##'
 ##' @param metVar Name of the meteorological variable in `data`.
 ##'
-##' @param idVar List defining of variables that can be found of
+##' @param idVar List defining of variables that can be found or
 ##'     created from those in the data.frame, and that will be kept
-##'     under the prescribed name. See \bold{Examples}. \bold{NOT
-##'     IMPLEMENTED}.
+##'     under the prescribed name. \bold{NOT IMPLEMENTED}.
 ##'
-##' @param station,code Character vectors with length one giving the
-##'     name of the gauging station and the code. These will be
+##' @param station,id Character vectors with length one giving the
+##'     name of the gauging station and the identifier. These will be
 ##'     attached to the data.
 ##' 
 ##' @param ... Not used yet
@@ -82,15 +79,15 @@
 ##'
 ##' @export
 ##'
-##' @note We recommend to use the codes and names
+##' @note We recommend to use the staion Ids and names given in
 ##'     \code{\link{stationsMF}}.
 ##' 
 dailyMet <- function(data,
                      dateVar = "Date", 
                      metVar = "TX",
-                     idVar = list("Code" = NULL),
+                     idVar = list("Id" = NULL),
                      station = NA,
-                     code = NA,
+                     id = NA,
                      trace = 0, ...) {
     
     dMet <- as.data.frame(data)
@@ -170,7 +167,7 @@ dailyMet <- function(data,
     attr(dMet, "metVar") <- metVar
     attr(dMet, "periods") <- periods
     attr(dMet, "station") <- station
-    attr(dMet, "code") <- code
+    attr(dMet, "id") <- id
     
     class(dMet) <- c("dailyMet", "data.frame")
 
@@ -201,18 +198,17 @@ dailyMet <- function(data,
 summary.dailyMet <- function(object, ...) {
 
     y <- object[[attr(object, "metVar")]]
-    
-    o <- order(y)
+
+    ynn <- y[!is.na(y)]
+    Datenn <- object$Date[!is.na(y)]
+    o <- order(ynn)
     ind <- o[1:5]
-    minInfo <- paste(sprintf("%6.1f", y[ind]), " [", object$Date[ind], "]",
+    minInfo <- paste(sprintf("%6.1f", ynn[ind]), " [", Datenn[ind], "]",
                      sep = "") 
     ind <- o[length(o) - 0:4]
-    maxInfo <- paste(sprintf("%6.1f", y[ind]), " [", object$Date[ind], "]",
+    maxInfo <- paste(sprintf("%6.1f", ynn[ind]), " [", Datenn[ind], "]",
                      sep = "") 
-    cat("\n   o Five smallest/largest obs\n")
-    print(noquote(cbind(min = minInfo, max = maxInfo)))
-
-    
+      
     res <- list("station" =  attr(object, "station"),
                 "code" = attr(object, "code"),
                 "metVar" = attr(object, "metVar"),

@@ -8,9 +8,9 @@ dailyMet(
   data,
   dateVar = "Date",
   metVar = "TX",
-  idVar = list(Code = NULL),
+  idVar = list(Id = NULL),
   station = NA,
-  code = NA,
+  id = NA,
   trace = 0,
   ...
 )
@@ -28,13 +28,12 @@ variable is used and renamed into \code{"Date"}.}
 
 \item{metVar}{Name of the meteorological variable in `data`.}
 
-\item{idVar}{List defining of variables that can be found of
+\item{idVar}{List defining of variables that can be found or
 created from those in the data.frame, and that will be kept
-under the prescribed name. See \bold{Examples}. \bold{NOT
-IMPLEMENTED}.}
+under the prescribed name. \bold{NOT IMPLEMENTED}.}
 
-\item{station, code}{Character vectors with length one giving the
-name of the gauging station and the code. These will be
+\item{station, id}{Character vectors with length one giving the
+name of the gauging station and the identifier. These will be
 attached to the data.}
 
 \item{...}{Not used yet}
@@ -78,7 +77,7 @@ The precomputed variables include the following ones.
 
     \item{\code{DayW}, \code{DateRefW} }{
 
-         Similar to \code{Day} and \code{Year}, but for
+         Similar to \code{Day} and \code{DateRef}, but for
          "winter years" begining on the 1-st of August and ending
          on the 31-th of July. Winter years are useful when the
          interest is on event that usually happen in winter
@@ -97,6 +96,6 @@ The precomputed variables include the following ones.
 }
 }
 \note{
-We recommend to use the codes and names
+We recommend to use the staion Ids and names given in
     \code{\link{stationsMF}}.
 }

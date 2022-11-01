@@ -4,7 +4,12 @@
 \alias{autoplot.dailyMet}
 \title{Autoplot a daily meteorological series.}
 \usage{
-\method{autoplot}{dailyMet}(object, group = c("decade", "year", "yearW"), subset = NULL, ...)
+\method{autoplot}{dailyMet}(
+  object,
+  group = c("decade", "year", "yearW", "none"),
+  subset = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{The object to be (gg)-ploted.}

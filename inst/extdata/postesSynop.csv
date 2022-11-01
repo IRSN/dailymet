@@ -1,4 +1,4 @@
-Code;Name;Lat;Lon;Alt;LongName;ShortName;Zone;Desc;OldCode;Resol40;Clim
+Id;Name;Lat;Lon;Alt;LongName;ShortName;Zone;Desc;OldCode;Resol40;Clim
 07005;ABBEVILLE;50.136000;1.834000;69;Abbeville;Abbev;Somme;abbeville;abbev;1;NW
 07015;LILLE-LESQUIN;50.570000;3.097500;47;Lille-Lesquin;Lille;Nord;lille-lesquin;;1;C
 07020;PTE DE LA HAGUE;49.725167;-1.939833;6;Pointe de la Hague;La-Hague;Manche;cap-de-la-hague;;1;NW

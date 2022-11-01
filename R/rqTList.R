@@ -1,3 +1,95 @@
+ ##' Create a \code{qrList} object by calling \code{\link{rq}} for each
+##' of the probabilities given in \code{tau}, using the same formula
+##' and data for all fits.
+##' 
+##' @title Create A \code{rqTList} Object by Repeated Calls to
+##'     \code{rq}
+##'
+##' @param formula The formula that will be used in
+##'     \code{\link[quantreg]{rq}}.
+##' 
+##' @param dailyMet An object with class \code{"dailyMet"} that
+##'     contains the variables that will be used in the formula or in
+##'     the design function specified \code{design}.
+##' 
+##' @param tau A vector of probabilities.
+##'
+##' @param design A list of arguments to be passed to
+##'     \code{\link{tsDesign}}. For each element of this list, the
+##'     variables of the design are added to the data frame given in
+##'     \code{dailyMet} before fiiting the model. The default creates
+##'     seven trigonometric basis functions for the first three
+##'     harmonics of the yearly seasonality.
+##' 
+##'
+##' @return An object with class \code{"rqTList"}
+##' @export
+##' @examples
+##' Rq <- rqTList(dailyMet = Rennes)
+##' coef(Rq)
+##' autoplot(Rq)
+rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
+                    dailyMet,
+                    tau = c(0.5, 0.70, 0.80, 0.90, 0.95, 0.97, 0.98, 0.99),
+                    design = list("trigo" = list(type = "trigo", df = 7))) {
+    
+    if (!inherits(dailyMet, "dailyMet")) {
+        stop("'dailyMet' must be an object with class \"dailyMet\"")
+    }
+
+    attrList <- list(metVar = attr(dailyMet, "metVar"),
+                     station = attr(dailyMet, "station"),
+                     code = attr(dailyMet, "code"))
+    
+    for (ides in seq_along(design)) {
+        argList <- design[[ides]]
+        argList <- c(list(dt = dailyMet$Date), design[[ides]])
+        des <- do.call("tsDesign", argList)
+        dailyMet <- data.frame(dailyMet, des$X)
+    }
+        
+    fit <- u <- list()
+    
+    for (i in seq_along(tau)) {
+        
+        fit[[i]] <- rq(formula = substitute(formula), data = dailyMet, tau = tau[i],
+                       na.action = "na.exclude")
+        
+        u[[i]] <- predict(fit[[i]], newdata = dailyMet, na.action = na.pass)
+
+        if (FALSE) {
+            dfi <- data.frame(Date = dailyMet$Date,
+                              DateRef = dailyMet$DateRef,
+                              Year = dailyMet$Year,
+                              YearW = dailyMet$YearW,
+                              DayW = dailyMet$DayW,
+                              DateRefW = dailyMet$DateRefW,
+                              JJA = dailyMet$JJA,
+                              DJF = dailyMet$DJF,
+                              tau = Tau[i],
+                              TX = dailyMet$TX,
+                              u = u[[i]])
+            if (i == 1) dfu <- dfi
+            else dfu <- dplyr::bind_rows(dfu, dfi)                     
+        }
+        
+    }
+    
+    ## dfu <- within(dfu, tau <- as.factor(tau))
+    names(fit) <- paste0("tau=", format(tau))
+    
+    for (nm in c("metVar", "station", "code")) {
+        attr(fit, nm) <- attrList[[nm]]
+    }
+
+    attr(fit, "data") <- dailyMet
+    class(fit) <- c("rqTList", "list")
+    
+    fit
+
+}
+    
+## *****************************************************************************
 ##' Create a \code{rqTList} object representing a collection of
 ##' \code{rq} objects that differ only by the value of \code{tau}.
 ##' This class is useful to compare the object e.g., graphically.
@@ -14,29 +106,26 @@
 ##' 
 ##' @return An object with class \code{"rqTList"}.
 ##'
-##' @export
-##' 
-rqTList <- function(...) {
-     
-    L <- list(...)
-    if (!all(sapply(L, class) == "rq")) {
-        stop("all objects given in `...` must have class ",
-             "\"rq\"")
-    }
+##' ##@export
+##'
 
-    LF <- lapply(L, formula)
-    if (length(unique(LF)) > 1) {
-        stop("all objects given in ... must have the same formula")
-    }
-    
-    if (is.null(names(L))) {
-        Tau <- lapply(L, function(x) x$tau)
-        names(L) <- paste0("tau=", format(Tau))
-    }
-    
-    class(L) <- c("rqTList", "list")
-    L
-}
+## rqTList <- function(...) { 
+##     L <- list(...)
+##     if (!all(sapply(L, class) == "rq")) {
+##         stop("all objects given in `...` must have class ",
+##              "\"rq\"")
+##     }
+##     LF <- lapply(L, formula)
+##     if (length(unique(LF)) > 1) {
+##         stop("all objects given in ... must have the same formula")
+##     }
+##     if (is.null(names(L))) {
+##         Tau <- lapply(L, function(x) x$tau)
+##         names(L) <- paste0("tau=", format(Tau))
+##     }
+##     class(L) <- c("rqTList", "list")
+##     L
+## }
 
 
 ##' @title Coerce into a \code{rqTList} object.
@@ -160,7 +249,7 @@ tau.rqTList <- function(object, ...) {
 ##'     \code{\link[quantreg]{rq}} function of the \pkg{quantreg}
 ##'     package.
 ##'
-##' @param newdata New data frame. Not allosed for now.
+##' @param newdata New data frame.
 ##'
 ##' @param lastFullYear Logical. If \code{TRUE}, only the last full
 ##'     year in the data used to fit the quantile regressions will be
@@ -173,6 +262,8 @@ tau.rqTList <- function(object, ...) {
 ##'     date as its rownames. If \code{"long"} a data frame with
 ##'     columns \code{Date}, \code{u} and \code{tau} is returned.  The
 ##'     long format is useful when ggplots areto be produced.
+##'
+##' @param na.action See \code{\link[quantreg]{predict.rq}}.
 ##' 
 ##' @param ... Further arguments passed to the \code{predict} method
 ##'     of the class \code{"rq"}.
@@ -182,14 +273,36 @@ tau.rqTList <- function(object, ...) {
 ##'
 ##' @export
 ##' @method predict rqTList
-##' 
-predict.rqTList <- function(object,  newdata,
+##'
+##' @examples
+##' RqRennes <- rqTList(dailyMet = Rennes)
+##' ## use a matrix
+##' pRennes <- predict(RqRennes, out = "short")
+##' \dontrun{
+##'     stat <- findStationMF("bordeaux-me")
+##'     ## you may here have to use `Sys.setenv(metData = xxx)`
+##'     Bordeaux <- readMet(stat)
+##'     RqBordeaux <- rqTList(dailyMet = Bordeaux)
+##'     pBordeaux <- predict(RqBordeaux, out = "short")
+##'     pBordeaux - pRennes
+##'     autoplot(as.ts(pBordeaux - pRennes)) +
+##'        ggtitle("differences in the quantiles Bordeaux - Rennes")
+##' }
+predict.rqTList <- function(object,
+                            newdata,
                             lastFullYear = TRUE,
-                            out = c("short", "long"), ...)  {
+                            out = c("long", "short"),
+                            na.action = na.pass,
+                            ...)  {
 
     out <- match.arg(out)
     nq <- length(object)
-    DateTxt <- rownames(object[[1]]$x)
+
+    if (missing(newdata)) {
+        newdata <- attr(object, "data")
+    }
+    
+    DateTxt <- format(newdata$Date, "%Y-%m-%d")
     
     if (lastFullYear) {
         ind <- lastFullYear(DateTxt, out = "logical")
@@ -197,19 +310,19 @@ predict.rqTList <- function(object,  newdata,
    
     Date <- as.Date(DateTxt[ind])
 
-    if (!missing(newdata)) {
-        stop("'newdata can not be given for now")
-    }
-
     if (out == "short") {
         pred <- array(NA, dim = c(length(Date), ncol = nq),
                       dimnames = list(DateTxt[ind], names(object)))   
         for (i in 1:nq) {
-            pred[ , i] <- predict(object[[i]], ...)[ind]
+            pred[ , i] <- predict(object[[i]],
+                                  newdata = newdata,
+                                  na.action = na.action)[ind]
         }
     } else {
         for (i in 1:nq) {
-            p <- predict(object[[i]], ...)[ind]
+            p <- predict(object[[i]],
+                         newdata = newdata,
+                         na.action = na.action)[ind]
             if (i == 1) {
                 pred <- data.frame(Date = Date, u = p, tau = object[[i]]$tau)  
             } else {
@@ -287,7 +400,7 @@ xi <- function(object, ...) {
 ##' @return A data frame with a \code{xiHat} column containing the
 ##'     estimation.
 ##'
-##' @section Caution: There may be a huge uncertainty on this
+##' @section Caution: There seems to be a huge uncertainty on this
 ##'     estimate, and it seems that the variations are somewhat
 ##'     exaggerated. An alternative method is estimating \eqn{xi} by
 ##'     using a moving time window in the year.
@@ -329,7 +442,7 @@ xi.rqTList <- function(object,
     xiHat <- rep(NA, 365)
     for (i in 1:nrow(U)) {
         resi <- try(uniroot(f = f, interval = c(-2, 2), val = R[i]))
-        if (!inherits(res, "try-error")) {
+        if (!inherits(resi, "try-error")) {
             xiHat[i] <- resi$root
         }
     }
@@ -348,4 +461,11 @@ xi.rqTList <- function(object,
     }
 
     res
+}
+
+
+##' @export
+##' @method summary rqTList
+summary.rqTList <- function(object, ...) {
+    lapply(object, summary)
 }

@@ -13,8 +13,8 @@ stationsMF
 \description{
 A data frame with the following columns
 \itemize{
-     \item{\code{Code}, \code{Name} }{
-        Code and name.
+     \item{\code{Id}, \code{Name} }{
+        Identifier and name for the MF station.
      }
      \item{\code{Lat}, \code{Lon}, \code{Alt} }{
         Latitude, Longitude (decimal degrees) and Altitude
@@ -67,7 +67,7 @@ A data frame with the following columns
 \dontrun{
     library(leaflet)
     m <- leaflet() \%>\% addTiles;
-    m <- m \%>\% fitBounds(lng1 = -4.5, lat1 = 42.0, lng2 = 7.9, lat2 = 50.8)
+    m <- m \%>\% fitBounds(lng1 = -4.5, lat1 = 41.9, lng2 = 7.9, lat2 = 50.8)
     m <- m \%>\% setView(2, 47.4, zoom = 6)
     m <- m \%>\% addMarkers(lng = stationsMF[ , "Lon"],
                           lat = stationsMF[ , "Lat"],

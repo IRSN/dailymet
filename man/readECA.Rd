@@ -23,36 +23,9 @@ that will be attached to the object when the output class is
 A data frame with the temperature \code{TX}, the date
     \code{Date} and several functions of the Date.
 
-A data frame with the columns
-    \itemize{
-        \item{Date, DateRef }{
-           The date and the "refrence" date (corresponding to
-           the same month and day) in a reference leap year chosen
-           as 1972, since 1970 was not a leap year.
-         }
-         \item{TX }{
-           The temperature.
-         }
-         \item{Dec, YearDec }{
-
-            Factors related to the decade as required in
-            plots. \code{Dec} is the decade, and \code{YearDec} is
-            the year in the decade with values from \code{"0"} to
-            \code{"9"}.
-
-         }
-         \item{YearW, DayW }{
-            "Winter" year and day. The winter year \code{YearW} is
-             a character variable with values such as
-             \code{"2022-23"}. The winter day is an integer
-             between 1 (for the 1-st of August) and 366 (for the
-             31-th of July in a leap year).
-         }
-         \item{JJA, DJF }{
-             Logical variables for the periods in year
-             \emph{June-July-August} and
-             \emph{December-January-February}. }
-    }
+A data frame with the columns read in the file and
+    possibly also those built by the \code{\link{dailyMet}}
+    function.
 }
 \description{
 Read a file as provided by the ECA Data  with \code{StatId}
@@ -62,5 +35,12 @@ Read a file as provided by the ECA Data  with \code{StatId}
     \emph{blended} data are used, and the variable is assumed to
     be a temperature. Also the \code{SOUID} field identifying the
     source is discarded.
+
+ The station identifier \code{StatId} used by
+    European Climate Assessment & Dataset project (ECA&D)
+    \url{https://www.ecad.eu/} is different from the one used by
+    Météo France. Also ECA&D makes a distinction between
+    \emph{Station Id} (\code{StatId}) and \emph{Source Id}
+    (\code{SouId}).
 }
 

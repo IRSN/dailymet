@@ -1,10 +1,11 @@
 ## *****************************************************************************
 ##' @name stationsMF
 ##' @title Stations Météo-France
+##' 
 ##' @description  A data frame with the following columns
 ##' \itemize{
-##'      \item{\code{Code}, \code{Name} }{
-##'         Code and name.
+##'      \item{\code{Id}, \code{Name} }{
+##'         Identifier and name for the MF station.
 ##'      }
 ##'      \item{\code{Lat}, \code{Lon}, \code{Alt} }{
 ##'         Latitude, Longitude (decimal degrees) and Altitude
@@ -61,7 +62,7 @@
 ##' \dontrun{
 ##'     library(leaflet)
 ##'     m <- leaflet() %>% addTiles;
-##'     m <- m %>% fitBounds(lng1 = -4.5, lat1 = 42.0, lng2 = 7.9, lat2 = 50.8)
+##'     m <- m %>% fitBounds(lng1 = -4.5, lat1 = 41.9, lng2 = 7.9, lat2 = 50.8)
 ##'     m <- m %>% setView(2, 47.4, zoom = 6)
 ##'     m <- m %>% addMarkers(lng = stationsMF[ , "Lon"],
 ##'                           lat = stationsMF[ , "Lat"],
@@ -72,7 +73,7 @@ stationsMF <-
     read.table(file = system.file("extdata", "postesSynop.csv",
                                       package = "dailymet"),
                header = TRUE, sep = ";",
-               colClasses = c("Code" = "character",
+               colClasses = c("Id" = "character",
                               "Name" = "character",
                               "Lat" = "numeric",
                               "Lon" = "numeric",
@@ -88,14 +89,14 @@ stationsMF <-
 ##******************************************************************************
 ##' Find a "Météo France" station using a description, code or name.
 ##' 
-##' @title Find a "Meteo France" Station using a Description, Code or
+##' @title Find a "Meteo France" Station using a Description, Id or
 ##'     Name
 ##' 
 ##' @param desc A character string to be matched against the
 ##'     description of the station.
 ##'
-##' @param code A character string to be matched against the code of
-##'     the station.
+##' @param id A character string to be matched against the identifier
+##'     (id) of the station.
 ##'
 ##' @param name A character string to be matched against the name of
 ##'     the station. Character case and accents are likely to generate
@@ -124,16 +125,16 @@ stationsMF <-
 ##' ## error
 ##' findStationMF(desc = "tro")
 findStationMF <- function(desc = NULL,
-                          code = NULL,
+                          id = NULL,
                           name = NULL,
                           one = TRUE) {
     
     nS <- nrow(stationsMF)
-    if (!is.null(code)) {
-        ind <- (1:nS)[stationsMF$Code == code]
+    if (!is.null(id)) {
+        ind <- (1:nS)[stationsMF$Id == id]
     } else {
         if (is.null(desc)) {
-            stop("'station' or 'code' must be given")
+            stop("'station' or 'id' must be given")
         } else {
             ind <- grep(tolower(desc), tolower(stationsMF$Desc))
         }
@@ -147,19 +148,19 @@ findStationMF <- function(desc = NULL,
         cat("Several matches found:\n")
         cat(paste(paste(1:length(ind),
                         stationsMF$Desc[ind],
-                        stationsMF$Code[ind]), collapse = "\n"))
+                        stationsMF$Id[ind]), collapse = "\n"))
         cat("\n")
-        stop("several stations match. Hint. use 'code ='")
+        stop("several stations match. Hint. use 'id ='")
     }
     
     desc <- stationsMF$Desc[ind]
-    code <- stationsMF$Code[ind]
+    id <- stationsMF$Id[ind]
    
-    stationWeb <- paste(desc, code, sep = "/")
-    localDir <- paste(code, desc, sep = "_")
+    stationWeb <- paste(desc, id, sep = "/")
+    localDir <- paste(id, desc, sep = "_")
 
     data.frame(Desc = desc,
-               Code = code,
+               Id = id,
                Name = stationsMF$Name[ind],
                Lat = stationsMF$Lat[ind],
                Lon = stationsMF$Lon[ind],

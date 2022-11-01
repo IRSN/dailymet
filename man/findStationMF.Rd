@@ -2,17 +2,17 @@
 % Please edit documentation in R/stationsMF.R
 \name{findStationMF}
 \alias{findStationMF}
-\title{Find a "Meteo France" Station using a Description, Code or
+\title{Find a "Meteo France" Station using a Description, Id or
     Name}
 \usage{
-findStationMF(desc = NULL, code = NULL, name = NULL, one = TRUE)
+findStationMF(desc = NULL, id = NULL, name = NULL, one = TRUE)
 }
 \arguments{
 \item{desc}{A character string to be matched against the
 description of the station.}
 
-\item{code}{A character string to be matched against the code of
-the station.}
+\item{id}{A character string to be matched against the identifier
+(id) of the station.}
 
 \item{name}{A character string to be matched against the name of
 the station. Character case and accents are likely to generate

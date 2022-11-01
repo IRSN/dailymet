@@ -1,4 +1,37 @@
 ## *****************************************************************************
+
+##' @title Check the Names for Trigonometric Components
+##' 
+##' @param name
+##'
+##' @return The positive integer \code{K} such that the names
+##'     \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"}, \code{"sinjK"}
+##'     are found in \code{name}.
+##' 
+##' @keywords Internal
+##' 
+##' @examples
+##' nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
+##' checkTrigNames(nm)
+##' 
+checkTrigNames <- function(name) {
+    cosInd <- grep("cosj[1-9]*", name)
+    cosHarm <- sort(as.integer(gsub("cosj", "", name[cosInd])))
+    if (any(is.na(cosHarm))) stop("bad 'cos' term name")
+    sinInd <- grep("sinj[1-9]*", name)
+    sinHarm <- sort(as.integer(gsub("sinj", "", name[sinInd])))
+    if (any(is.na(sinHarm))) stop("bad 'sin' term name")
+    if (!all.equal(cosHarm, sinHarm)) {
+        stop("mismatch between 'cos' and 'sin' harmonics")
+    }
+    K <- max(sinHarm)
+    if (!all.equal(sinHarm, 1:K)) {
+        stop("The vector of harmonics must have the form 1:K")
+    }
+    K
+}
+
+## *****************************************************************************
 ##' Find the phases \eqn{\phi_k} and the amplitudes \eqn{\gamma_k}
 ##' for \eqn{k = 1}, ..., \eqn{K} such that
 ##' \deqn{ 
@@ -7,36 +40,102 @@
 ##'  = \text{Cst} + \sum_{k=1}^K \gamma_k \sin\{ \omega_k [t - \phi_k] \}
 ##' }
 ##' where \eqn{\omega_k = 2 \pi k /365.25} and where the coefficients
-##' \eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{trigCoef}
+##' \eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{object}
 ##' vector.
 ##'  
 ##' @title Phases of Sine Waves from the Trigonometric Coefficients
 ##'
-##' @param trigCoef A numeric vector with (odd) length \eqn{2K +1}
-##'     having suitable names related to the trigonometric basis
-##'   \code{\link{tsDesign}}.
+##' @param object A numeric vector having suitable names related to
+##'     the trigonometric basis \code{\link{tsDesign}}, or a numeric
+##'     matrix having suitable colnames. This object will most often
+##'     be given by applying the \code{coef} method for the
+##'     \code{"rq"} or the \code{"rqTList"} class, see
+##'     \bold{Examples}.
 ##' 
 ##' @return A numeric vector of length \eqn{K} containing the phases
-##'     \eqn{\phi_k}. This vector has as its attribute
-##'     \code{"amplitude"} another numeric vector with length \eqn{K}
-##'     containing the amplitudes \eqn{\gamma_k}.
+##'     \eqn{\phi_k} or a numeric matrix containing the phases as its
+##'     rows. This vector/matrix has as its attribute
+##'     \code{"amplitude"} another numeric vector/matrix with length
+##'     \eqn{K} or with \eqn{K} rows, containing the amplitudes
+##'     \eqn{\gamma_k}.
 ##'
-##' @section Caution: the vector \code{trigCoef} must be \emph{named}
-##'     with suitable element names in order to allow a reliable
-##'     extraction of the coefficients \eqn{\alpha_k} and
+##' @section Caution: When a vector is given in \code{object}, it must
+##'     be \emph{named} with suitable element names in order to allow a
+##'     reliable extraction of the coefficients \eqn{\alpha_k} and
 ##'     \eqn{\beta_k}. These correspond to the names
 ##'     \itemize{
-##'        \item{"Cst" }{the constant \eqn{\alpha_0}}
 ##'        \item{"cosj1", "cosj2", ... }{coefficients for the cosine terms
 ##'            \eqn{\alpha_1}, \eqn{\alpha_2}, ..., \eqn{\alpha_K}}
 ##'        \item{"sinj1", "sinj2", ... }{coefficients for the sine terms
 ##'            \eqn{\beta_1}, \eqn{\beta_2}, ..., \eqn{\beta_K}}
 ##'     }
+##'     Some other named elements can be present e.g. for the constant
+##'     or for trend terms: They will be ignored. Simùilarly when a
+##'     numeric matrix of coefficients is given the colnames must be
+##'     as before. The rownames will be re-used as rowanmes for the
+##'     result.
+##' 
 ##' @export
 ##' 
+##' @examples
+##' Rq <- rqTList(Rennes)
+##' co <- coef(Rq)
+##' sinPhases(co)
+##' ## for a vector
+##' sinPhases(co[1 , ])
+##' ## change the order: the result is the same
+##' sinPhases(co[1, sample(1:7, size = 7)])
+sinPhases <- function(object) {
+
+    if (!is.numeric(object)) stop("'object' must be numeric")
+
+    ## Note that we corerce a vector into a matrix and then
+    ## coerce the matrix result into a vector... Yet we will
+    ## most often use a matrix of coefficients.
+    if (!is.null(d <- dim(object))) {
+        if (length(d) != 2) {
+            stop("'object' must be a numeric vector or matrix")
+        }
+        vec <- FALSE
+        K <- try(checkTrigNames(colnames(object)))
+        nco <- d[1]
+    } else {
+        vec <- TRUE
+        K <- try(checkTrigNames(names(object)))
+        nco <- 1L
+        object <- array(object, dim = c(1L, length(object)),
+                        dimnames = list(NULL, names(object)))
+    }
+    if (inherits(K, "try-error")) {
+        stop("'object' must be a numeric vector/matrix ",
+             "with suitable names/colnames")
+    }
+    gamma <- phi <- array(0.0, dim = c(nco, K))
+    for (j in 1:K) {
+        omegaj <- 2 * pi * j / 365.25 
+        alpha <- object[ , paste0("cosj", j)]
+        beta <- object[ , paste0("sinj", j)]
+        gamma[ , j] <- sqrt(alpha^2 + beta^2)
+        phi[ , j] <- - asin(alpha / gamma[ , j])
+        ind <- (beta <= 0)
+        phi[ind, j] <- pi - phi[ind, j]
+        phi[ , j] <- phi[ , j] / omegaj
+    }
+    colnames(phi) <- colnames(gamma) <- paste0("sinjPhi", 1:K)
+    if (vec) {
+        phi <- drop(phi)
+        gamma <- drop(gamma)
+    } else {
+        rownames(phi) <- rownames(gamma) <- rownames(object)
+    }
+    attr(phi, "amplitude") <- gamma
+    phi
+}
+
+##' no longer used, except for tests...
 ##' 
-sinPhases <- function(trigCoef)  {
-    df <- length(co <- trigCoef)
+sinPhasesOld <- function(object)  {
+    df <- length(co <- object)
     if (!(df %% 2)) {
         stop("'df' must be an odd integer")
     }
@@ -47,8 +146,8 @@ sinPhases <- function(trigCoef)  {
         nm <- c(nm, paste0(c("cosj", "sinj"), j))
         nmSin <- c(nmSin, paste0("sinjPhi", j))
     }
-    if (length(setdiff(names(trigCoef), nm))) {
-        stop("Up to the order 'names(trigCoef)' should be ",
+    if (length(setdiff(names(object), nm))) {
+        stop("Up to the order 'names(object)' should be ",
              paste0("c(", paste(paste0("\'", nm, "\'"),
                                 collapse = ", "), ")"))
     }

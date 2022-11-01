@@ -4,18 +4,23 @@
 \alias{sinPhases}
 \title{Phases of Sine Waves from the Trigonometric Coefficients}
 \usage{
-sinPhases(trigCoef)
+sinPhases(object)
 }
 \arguments{
-\item{trigCoef}{A numeric vector with (odd) length \eqn{2K +1}
-  having suitable names related to the trigonometric basis
-\code{\link{tsDesign}}.}
+\item{object}{A numeric vector having suitable names related to
+the trigonometric basis \code{\link{tsDesign}}, or a numeric
+matrix having suitable colnames. This object will most often
+be given by applying the \code{coef} method for the
+\code{"rq"} or the \code{"rqTList"} class, see
+\bold{Examples}.}
 }
 \value{
 A numeric vector of length \eqn{K} containing the phases
-    \eqn{\phi_k}. This vector has as its attribute
-    \code{"amplitude"} another numeric vector with length \eqn{K}
-    containing the amplitudes \eqn{\gamma_k}.
+    \eqn{\phi_k} or a numeric matrix containing the phases as its
+    rows. This vector/matrix has as its attribute
+    \code{"amplitude"} another numeric vector/matrix with length
+    \eqn{K} or with \eqn{K} rows, containing the amplitudes
+    \eqn{\gamma_k}.
 }
 \description{
 Find the phases \eqn{\phi_k} and the amplitudes \eqn{\gamma_k}
@@ -26,20 +31,33 @@ for \eqn{k = 1}, ..., \eqn{K} such that
  = \text{Cst} + \sum_{k=1}^K \gamma_k \sin\{ \omega_k [t - \phi_k] \}
 }
 where \eqn{\omega_k = 2 \pi k /365.25} and where the coefficients
-\eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{trigCoef}
+\eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{object}
 vector.
 }
 \section{Caution}{
- the vector \code{trigCoef} must be \emph{named}
-    with suitable element names in order to allow a reliable
-    extraction of the coefficients \eqn{\alpha_k} and
+ When a vector is given in \code{object}, it must
+    be \emph{named} with suitable element names in order to allow a
+    reliable extraction of the coefficients \eqn{\alpha_k} and
     \eqn{\beta_k}. These correspond to the names
     \itemize{
-       \item{"Cst" }{the constant \eqn{\alpha_0}}
        \item{"cosj1", "cosj2", ... }{coefficients for the cosine terms
            \eqn{\alpha_1}, \eqn{\alpha_2}, ..., \eqn{\alpha_K}}
        \item{"sinj1", "sinj2", ... }{coefficients for the sine terms
            \eqn{\beta_1}, \eqn{\beta_2}, ..., \eqn{\beta_K}}
     }
+    Some other named elements can be present e.g. for the constant
+    or for trend terms: They will be ignored. Simùilarly when a
+    numeric matrix of coefficients is given the colnames must be
+    as before. The rownames will be re-used as rowanmes for the
+    result.
 }
 
+\examples{
+Rq <- rqTList(Rennes)
+co <- coef(Rq)
+sinPhases(co)
+## for a vector
+sinPhases(co[1 , ])
+## change the order: the result is the same
+sinPhases(co[1, sample(1:7, size = 7)])
+}

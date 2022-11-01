@@ -1,4 +1,5 @@
 ## ****************************************************************************
+
 ##' Read a file as provided by the ECA Data  with \code{StatId}
 ##'
 ##' @title Read an ECA File and Add Extra Varables
@@ -21,38 +22,18 @@
 ##' @section Caution: For now, only ECA files for so called
 ##'     \emph{blended} data are used, and the variable is assumed to
 ##'     be a temperature. Also the \code{SOUID} field identifying the
-##'     source is discarded. 
+##'     source is discarded.
 ##'
-##' @return A data frame with the columns
-##'     \itemize{
-##'         \item{Date, DateRef }{
-##'            The date and the "refrence" date (corresponding to
-##'            the same month and day) in a reference leap year chosen
-##'            as 1972, since 1970 was not a leap year.
-##'          }
-##'          \item{TX }{
-##'            The temperature.
-##'          }
-##'          \item{Dec, YearDec }{
+##' @return A data frame with the columns read in the file and
+##'     possibly also those built by the \code{\link{dailyMet}}
+##'     function.
 ##'
-##'             Factors related to the decade as required in
-##'             plots. \code{Dec} is the decade, and \code{YearDec} is
-##'             the year in the decade with values from \code{"0"} to
-##'             \code{"9"}.
-##'
-##'          }
-##'          \item{YearW, DayW }{
-##'             "Winter" year and day. The winter year \code{YearW} is
-##'              a character variable with values such as
-##'              \code{"2022-23"}. The winter day is an integer
-##'              between 1 (for the 1-st of August) and 366 (for the
-##'              31-th of July in a leap year).
-##'          }
-##'          \item{JJA, DJF }{
-##'              Logical variables for the periods in year
-##'              \emph{June-July-August} and
-##'              \emph{December-January-February}. }
-##'     }
+##' @section Caution: The station identifier \code{StatId} used by
+##'     European Climate Assessment & Dataset project (ECA&D)
+##'     \url{https://www.ecad.eu/} is different from the one used by
+##'     Météo France. Also ECA&D makes a distinction between
+##'     \emph{Station Id} (\code{StatId}) and \emph{Source Id}
+##'     (\code{SouId}).
 ##' 
 ##' @export
 ##' 
@@ -72,43 +53,91 @@ readECA <-  function(file, out = c("dailyMet", "data.frame"),
         TX <- TX / 10
     })
 
-    if (FALSE) {
-        Met <- within(Met,
-        { Year <- as.numeric(format(Date, "%Y"));
-            Day <- as.numeric(format(Date, "%j"));
-            Dec <- as.factor(10 * floor(Year / 10));
-            YearDec <- as.factor(Year %% 10) })
-        Met <- within(Met, {
-            DateRef <- as.Date(format(Date, "1972-%m-%d"));
-            DateNum <- as.numeric(Date) / 365.25
-        })
-        
-        Met <- within(Met, {
-            YearW <- ifelse(as.numeric(format(Date, "%m")) <= 7,
-                            paste(Year - 1, Year, sep = "-"),
-                            paste(Year, Year + 1, sep = "-"));
-            DayW <- ifelse(as.numeric(format(Date, "%m")) <= 7,
-                           Day,
-                           Day - as.numeric(format(as.Date(format(Date, "%Y-12-31")),
-                                                   "%j"))) 
-        })
-        
-        DateRefW <- Met$DateRef
-        ind <- as.numeric(format(Met$Date, "%m")) > 7
-        DateRefW[ind] <-  as.Date(format(Met$Date[ind], "1971-%m-%d"))
-        
-        Met <- data.frame(Met, DateRefW = DateRefW)
-        
-        Met <- within(Met, JJA <- format(DateRef, "%m") %in% c("06", "07", "08"))
-        Met <- within(Met, DJF <- format(DateRef, "%m") %in% c("12", "01", "02"))
-        Met
-    }
-
     if (out == "data.frame") return(Met)
 
     dMet <- dailyMet(data = Met, station = station, code = code)
-    
     dMet    
         
+}
+
+## *****************************************************************************
+
+##' Read a csv file containing a daily meterorological timeseries as
+##' a column. The file must be a \code{.csv} file (\emph{Comma
+##' Separated Values}) using the semi-column \code{";"} as column
+##' delimiter. It is found in the directory defined by the
+##' \code{metData} environment variable.
+##'
+##' The fields are as follows.
+##' \itemize{  
+##'    \item{\code{Code} }{
+##'        Character: the code to be used for the station}
+##'    \item{\code{Date} }{
+##'        The date in POSIX format Y-m-d}
+##'    \item{TX}{
+##'       The temperature in Celsius.
+##'    }
+##'    \item{\code{Source} }{
+##'       Character code giving the source of the data, useful if
+##'       several sources are used in "blended" .
+##'     }
+##' }
+##' 
+##' @title Read a csv File Containing Daily Meteorological Timeseries
+##'     and Add Extra Variables
+##'
+##' @param station A list as returned by \code{\link{findStationMF}}. 
+##'
+##' @param metVar The meteorological variable.
+##'
+##' @param out The class of the returned object.
+##' 
+##' @return An object inheriting from the \code{"data.frame"} class,
+##'     by default a \code{dailyMet} object.
+##'
+##' @note The files that can be read are located in the repository
+##'     defined in the system variable \code{metData}. You may need to
+##'     set this variable by using \code{\link{Sys.setenv}}, possibly
+##'     in a \code{Rprofile} of \code{.Renviron} file.
+##' 
+##' @export
+##'
+##' @examples
+##' \dontrun{
+##'    ## read data for Bordeaux-Merignac
+##'    s <- findStationMF("bordeaux-mer")
+##'    Met <- readMet(s)
+##' }
+##' 
+readMet <- function(station, metVar = "TX",
+                    out = c("dailyMet", "data.frame")) {
     
+    out <- match.arg(out)
+    fn <- sprintf("%s_%s_TX.csv", station$Id, station$Desc)
+
+    ## XXX check the directory
+    dn <- Sys.getenv("metData")
+
+    if (dn == "") {
+        stop("The `metData` environment variable is not set. ",
+             "Use `Sys.setenv(metData = x)` to set it.")
+    } else  if (!dir.exists(dn)) {
+        stop("The `metData` environment variable does not ",
+             "define an existing directory.")
+    } else {     
+        fn <- sprintf("%s_%s_TX.txt", station$Id, station$Desc)
+        if (!file.exists(file.path(dn, fn))) {
+            stop("File '", fn, "' not found in the directory ",
+                 "'metData'.")
+        }
+    }
+    df <- read.table(file.path(dn, fn), sep = ";",
+                     header = TRUE,
+                     colClasses = c("character", "character", "Date",
+                                    "numeric"))
+    if (out == "data.frame") return(df)
+    
+    Met <- dailyMet(df, dataVar = "Date", metVar = "TX",
+                    station = station$Desc, id = station$Id)
+    Met
 }

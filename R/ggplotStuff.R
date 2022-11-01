@@ -1,3 +1,5 @@
+## *****************************************************************************
+
 ##' Autoplot a daily meteorological series, usually covering a very
 ##' long period of time such as several dozens of years.
 ##' 
@@ -29,7 +31,7 @@
 ##' autoplot(Rennes, group = "year", subset = year >= 2010)
 ##' autoplot(Rennes, group = "yearW", subset = Year >= 2010 & DJF)
 autoplot.dailyMet <- function(object,
-                              group = c("decade", "year", "yearW"),
+                              group = c("decade", "year", "yearW", "none"),
                               subset = NULL, ...) {
     
     metVar <- attr(object, "metVar")
@@ -59,7 +61,7 @@ autoplot.dailyMet <- function(object,
         g <- g + ggtitle(sprintf("%s in %s by decade",
                                  metVar, attr(object, "station")))
         
-    } else {
+    } else if (group %in% c("year", "yearW")) {
         
         if (length(unique(object$Year)) > 24) {
             stop("The allowed maximum of 24 distinct years is exceeded. ",
@@ -85,10 +87,99 @@ autoplot.dailyMet <- function(object,
             g <- g + ggtitle(sprintf("%s in %s by winter year",
                                      metVar, attr(object, "station")))
         }
+     
+    } else {
+        g <- g + geom_line(mapping = aes_string(x = "Date", y = metVar),
+                           alpha = 1.0)
         
-        g
-    
+        g <- g + ggtitle(sprintf("%s in %s",
+                                 metVar, attr(object, "station")))
+        
     }
     
     g
 }
+
+
+## *****************************************************************************
+
+##' Create a new layer on an existing ggplot object showing the
+##' quantile regression curves i.e. the threshold curves against the
+##' date. This is useful e.g. to show the thresholds on the same
+##' ggplot as the timeseries used fo fit \code{object}.
+##'
+##' @title Autolayer Method for the Class \code{"rqTList"}.
+##'
+##' @param object The \code{rqTList} object.
+##'
+##' @param lastFullYear Logical. If \code{TRUE} the prediction will be
+##'     computed only on the last full year of the data used in the
+##'     fit. See \code{\link{predict.rqTList}}.
+##' 
+##' @param ... Arguments passed to \code{\link{geom_line}} such as
+##' \code{linetype}, \code{size}.
+##' 
+##' @export
+##' 
+##' @method autolayer rqTList
+##'
+##' @seealso \code{\link{autoplot.rqTList}}.
+##' 
+autolayer.rqTList <- function(object, lastFullYear = TRUE, ...) {
+
+    p <- predict(object, out = "long", lastFullYear = lastFullYear)
+    geom_line(data = p,
+              mapping = aes(x = Date, y = u, group = tau, colour = tau),
+              ...) 
+   
+}
+
+## *****************************************************************************
+
+##' Create an object inheriting from the \code{"ggplot"} class showing
+##' the quantile regression curves (i.e. the threshold curves) against
+##' the date.
+##'
+##' @title Autoplot Method for the Class \code{"rqTList"}.
+##'
+##' @param object The \code{rqTList} object.
+##'
+##' @param lastFullYear Logical. If \code{TRUE} the prediction will be
+##'     computed only on the last full year of the data used in the
+##'     fit. See \code{\link{predict.rqTList}}.
+##' 
+##' @param ... Arguments passed to \code{\link{geom_line}} such as
+##'     \code{linetype}, \code{size}.
+##' 
+##' @export
+##'
+##' @method autoplot rqTList
+##' 
+##' @examples
+##' \dontrun{ 
+##'     RqRennes <- rqTList(dailyMet = Rennes)
+##'     g <- autoplot(RqRennes) 
+##'     stat <- findStationMF("bordeaux-me")
+##'     ## you may here have to use `Sys.setenv(metData = xxx)`
+##'     Bordeaux <- readMet(stat)
+##'     RqBordeaux <- rqTList(dailyMet = Bordeaux)
+##'     g <- g + autolayer(RqBordeaux, linetype = "dashed", size = 1.2) +
+##'          ggtitle(paste0("Quantile regression for Rennes (solid thin line) ",
+##'                         "and Bordeaux (dashed thick line)"))
+##'     g
+##' }
+autoplot.rqTList <- function(object, lastFullYear = TRUE, ...) {
+
+    g <- ggplot()
+    p <- predict(object, out = "long", lastFullYear = lastFullYear)
+    g <- g + geom_line(data = p,
+                       mapping = aes(x = Date, y = u, group = tau, colour = tau),
+                       ...) +
+        scale_colour_brewer(palette = "Set2") +
+        xlab("") + ggtitle(sprintf("Quantile regression for %s in %s",
+                                   attr(object, "metVar"),
+                                   attr(object, "station")))
+    g
+    
+}
+
