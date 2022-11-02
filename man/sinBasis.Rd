@@ -21,7 +21,7 @@ are to be evaluated.}
 
 \item{keepTrig}{Logical. If \code{TRUE}, the cos-sin functions are
 are joined as columns of the result. So the returned matrix
-then does not correspond to a basis. Used mainly for test.}
+then does not correspond to a basis. Used mainly for tests.}
 }
 \value{
 A numeric matrix containing as columns the \eqn{K} basis
@@ -74,7 +74,7 @@ fit <- lm(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1
 betaHat <- coef(fit)
 
 ## find the phases
-phiHat <- sinPhases(betaHat)
+phiHat <- phases(betaHat)
 gamma <- attr(phiHat, "amplitude")
 
 ## Design of sine waves with prescribed phases

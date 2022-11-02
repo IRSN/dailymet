@@ -179,11 +179,106 @@ autoplot.rqTList <- function(object, lastFullYear = TRUE, ...) {
                        mapping = aes_string(x = "Date", y = "u",
                                             group = "tau", colour = "tau"),
                        ...) +
-        scale_colour_brewer(palette = "Set2") +
-        xlab("") + ggtitle(sprintf("Quantile regression for %s in %s",
-                                   attr(object, "metVar"),
-                                   attr(object, "station")))
+        scale_colour_brewer(palette = "Set2") + xlab("") 
+    if (lastFullYear) {
+        g <- g + scale_x_date(breaks = "month", labels = date_format("%m")) +
+            ggtitle(sprintf("Quantile regression for %s in %s Year = %s",
+                            attr(object, "metVar"),
+                            attr(object, "station"),
+                            format(p[1, "Date"], "%Y")))
+    } else {
+        g <- g + ggtitle(sprintf("Quantile regression for %s in %s",
+                                 attr(object, "metVar"),
+                                 attr(object, "station")))
+    }
+    
     g
     
 }
 
+
+## *****************************************************************************
+
+##' @title Autoplots a \code{phasesMatrix} Object
+##'
+##' @param object An object with class \code{"phasesMatrix"}.
+##' 
+##' @param tauRef Value of the probability \code{tau} to be used as
+##'     reference in the comparison.
+##'
+##' @param ampl Logical. If \code{TRUE} the phases are shown through
+##'     the sine waves weighted by their amplitude \eqn{\gamma_k}. If
+##'     \code{FALSE} the sine waves are not weighted. The later option
+##'     can be used to better asses the variation of phase for the
+##'     higher harmonics since these usually have smaller amplitudes.
+##'
+##' @param ... Further arguments to be passed to \code{geom_line}.
+##'
+##' @return An object inheriting from \code{"ggplot"}.
+##'
+##' @method autoplot phasesMatrix
+##'
+##' @export
+##' 
+autoplot.phasesMatrix <- function(object,
+                                  tauRef = 0.95,
+                                  ampl = TRUE, ...) {
+    tt <- 1:365
+    K <- attr(object, "degree")
+    Gamma <- attr(object, "amplitude")
+    Phi <- unclass(object)
+
+    Tau <- as.numeric(gsub("tau=", "", rownames(object)))
+    indRef <- seq_along(Tau)[Tau == tauRef]
+    if (!length(indRef)) {
+        indRef <- which.min(abs(tauRef - Tau))
+        tauRef <- Tau(indRef)
+        warning("'tauRef' not found in 'object'. The closest",
+                "value used instead")
+    }
+    
+    tg <- taug <- ordg <- fung <- fun1g <- numeric(0)
+
+    for (j in 1:K) {
+        omegaj <- 2 * pi* j / 365.25
+        for (i in 1:nrow(object)) {
+            tg <- c(tg, tt)
+            taug <- c(taug, rep(Tau[i], length(tt)))
+            ordg <- c(ordg, rep(j, length(tt)))
+            if (ampl) {
+                fung <- c(fung, Gamma[i, j] *
+                                sin(omegaj * (tt - Phi[i, j])))
+                fun1g <- c(fun1g, Gamma[indRef, j] *
+                                  sin(omegaj * (tt - Phi[indRef, j])))
+            } else {
+                fung <- c(fung, sin(omegaj * (tt - Phi[i, j])))
+                fun1g <- c(fun1g, sin(omegaj * (tt - Phi[indRef, j])))
+            }
+        }
+             
+    }
+    
+    df <- data.frame(date = as.Date("1970-01-01") + tt,
+                     t = tg, tau = taug, ord = ordg, fun = fung, fun1 = fun1g)
+    
+    df <- within(df, { tau <- as.factor(tau); ord <- as.factor(ord) })
+    
+    gPhStab <- ggplot(data = df)
+    gPhStab <- gPhStab +
+        geom_line(mapping = aes_string(x = "date", y = "fun",
+                                       group = "ord", colour = "tau"),
+                  ...)
+    gPhStab <- gPhStab +
+        geom_line(mapping = aes_string(x = "date", y = "fun1"),
+                  linetype = "dashed")
+    
+    gPhStab <- gPhStab + facet_grid(tau ~ ord, labeller = label_both) +
+        ggtitle(paste("Seasonal phases in quantile",
+                      "regression. Ref. (dashed line) tau =",
+                      format(tauRef)))
+    gPhStab <- gPhStab + scale_x_date(date_labels = "%b") +
+        theme(legend.position = "bottom")
+    gPhStab <- gPhStab + xlab("") + ylab("sine waves")
+    gPhStab
+
+}

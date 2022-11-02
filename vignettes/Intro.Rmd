@@ -1,12 +1,12 @@
 ---
-author: Yves Deville
-title: "Introduction to the `dailymet`package"
+author: "Yves Deville [deville.yves@alpestat.com](deville.yves@alpestat.com)"
+title: "R Package `dailymet`: Overview"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{R Package dailymet: Overview}
+  %\VignetteIndexEntry{R Package `dailymet`: Overview}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 linkcolor: blue
@@ -23,14 +23,23 @@ the sensitivity to the *threshold choice*, thanks to dedicated classes
 of objects that we may call "TLists" for *list by threshold*.
 
 
-# The `dailyMet`class
+# The `"dailyMet"` data class
+
+## Rennes example
 
 The package comes with the `Rennes` example.
 
+
 ```{r Rennes, message=FALSE} 
 library(dailymet)
-class(Rennes)
 Rennes
+```
+
+`Rennes` has a `print` method which shows the summary above
+
+
+```{r Rennes0, message=FALSE} 
+class(Rennes)
 methods(class = "dailyMet")
 ```
 
@@ -41,7 +50,7 @@ inherited from the `"data.frame"` class e.g., `head`, `tail`, `nrow`
 ...
 
 
-```{r Rennes2, message=FALSE} 
+```{r Rennes2, fig.width=8, fig.height=6} 
 autoplot(Rennes)
 
 ```
@@ -50,22 +59,26 @@ Since the object embeds several variables related to the date, we can
 use these straightforwardly. Mind that the variable names are
 capitalised.
 
-```{r Rennes3, message=FALSE} 
+```{r Rennes3, message=FALSE, fig.width=8, fig.height=6} 
 autoplot(Rennes, subset = Year >= 2010 & JJA, group = "year")
 
-```
+``` 
+
 Splitting the timeseries in years is suitable when the interest is on
-the summer season. It the interest is instead on winter, then using 
-the "winter year" `YearW` will be better.
+the summer season. It the interest is instead on winter, then using
+the "winter year" `YearW` will be better since the whole winter is
+included in a same "year".
 
 
-```{r Rennes4, message=FALSE} 
+```{r Rennes4, fig.width=8, fig.height=6} 
 autoplot(Rennes, subset = Year >= 2010, group = "yearW")
 
 ```
 
-Although no other data is shipped with the package, it has a sketch 
-of file-based database based on the information provided in 
+## Creating `dailyMet` objects from data files
+
+Although no other data is shipped with the package, **dailymet** has a
+sketch of file-based database, based on the information provided in
 `stationsMF`
 
 ```{r stations, message=FALSE} 
@@ -81,8 +94,10 @@ Météo-France](https://donneespubliques.meteofrance.fr/)
 ```{r stations2, message=FALSE} 
 head(stationsMF)
 ```
+We will focus on the French metropolitan area.
 
-```{r stations3, echo=FALSE, message=FALSE} 
+
+```{r stations3, echo=FALSE, message=FALSE,fig.width=6, fig.height=6} 
 library(leaflet)
 m <- leaflet() %>% addTiles;
 ## m <- m %>% fitBounds(lng1 = -4.5, lat1 = 41.9, lng2 = 7.9, lat2 = 50.8)
@@ -98,16 +113,41 @@ the codes of the main MF stations for the metropolitan area correspond
 rougthly to an ordering from North to South (decreasing latitude) and
 West to East (increasing longitude). This can be of some help.
 
-# Using *TList*s
+Provided that the data is available in `.csv` files suitably named, we
+can read these into `dailyMet` objects. The function `readMet` can be
+used for that aim. In order to avoid a tedious construction of
+filenames an automated naming is used. For instance the full
+information for MF station *Troyes* (actually at the *Troyes-Barberey*
+airport) is found in the  list returned by `findStationMF`. This list 
+can be passed as the first argument of the `readMet` function, which 
+will build the filename from the values of the `Id` and `Name` fields. The 
+file is to be found in a directory with its name stored in the environment 
+variable `metData`. 
+
+```{r stations4}
+## fails: several stations match
+try(findStationMF("tro"))
+myStation <- findStationMF("troyes")
+try(readMet(myStation))
+Sys.setenv(metData = "~/Bureau/climatoData")
+try(Troyes <- readMet(myStation))
+```
+Although the file is not found, we now see the name of the file that is seeked
+for.
+
+# Functions and classes for analyses and models
+
+## Using *TList*s
 
 ### What are TLists?
 
-A T list is a list of object sharing the same definition except for
-their threshold. The threshold is related to a probability `tau`
-corresponding to the probability  $\tau$ as used in quantile regression.
+A T-list or \emph{TList} is a list of objects sharing the same
+definition except for their threshold. The threshold is related to a
+probability `tau` corresponding to the probability $\tau$ as used in
+quantile regression.
 
 - A `rqTList` object is a list of `rq` objects differing only by their
-probability `tau`, hence related to the same data, same formula, ...
+  probability `tau`, hence related to the same data, same formula, ...
 
 - A `fevdTList`object is a list of `fevd` objects representing
   Poisson-GP POT models differing *only by their threshold* which is
@@ -122,7 +162,7 @@ order.
 
 - A `rq` object does not encode a full distribution nor even a tail
   distribution. The `rq` objects may fail to be consistent and the
-  quantile may fail to increase with the proability $\tau$. See XXX
+  quantile may fail to increase with the probability $\tau$. See XXX
   Northrop.
 
 - Stricly speaking, the `fevd` objects in a `fevdTList` object are
@@ -134,14 +174,184 @@ order.
   the relation between the two POT parameterisation Poisson-GP and
   NHPP, only the later being independent of the threshold.
 
-### Example
+## Quantile regression for seasonality
+
+```{r rqTList0, message=FALSE, fig.width=8, fig.height=6} 
+Rq <- rqTList(dailyMet = Rennes)
+tau(Rq)
+formula(Rq)
+autoplot(Rq)
+
+```
+
+By default the creator `rqTList`
+
+
+- Uses some defined probabilities $\tau$ for the quantiles?. These can
+  be assessed by the `tau` method.
+
+- Uses a `formula` which defines a yearly seasonality for the
+  quantiles. The default formula uses a base of trigonometric
+  functions with 3 harmonics, corresponding the the fundamental
+  frequency $1/365.25\:\text{day}^{-1}$ and its integer multiples 
+  $2/365.25$, $3/365.25$, ...
+
+- Considers a "design" function which creates the required variables
+  `cosj1` , `sinj1`, `cosj2`, `sinj2`, ... where the integer after the
+  prefix `cos` of `sin` gives the frequency in increasing order,
+  \code{1} standing for the fundamental frequency corresponding to the
+  one-year period.
+
+- Build the required variables from the existing variables in the
+  object specified by `dailyMet`, mainly from the `Date` column.
+
+- Fits quantile regression `rq` objects from the **quantreg** package
+
+More precisely the quantile $q(\tau)$ of the meteorological variable is
+considered as a trigonometric polynomial function $q_d(\tau)$ of the
+day in the year a.k.a Julian day $d$ ($1 \leqslant d \leqslant 366$)
+
+$$
+q_d(\tau) \approx  \alpha_0^{q}(\tau) + \sum_{k=1}^K \alpha_k^{q}(\tau) \cos\{2\pi k d/D\} +
+	\beta_k^{q}(\tau) \sin\{2\pi k d/D\}
+$$
+
+where $D:=365.25$ is yearly period expressed in days. The
+pseudo-exponent $q$ in the coefficients $\alpha$ and $\beta$ is used
+to recall that they describe a quantile. The default number of
+harmonics $K$ is $3$. The quantile regression provides the estimated
+coefficients $\hat{\alpha}_k^{q}(\tau)$ and $\hat{\beta}_k^{q}(\tau)$.
 
 
 
+```{r rqTList1, message=FALSE, fig.width=8, fig.height=6} 
+methods(class = "rqTRList")
+coef(Rq)
+coSd(Rq)
+
+``` 
+
+The `coSd` method (for "coef" and "Standard error" or "Standard
+deviation") gives the coefficients and their standard error. We see
+that some estimated coefficients are not significant, namely those for
+the 3-rd harmonic for the "small" probablities. However, when $\tau$
+becomes larger, the estimated coefficients for the $3$-rd harmonic
+becomes significant, although their standard error increases because
+they are based on a smaller number of observations. This suggests that
+the $3$-rd harmonic plays a role in the seasonality of the extremes,
+although it will be difficult to assess.
+
+
+As may be guessed from the plot of quantiles, the fitted phases
+corresponding to the different harmonics are quite similar across
+probabilities $\tau < 0.95$. More precisely we may consider the following
+alternative parameterisation of the trigonometric polynomial
+
+$$
+   q_d(\tau) \approx 
+	\gamma_0^{q}(\tau) + \sum_{k=1}^K 
+	\gamma_k^{q}(\tau) \sin\left\{2\pi k \left[d - \phi_k^{q}(\tau)\right]/D\right\} 
+$$
+
+where the parameter $\gamma_k^{q}(\tau)$ and $\phi_k^{q}(\tau)$ are
+called *amplitudes* and *phase shifts* or simply *phases*. The two
+formulations (XXX) and (YYY) are actually equivalent as can be seen
+from the trigonometric angle subtraction formula 
+$\sin(a -b) = \sin(a)\cos(b) - \cos(a) \sin(b)$.
+
+
+```{r rqTList2, message=FALSE} 
+co <- coef(Rq)
+phases(co)
+
+``` 
+
+The table shows the $K=3$ phases $\phi_k$ and amplitudes $\gamma_k$. Note that
+the object returned by `phases` has as special class `"phasesMatrix"`. The 
+amplitudes are actually stored as an attribute of the numeric matrix of phases,
+not as a matrix with $2K$ columns.
+
+We see that for the different probabilities the phases of the $1$-st and $2$-nd
+harmonics are quite similar, while those of the $3$-rd harmonics are different, 
+and seem to drift as the probability $\tau$ increases.
+
+```{r rqTList3, message=FALSE, fig.width=8, fig.height=6} 
+autoplot(phases(co))
+
+``` 
+
+The constant $\gamma_0^{[\tau]}$ does not apear on the plot..  Note
+that the amplitudes $\gamma_k^{[\tau]}$ rapidly decrease with the
+frequency, consistently with the fact that the quantiles are quite
+smooth functions of the day $d$. The amplitude slightly increases with
+$\tau$, especially for the fundamental frequency $k=1$.  In other
+words the seasonality becomes more pronounced when the probability $\tau$
+increases.
+
+
+## Seasonality in (time-varying) POT models
+
+### Why seasonality matters
+Using a suitable description of the seasonality is a major in POT
+models. Concerning our meteorological variables, a natural idea is to
+use GP or GEV parameters depending on the date through the Julian day
+$d$. There are many reasons to use a seasonaly time-varying threshold
+$u(d)$ depending as well on $d$. One motivation is the efficiency of
+the estimation. If a constant threshold is used, the results are
+likely to depend much on the threshold value because the distribution
+is actually a weighted mixture of different distributions
+corresponding to the values of $d$, and their weight will depend much
+on the threshold. For instance if a constant threshold is used for all
+the JJA period, the weight of the early June and late August will be smaller
+when the threshold is increased.
+
+### Poisson-GP models
+
+In order to describe the yearly seasonality, a natural idea is to use
+a trigonometric polynomial as described above. For instance the GP
+scale parameter $\sigma$ could be
+
+$$
+ \sigma_d = \alpha_0^{\sigma} + \sum_{k=1}^K \alpha_k^{\sigma} \cos\{2\pi k d/D\} +
+	\beta_k^{\sigma} \sin\{2\pi k d/D\}
+$$
+
+where the coefficients $\alpha_k^{\sigma}$ and $\beta_k^{\sigma}$
+are to be estimated.  However $2 K +1$ parameters and for $K=3$ or
+even for $K=2$ the estimation can be difficult. To facilitate the
+estimation, one can use instead the amplitude-phase formulation
+
+$$
+   \sigma_d = 
+	\gamma_0 + \sum_{k=1}^K 
+	\gamma_k^{\sigma} \sin\left\{2\pi k \left[d - \phi_k \right]/D\right\} 
+$$
+
+where *the phases $\phi_k$ are considered as fixed* or known. In
+practice, we can use the phases 
+$\phi_k := {\hat{\phi}}^{q}_k(\tau_{\text{ref}})$ given by quantile
+regression for a fixed "reference" probability e.g., $\tau_{\text{ref}} = 0.95$. So
+we have only $K+1$ parameter to estimate. Since the phases are usually
+quite stable for the high quantiles, the same should be true also for
+the GP parameters.
+
+In order to compute the sine wave basis functions with the prescribed
+phases we can use the argument `phi` of the `sinBasis` function or
+equivalently of the `tsDesign` function with `type = "sinwave"`.
+
+```{r phases, message=FALSE} 
+Phi <- phases(coef(Rq))
+phi <- Phi[5, ]
+
+``` 
 
 # Technical issues
 
 ## Related to **quantreg**
 
-- An `rq`object as created by `quantreg::rq` does not store the data
-  used.
+- An `rq` object as created by `quantreg::rq` does not store the data
+used.
+
+## Related to **extRemes**
+
+

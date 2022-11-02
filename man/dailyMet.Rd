@@ -80,18 +80,20 @@ The precomputed variables include the following ones.
     \item{\code{DayW}, \code{DateRefW} }{
 
          Similar to \code{Day} and \code{DateRef}, but for
-         "winter years" begining on the 1-st of August and ending
-         on the 31-th of July. Winter years are useful when the
-         interest is on event that usually happen in winter
-         (extreme sea levels, extreme snowfall, ...).
+         "winter years" centered on winter. A winter year begins
+         on the 1-st of August and ends on the next 31-th of
+         July. Winter years are useful when the interest is on
+         event that usually happen in winter (extreme sea levels,
+         extreme snowfall, ...).
 
     }
 
-    \item{JJA, DJF }{
+    \item{\code{JJA}, \code{DJF} }{
 
-         Logical variables indicating the periods June-July-August 
-         and December-January-Febuary which are sometimes used in the
-         study of summer and winter extremes.
+         Logical variables indicating the periods
+         \emph{June-July-August} and
+         \emph{December-January-Febuary} which are sometimes used
+         in the study of summer and winter extremes.
 
     }
       

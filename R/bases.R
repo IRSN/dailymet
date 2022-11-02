@@ -49,19 +49,20 @@ checkTrigNames <- function(name) {
 ##'  
 ##' @title Phases of Sine Waves from the Trigonometric Coefficients
 ##'
-##' @param object A numeric vector having suitable names related to
-##'     the trigonometric basis \code{\link{tsDesign}}, or a numeric
-##'     matrix having suitable colnames. This object will most often
-##'     be given by applying the \code{coef} method for the
+##' @param object A numeric vector or matrix having suitable names
+##'     related to the trigonometric basis \code{\link{tsDesign}}, or
+##'     a numeric matrix having suitable colnames. This object will
+##'     most often be given by applying the \code{coef} method for the
 ##'     \code{"rq"} or the \code{"rqTList"} class, see
 ##'     \bold{Examples}.
 ##' 
-##' @return A numeric vector of length \eqn{K} containing the phases
-##'     \eqn{\phi_k} or a numeric matrix containing the phases as its
-##'     rows. This vector/matrix has as its attribute
-##'     \code{"amplitude"} another numeric vector/matrix with length
-##'     \eqn{K} or with \eqn{K} rows, containing the amplitudes
-##'     \eqn{\gamma_k}.
+##' @return An object with S3 class \code{"phasesMatrix"} inheriting
+##'     from \code{"matrix"}. This matrix contains the phases
+##'     \eqn{\phi_k} as its rows. This matrix has as attribute
+##'     \code{"amplitude"} another numeric matrix with \eqn{K} rows,
+##'     containing the amplitudes \eqn{\gamma_k} as its rows.  Some
+##'     methods are available for the class \code{"phasesMatrix"} such
+##'     as \code{print} and \code{autoplot}.
 ##'
 ##' @section Caution: When a vector is given in \code{object}, it must
 ##'     be \emph{named} with suitable element names in order to allow a
@@ -74,25 +75,29 @@ checkTrigNames <- function(name) {
 ##'            \eqn{\beta_1}, \eqn{\beta_2}, ..., \eqn{\beta_K}}
 ##'     }
 ##'     Some other named elements can be present e.g. for the constant
-##'     or for trend terms: They will be ignored. Simùilarly when a
+##'     or for trend terms: They will be ignored. Similarly when a
 ##'     numeric matrix of coefficients is given the colnames must be
 ##'     as before. The rownames will be re-used as rowanmes for the
 ##'     result.
 ##' 
 ##' @export
+##'
+##' @seealso \code{\link{autoplot.phasesMatrix}}
 ##' 
 ##' @examples
 ##' Rq <- rqTList(dailyMet = Rennes)
 ##' co <- coef(Rq)
-##' sinPhases(co)
+##' phases(co)
 ##' ## for a vector
-##' sinPhases(co[1 , ])
+##' phases(co[1 , ])
 ##' ## change the order: the result is the same
-##' sinPhases(co[1, sample(1:7, size = 7)])
-sinPhases <- function(object) {
-
+##' phases(co[1, sample(1:7, size = 7)])
+##' autoplot(phases(co))
+##' 
+phases <- function(object) {
+    
     if (!is.numeric(object)) stop("'object' must be numeric")
-
+    
     ## Note that we corerce a vector into a matrix and then
     ## coerce the matrix result into a vector... Yet we will
     ## most often use a matrix of coefficients.
@@ -126,12 +131,14 @@ sinPhases <- function(object) {
         phi[ , j] <- phi[ , j] / omegaj
     }
     colnames(phi) <- colnames(gamma) <- paste0("sinjPhi", 1:K)
-    if (vec) {
-        phi <- drop(phi)
-        gamma <- drop(gamma)
-    } else {
-        rownames(phi) <- rownames(gamma) <- rownames(object)
-    }
+    ## if (vec) {
+    ##    phi <- drop(phi)
+    ##    gamma <- drop(gamma)
+    ## } else {
+    rownames(phi) <- rownames(gamma) <- rownames(object)
+    class(phi) <- c("phasesMatrix", "matrix")
+    ##}
+    attr(phi, "degree") <- K
     attr(phi, "amplitude") <- gamma
     phi
 }
@@ -173,7 +180,39 @@ sinPhasesOld <- function(object)  {
     phi
 }
 
+
+## *****************************************************************************
+
+##' @title Print a \code{phasesMatrix} object
+##'
+##' @param x The \code{phasesMatrix} object.
+##'
+##' @param digits Number of digits to show.
+##'
+##' @param ... Not used.
+##' 
+##' @return Nothing.
+##'
+##' @export
+##'  
+##' @method print phasesMatrix
+##' 
+print.phasesMatrix <- function(x, digits = 3, ...) {
+
+    mat1 <- x
+    mat2 <- attr(x, "amplitude")
+    nms <- colnames(mat1)
+    res <- cbind(mat1, mat2)
+    gsub("sinj", "", nms)
+    colnames(res) <- c(gsub("sinjP", "p", nms),
+                       gsub("sinjPhi", "gamma", nms))
+    print(res, digits = digits)
+    
+}
+
+
 ## ****************************************************************************
+
 ##' Create designs for time series regression (linear regression or
 ##' quantile regression) for meteorological time series.
 ##'
@@ -344,7 +383,7 @@ tsDesign <- function(dt,
 ##' 
 ##' @param keepTrig Logical. If \code{TRUE}, the cos-sin functions are
 ##'     are joined as columns of the result. So the returned matrix
-##'     then does not correspond to a basis. Used mainly for test.
+##'     then does not correspond to a basis. Used mainly for tests.
 ##' 
 ##' @return A numeric matrix containing as columns the \eqn{K} basis
 ##'     functions \eqn{s_k(t)}, and with its rows corresponding to the
@@ -376,7 +415,7 @@ tsDesign <- function(dt,
 ##' betaHat <- coef(fit)
 ##'
 ##' ## find the phases
-##' phiHat <- sinPhases(betaHat)
+##' phiHat <- phases(betaHat)
 ##' gamma <- attr(phiHat, "amplitude")
 ##'
 ##' ## Design of sine waves with prescribed phases
