@@ -20,12 +20,14 @@ with their standard deviations.
 }
 \examples{
 tau <- 0.97
+library(extRemes)
+data(Fort)
 u0 <- quantile(Fort$Prec, prob = tau)
 fit0 <- fevd(x = Prec, data = Fort, threshold = u0, type = "GP")
 coSd(fit0)
  
 }
 \seealso{
-The \code{\link[extRemes]{distill}} method from the
+The \code{\link[extRemes]{distill.fevd}} method from the
     \pkg{extRemes} package.
 }

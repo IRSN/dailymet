@@ -36,6 +36,6 @@ When required, the \code{subset} method used is that of the
 }
 \examples{
 autoplot(Rennes)
-autoplot(Rennes, group = "year", subset = year >= 2010)
+autoplot(Rennes, group = "year", subset = Year >= 2010)
 autoplot(Rennes, group = "yearW", subset = Year >= 2010 & DJF)
 }

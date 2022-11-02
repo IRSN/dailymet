@@ -3,8 +3,12 @@ author: Yves Deville
 title: "Introduction to the `dailymet`package"
 date: "`r Sys.Date()`"
 output:
-  html_document: 
-    toc: yes
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{R Package dailymet: Overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 linkcolor: blue
 ---
 

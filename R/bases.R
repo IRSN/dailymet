@@ -2,13 +2,17 @@
 
 ##' @title Check the Names for Trigonometric Components
 ##' 
-##' @param name
+##' @param name A character vector containing the names of
+##'     trigonometric variables.
 ##'
 ##' @return The positive integer \code{K} such that the names
 ##'     \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"}, \code{"sinjK"}
 ##'     are found in \code{name}.
+##'
+##' @section Caution: This fonction is likely to be come an internal
+##'     (non-exported) function.
 ##' 
-##' @keywords Internal
+##' @export
 ##' 
 ##' @examples
 ##' nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
@@ -78,7 +82,7 @@ checkTrigNames <- function(name) {
 ##' @export
 ##' 
 ##' @examples
-##' Rq <- rqTList(Rennes)
+##' Rq <- rqTList(dailyMet = Rennes)
 ##' co <- coef(Rq)
 ##' sinPhases(co)
 ##' ## for a vector
@@ -132,8 +136,8 @@ sinPhases <- function(object) {
     phi
 }
 
-##' no longer used, except for tests...
-##' 
+## no longer used, except for tests...
+## 
 sinPhasesOld <- function(object)  {
     df <- length(co <- object)
     if (!(df %% 2)) {
@@ -222,6 +226,12 @@ sinPhasesOld <- function(object)  {
 ##' @param phi Numeric vector of phases used only when \code{type} is
 ##'     \code{"sinwave"}.
 ##'
+##' @param keepTrig Logical. Used only when \code{type} is
+##'     \code{"sinwave"}. If \code{TRUE} the base trigonometric
+##'     functions \code{sinj1}, \code{sinj2}, ..., \code{cosj1},
+##'     \code{cosj2}, ... are kept in the result, along with the
+##'     functions \code{sinjPhi1}, \code{sinjPhi2}, ...
+##' 
 ##' @param origin An origin for the time. Used only in the polynomial
 ##'     case. The same value must be used in fits and predictions.
 ##'
@@ -245,7 +255,7 @@ tsDesign <- function(dt,
                      keepTrig = FALSE,
                      origin = NULL) {
     
-    dtNum <- as.numeric(diff(head(dt)), units = "days")
+    ## dtNum <- as.numeric(diff(head(dt)), units = "days")
 
     mc <- match.call()
     
@@ -361,7 +371,7 @@ tsDesign <- function(dt,
 ##' K <- 3
 ##' ## Design of trigonometric functions
 ##' desTrig <- tsDesign(dt = df$Date, df = 2 * K + 1, type = "trigo")
-##' fit <- lm(formula = Temp ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
+##' fit <- lm(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
 ##'           data = data.frame(df, desTrig$X))
 ##' betaHat <- coef(fit)
 ##'
@@ -372,7 +382,7 @@ tsDesign <- function(dt,
 ##' ## Design of sine waves with prescribed phases
 ##' desSin <- tsDesign(dt = df$Date, df = 2 * K + 1,
 ##'                    type = "sinwave", phi = phiHat)
-##' fit2 <- lm(formula = Temp ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 -1,
+##' fit2 <- lm(formula = TX ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 -1,
 ##'            data = data.frame(df, desSin$X))
 ##' ## should be zero
 ##' max(abs(predict(fit) - predict(fit2)))

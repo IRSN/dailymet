@@ -7,7 +7,8 @@
 checkTrigNames(name)
 }
 \arguments{
-\item{name}{}
+\item{name}{A character vector containing the names of
+trigonometric variables.}
 }
 \value{
 The positive integer \code{K} such that the names
@@ -17,9 +18,13 @@ The positive integer \code{K} such that the names
 \description{
 Check the Names for Trigonometric Components
 }
+\section{Caution}{
+ This fonction is likely to be come an internal
+    (non-exported) function.
+}
+
 \examples{
 nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
 checkTrigNames(nm)
 
 }
-\keyword{Internal}

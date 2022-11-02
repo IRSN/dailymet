@@ -19,9 +19,9 @@ non-stationary POT model, either Poisson-GP (\code{type =
 vector of an object representing a quantile regression,
 inheriting from \code{"rq"}.}
 
-\item{...}{Not used yet}
+\item{trace}{Integer level of verbosity.}
 
-\item{##out}{}
+\item{...}{Not used yet}
 }
 \value{
 A matrix with its rows matching those of \code{newdata}

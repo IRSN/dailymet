@@ -18,13 +18,19 @@
 Extracts and show the coefficients of a \code{rqTList} object
 along with their standard deviations.
 }
-\examples{
-u0 <- quantile(Fort$Prec, prob = c(0.95, 0.97, 0.98))
-Fits <- list()
-for (i in 1:3) {
-   Fits[[i]] <- rq(x = Prec, data = Fort, threshold = u0[i])
+\note{
+This method is very slow, because it calls
+    \code{\link[quantreg]{summary.rq}}.
 }
-class(Fits) <- "rqTList"
-coSd(Fits)
+\examples{
+library(extRemes)
+data(Fort)
+tau <- c(0.95, 0.97, 0.98)
+Rq <- list()
+for (i in 1:3) {
+   Rq[[i]] <- rq(Prec ~ year, data = Fort, tau = tau[i])
+}
+Rq <- as.rqTList(Rq)
+coSd(Rq)
 
 }

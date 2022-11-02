@@ -1,11 +1,13 @@
 ## *****************************************************************************
 ##' @importFrom stats formula
-##' @export 
+##'
+##' @export
+##' 
 ##' @method formula fevd
 ##' 
-formula.fevd <- function(object, ...) {
+formula.fevd <- function(x, ...) {
 
-    if (!(object$type %in% c("GP", "PP"))) {
+    if (!(x$type %in% c("GP", "PP"))) {
         stop("'type' can only be \"GP\" or \"PP\"") 
     }
     
@@ -16,11 +18,11 @@ formula.fevd <- function(object, ...) {
     prefixes <- list("GP" = c("location" = "mu", "scale" = "sigma", "shape" = "xi"),
                      "PP" = c("location" = "mu", "scale" = "sigma", "shape" = "xi"))
     
-    parNames <- parNames[[object$type]]
-    distName <- distName[object$type]
-    prefixes <- prefixes[[object$type]]
+    parNames <- parNames[[x$type]]
+    distName <- distName[x$type]
+    prefixes <- prefixes[[x$type]]
     fms <- list()
-    for (pn in parNames) fms[[pn]] <- object$par.models[[pn]]
+    for (pn in parNames) fms[[pn]] <- x$par.models[[pn]]
     fms
     
 }
@@ -67,7 +69,7 @@ coSd <- function(object, ...) {
 ##'
 ##' @param ... Not used.
 ##'
-##' @seealso The \code{\link[extRemes]{distill}} method from the
+##' @seealso The \code{\link[extRemes]{distill.fevd}} method from the
 ##'     \pkg{extRemes} package.
 ##' 
 ##' @export
@@ -75,6 +77,8 @@ coSd <- function(object, ...) {
 ##'
 ##' @examples
 ##' tau <- 0.97
+##' library(extRemes)
+##' data(Fort)
 ##' u0 <- quantile(Fort$Prec, prob = tau)
 ##' fit0 <- fevd(x = Prec, data = Fort, threshold = u0, type = "GP")
 ##' coSd(fit0)
@@ -118,13 +122,13 @@ vcov.fevd <- function(object, ...) {
 ##' 
 ##' @param newdata A data frame containing the covariates.
 ##'
+##' @param level Confidence level.
+##' 
 ##' @param threshold The threshold. This can be either a suitable
 ##'     vector of an object representing a quantile regression,
 ##'     inheriting from \code{"rq"}.
-##' 
-##' @param ##out
 ##'
-##' @param level Confidence level.
+##' @param trace Integer level of verbosity.
 ##'
 ##' @param ... Not used yet
 ##'
@@ -140,8 +144,10 @@ vcov.fevd <- function(object, ...) {
 ##'     coefficients for a covariate-dependent threshold is not
 ##'     stored.
 ##'
-##' @importFrom stats predict
+##' @importFrom stats predict model.matrix
+##' 
 ##' @method predict fevd
+##'
 ##' @export
 ##' 
 ##' @examples
@@ -340,8 +346,11 @@ predict.fevd <- function(object, newdata = NULL,
 ##'     i.e., when \eqn{y \leq u}.
 ##'
 ##' @method residuals fevd
+##' 
 ##' @importFrom stats residuals
+##'
 ##' @importFrom potomax pGPD2
+##'
 ##' @export
 ##' 
 residuals.fevd <- function (object,
@@ -419,6 +428,8 @@ residuals.fevd <- function (object,
 ##'
 ##' @seealso \code{\link[extRemes]{findpars}}
 ##'
+##' @importFrom stats model.matrix
+##' 
 ##' @export
 ##' 
 ##' @examples
@@ -484,17 +495,23 @@ theta <- function(object, data = NULL) {
 ##' @param probs See \code{\link[NSGEV]{quantile.TVGEV}}
 ##'
 ##' @param data A data frame containing the covariates needed.
+##'
+##' @param ... Not used yet.
 ##' 
 ##' @return An object inheriting from \code{"matrix"}.
 ##'
 ##' @importFrom stats quantile
+##'
 ##' @method quantile fevd
+##'
 ##' @export
+##' 
 ##' @importFrom NSGEV qGEV
 ##' 
-quantile.fevd <- function(x, probs = c(0.9, 0.95, 0.99), data = NULL) {
+quantile.fevd <- function(x, probs = c(0.9, 0.95, 0.99),
+                          data = NULL, ...) {
       
-    if (!(object$type %in% c("PP"))) {
+    if (!(x$type %in% c("PP"))) {
         stop("'type' can only be \"PP\"") 
     }
     

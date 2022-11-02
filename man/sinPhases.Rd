@@ -53,7 +53,7 @@ vector.
 }
 
 \examples{
-Rq <- rqTList(Rennes)
+Rq <- rqTList(dailyMet = Rennes)
 co <- coef(Rq)
 sinPhases(co)
 ## for a vector

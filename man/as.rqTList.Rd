@@ -4,13 +4,12 @@
 \alias{as.rqTList}
 \title{Create a \code{rqTList} Object}
 \usage{
-as.rqTList(object)
+as.rqTList(object, ...)
 }
 \arguments{
 \item{object}{An object to coerce, typically a list object.}
 
-\item{...}{A collection of objects with class \code{"rq"}
-with the same \code{type}}
+\item{...}{Not used for now.}
 }
 \value{
 An object with class \code{"rqTList"}.

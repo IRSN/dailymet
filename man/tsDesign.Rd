@@ -27,6 +27,12 @@ the trigonometric case.}
 \item{phi}{Numeric vector of phases used only when \code{type} is
 \code{"sinwave"}.}
 
+\item{keepTrig}{Logical. Used only when \code{type} is
+\code{"sinwave"}. If \code{TRUE} the base trigonometric
+functions \code{sinj1}, \code{sinj2}, ..., \code{cosj1},
+\code{cosj2}, ... are kept in the result, along with the
+functions \code{sinjPhi1}, \code{sinjPhi2}, ...}
+
 \item{origin}{An origin for the time. Used only in the polynomial
 case. The same value must be used in fits and predictions.}
 }

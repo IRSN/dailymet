@@ -40,7 +40,7 @@ By construction, this function can only find \emph{one}
 findStationMF(desc = "rennes-st")
 findStationMF(desc = "troy")
 ## error
-findStationMF(desc = "tro")
+try(findStationMF(desc = "tro"))
 }
 \author{
 Yves Deville

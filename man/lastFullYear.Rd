@@ -11,6 +11,11 @@ lastFullYear(dateTxt, leap = FALSE, out = c("character", "logical"))
 
 \item{leap}{Logical if \code{TRUE}, the last full leap year
 will be returned.}
+
+\item{out}{Character. When given the value \code{"character"}, a
+character vector extracted from \code{dataeTxt} is
+returned. When the value \code{logical} is given, a logical
+vector is returned, indicating the elements in \code{dateTxt}.}
 }
 \value{
 A logical vector that can be used to subset.

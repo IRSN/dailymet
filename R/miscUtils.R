@@ -50,7 +50,7 @@ formatPerc <- function(x,
 ##' u0 <- quantile(Fort$Prec, prob = 0.97)
 ##' cl <- clusters3(Date = Fort$Date, y = Fort$Prec, u = u0)
 ##' plot(Prec ~ Date, data = Fort, type = "h", lwd = 2)
-##' abline(h = u0, col = "SptingGreen3")
+##' abline(h = u0, col = "SpringGreen3")
 ##' abline(v = cl$DateClust , col = "orangered")
 clusters3 <- function(Date, y, u) {
     
@@ -154,6 +154,8 @@ clusters3 <- function(Date, y, u) {
 ##' 
 seasCenter <- function(data, j, sw = 45) {
 
+    Day <- NULL
+    
     if (!("Day" %in% names(data)) || any(data$Day < 1) ||
         any(data$Day > 366)) {
         stop("'data' must contain a \"Day\" column ",
@@ -231,6 +233,11 @@ nonNaIntervals <- function(y) {
 ##' @param leap Logical if \code{TRUE}, the last full leap year
 ##' will be returned.
 ##'
+##' @param out Character. When given the value \code{"character"}, a
+##'     character vector extracted from \code{dataeTxt} is
+##'     returned. When the value \code{logical} is given, a logical
+##'     vector is returned, indicating the elements in \code{dateTxt}.
+##' 
 ##' @return A logical vector that can be used to subset. 
 ##' 
 lastFullYear <- function(dateTxt, leap = FALSE,

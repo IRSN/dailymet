@@ -4,7 +4,7 @@
 \alias{quantile.fevd}
 \title{Compute Quantile for \code{fevd} Objects}
 \usage{
-\method{quantile}{fevd}(x, probs = c(0.9, 0.95, 0.99), data = NULL)
+\method{quantile}{fevd}(x, probs = c(0.9, 0.95, 0.99), data = NULL, ...)
 }
 \arguments{
 \item{x}{An object with class \code{"fevd"}.}
@@ -12,6 +12,8 @@
 \item{probs}{See \code{\link[NSGEV]{quantile.TVGEV}}}
 
 \item{data}{A data frame containing the covariates needed.}
+
+\item{...}{Not used yet.}
 }
 \value{
 An object inheriting from \code{"matrix"}.

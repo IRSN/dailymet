@@ -22,8 +22,11 @@
 ##'     harmonics of the yearly seasonality.
 ##' 
 ##'
-##' @return An object with class \code{"rqTList"}
+##' @return An object with class \code{"rqTList"}.
+##'
+##' @importFrom quantreg rq
 ##' @export
+##' 
 ##' @examples
 ##' Rq <- rqTList(dailyMet = Rennes)
 ##' coef(Rq)
@@ -70,7 +73,7 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
                               TX = dailyMet$TX,
                               u = u[[i]])
             if (i == 1) dfu <- dfi
-            else dfu <- dplyr::bind_rows(dfu, dfi)                     
+            else dfu <- rbind(dfu, dfi, deparse.level = 0)                     
         }
         
     }
@@ -132,13 +135,15 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
 ##'
 ##' @param object An object to coerce, typically a list object.
 ##'
+##' @param ... Not used for now.
+##' 
 ##' @return An object with S3 class \code{"rqTList"}
 ##'
 ##' @note It is a good practice to use a \emph{named} list.
 ##' 
 ##' @export
 ##' 
-`as.rqTList` <- function(object) {
+`as.rqTList` <- function(object, ...) {
     
     if (!all(sapply(object, class) == "rq")) {
         stop("all items in 'object' must have class ",
@@ -178,18 +183,23 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
 ##'     (a.k.a standard errors) wille be show.
 ##'
 ##' @param ... Not used.
+##'
+##' @note This method is very slow, because it calls
+##'     \code{\link[quantreg]{summary.rq}}.
 ##' 
 ##' @export
 ##' @method coSd rqTList
 ##'
 ##' @examples
-##' u0 <- quantile(Fort$Prec, prob = c(0.95, 0.97, 0.98))
-##' Fits <- list()
+##' library(extRemes)
+##' data(Fort)
+##' tau <- c(0.95, 0.97, 0.98)
+##' Rq <- list()
 ##' for (i in 1:3) {
-##'    Fits[[i]] <- rq(x = Prec, data = Fort, threshold = u0[i])
+##'    Rq[[i]] <- rq(Prec ~ year, data = Fort, tau = tau[i])
 ##' }
-##' class(Fits) <- "rqTList"
-##' coSd(Fits)
+##' Rq <- as.rqTList(Rq)
+##' coSd(Rq)
 ##' 
 `coSd.rqTList` <- function(object, sOnly = FALSE, ...) {
     res <- sapply(object, coSd, sOnly)
@@ -203,11 +213,11 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
 ##' @export
 ##' @method formula rqTList
 ##' 
-formula.rqTList <- function(object, ...) {
+formula.rqTList <- function(x, ...) {
 
-    LF <- lapply(object, formula)
+    LF <- lapply(x, formula)
     if (length(uF <- unique(LF)) > 1) {
-        stop("all element of `object` must have the same formula")
+        stop("all element of `x` must have the same formula")
     }
     uF[[1]]
     
@@ -271,7 +281,9 @@ tau.rqTList <- function(object, ...) {
 ##' @return A matrix or a data frame, depending on the value or
 ##'     \code{out}.
 ##'
+##' @importFrom stats na.pass
 ##' @export
+##' 
 ##' @method predict rqTList
 ##'
 ##' @examples
@@ -397,6 +409,15 @@ xi <- function(object, ...) {
 ##'     \code{tau(object)}. By default the three largest values in
 ##'     \code{tau(object)} are used.
 ##'
+##' @param lastFullYear Logical. It \code{TRUE} the value of the
+##'     estimated \code{xi} is computed for the last full year of the
+##'     data used to create \code{data}. See
+##'     \code{\link{predict.rqTList}}.
+##'
+##' @param plot Logical. If \code{TRUE} a (gg)plot is shown.
+##' 
+##' @param ... Not used yet.
+##' 
 ##' @return A data frame with a \code{xiHat} column containing the
 ##'     estimation.
 ##'
@@ -404,14 +425,15 @@ xi <- function(object, ...) {
 ##'     estimate, and it seems that the variations are somewhat
 ##'     exaggerated. An alternative method is estimating \eqn{xi} by
 ##'     using a moving time window in the year.
-##' 
+##'
+##' @importFrom stats uniroot
+##'
 ##' @export
+##'
 ##' @method xi rqTList
 ##' 
-xi.rqTList <- function(object,
-                       tau = NULL,
-                       lastFullYear = TRUE,
-                       plot = FALSE)  {
+xi.rqTList <- function(object, tau = NULL, lastFullYear = TRUE,
+                       plot = FALSE, ...)  {
     
     tauObj <- tau(object)
     if (missing(tau)) {
@@ -451,11 +473,12 @@ xi.rqTList <- function(object,
     
     if (plot) {
         g <- ggplot(data = res) +
-            geom_line(mapping = aes(x = Date, y = xiHat)) +
-            ggtitle(sprintf(paste0("Tail coefficient 'xi' estimated from the three ",
-                                   "quantiles with prob. %s"),
+            geom_line(mapping = aes_string(x = "Date", y = "xiHat")) +
+            ggtitle(sprintf(paste0("Tail coefficient 'xi' estimated from ",
+                                   "the three quantiles with prob. %s"),
                             paste(format(tau), collapse = ", "))) +
-            xlab("") + scale_x_date(breaks = "month", labels = date_format("%m")) 
+            xlab("") + scale_x_date(breaks = "month",
+                                    labels = date_format("%m")) 
 
         print(g)
     }

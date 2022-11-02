@@ -17,8 +17,10 @@
 ##' @return An object inheriting from the \code{"ggplot"} class.
 ##'
 ##' @import ggplot2 
-##' 
+##'
+##' @importFrom scales date_format
 ##' @export
+##'
 ##' @method autoplot dailyMet
 ##'
 ##' @note When required, the \code{subset} method used is that of the
@@ -28,7 +30,7 @@
 ##' 
 ##' @examples
 ##' autoplot(Rennes)
-##' autoplot(Rennes, group = "year", subset = year >= 2010)
+##' autoplot(Rennes, group = "year", subset = Year >= 2010)
 ##' autoplot(Rennes, group = "yearW", subset = Year >= 2010 & DJF)
 autoplot.dailyMet <- function(object,
                               group = c("decade", "year", "yearW", "none"),
@@ -129,7 +131,8 @@ autolayer.rqTList <- function(object, lastFullYear = TRUE, ...) {
 
     p <- predict(object, out = "long", lastFullYear = lastFullYear)
     geom_line(data = p,
-              mapping = aes(x = Date, y = u, group = tau, colour = tau),
+              mapping = aes_string(x = "Date", y = "u",
+                                   group = "tau", colour = "tau"),
               ...) 
    
 }
@@ -169,11 +172,12 @@ autolayer.rqTList <- function(object, lastFullYear = TRUE, ...) {
 ##'     g
 ##' }
 autoplot.rqTList <- function(object, lastFullYear = TRUE, ...) {
-
+   
     g <- ggplot()
     p <- predict(object, out = "long", lastFullYear = lastFullYear)
     g <- g + geom_line(data = p,
-                       mapping = aes(x = Date, y = u, group = tau, colour = tau),
+                       mapping = aes_string(x = "Date", y = "u",
+                                            group = "tau", colour = "tau"),
                        ...) +
         scale_colour_brewer(palette = "Set2") +
         xlab("") + ggtitle(sprintf("Quantile regression for %s in %s",

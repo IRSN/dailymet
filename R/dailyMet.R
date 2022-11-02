@@ -71,12 +71,16 @@
 ##' @param station,id Character vectors with length one giving the
 ##'     name of the gauging station and the identifier. These will be
 ##'     attached to the data.
+##'
+##' @param trace Integer level of verbosity. Not used for now.
 ##' 
 ##' @param ... Not used yet
 ##'
 ##' @return An object with S3 class \code{"dailyMet"} inheriting from
 ##'     the \code{"data.frame"} class.
 ##'
+##' @importFrom methods is
+##' 
 ##' @export
 ##'
 ##' @note We recommend to use the staion Ids and names given in

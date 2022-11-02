@@ -36,6 +36,8 @@ under the prescribed name. \bold{NOT IMPLEMENTED}.}
 name of the gauging station and the identifier. These will be
 attached to the data.}
 
+\item{trace}{Integer level of verbosity. Not used for now.}
+
 \item{...}{Not used yet}
 }
 \value{

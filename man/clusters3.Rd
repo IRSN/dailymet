@@ -45,6 +45,6 @@ Fort <- within(subset(Fort, year == 1999), {
 u0 <- quantile(Fort$Prec, prob = 0.97)
 cl <- clusters3(Date = Fort$Date, y = Fort$Prec, u = u0)
 plot(Prec ~ Date, data = Fort, type = "h", lwd = 2)
-abline(h = u0, col = "SptingGreen3")
+abline(h = u0, col = "SpringGreen3")
 abline(v = cl$DateClust , col = "orangered")
 }

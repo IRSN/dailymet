@@ -123,7 +123,7 @@ stationsMF <-
 ##' findStationMF(desc = "rennes-st")
 ##' findStationMF(desc = "troy")
 ##' ## error
-##' findStationMF(desc = "tro")
+##' try(findStationMF(desc = "tro"))
 findStationMF <- function(desc = NULL,
                           id = NULL,
                           name = NULL,

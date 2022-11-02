@@ -69,7 +69,7 @@ df <- subset(Rennes, Year <= 2020 & Year >= 1960)
 K <- 3
 ## Design of trigonometric functions
 desTrig <- tsDesign(dt = df$Date, df = 2 * K + 1, type = "trigo")
-fit <- lm(formula = Temp ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
+fit <- lm(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
           data = data.frame(df, desTrig$X))
 betaHat <- coef(fit)
 
@@ -80,7 +80,7 @@ gamma <- attr(phiHat, "amplitude")
 ## Design of sine waves with prescribed phases
 desSin <- tsDesign(dt = df$Date, df = 2 * K + 1,
                    type = "sinwave", phi = phiHat)
-fit2 <- lm(formula = Temp ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 -1,
+fit2 <- lm(formula = TX ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 -1,
            data = data.frame(df, desSin$X))
 ## should be zero
 max(abs(predict(fit) - predict(fit2)))

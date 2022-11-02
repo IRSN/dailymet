@@ -30,7 +30,7 @@ seven trigonometric basis functions for the first three
 harmonics of the yearly seasonality.}
 }
 \value{
-An object with class \code{"rqTList"}
+An object with class \code{"rqTList"}.
 }
 \description{
 Create a \code{qrList} object by calling \code{\link{rq}} for each

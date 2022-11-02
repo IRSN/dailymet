@@ -44,11 +44,13 @@ fevdTList <- function(...) {
 ##'
 ##' @param object An object to coerce, typically a list object.
 ##'
+##' @param ... Not used for now.
+##' 
 ##' @return An object with S3 class \code{"fevdTList"}
 ##'
 ##' @export
 ##' 
-`as.fevdTList` <- function(object, names) {
+`as.fevdTList` <- function(object, ...) {
     
     if (!all(sapply(object, class) == "fevd")) {
         stop("all items in 'object' must have class ",
@@ -89,6 +91,8 @@ fevdTList <- function(...) {
 ##' @method coSd fevdTList
 ##'
 ##' @examples
+##' library(extRemes)
+##' data(Fort)
 ##' u0 <- quantile(Fort$Prec, prob = c(0.95, 0.97, 0.98))
 ##' Fits <- list()
 ##' for (i in 1:3) {

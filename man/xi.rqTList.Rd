@@ -5,7 +5,7 @@
 \title{Compute an Estimate of the Tail Coefficient 'xi' using
     Quantile Regression Results}
 \usage{
-\method{xi}{rqTList}(object, tau = NULL, lastFullYear = TRUE, plot = FALSE)
+\method{xi}{rqTList}(object, tau = NULL, lastFullYear = TRUE, plot = FALSE, ...)
 }
 \arguments{
 \item{object}{An object with class \code{"rqTList"}.}
@@ -14,6 +14,15 @@
 strictly increasing order and contain values that are found in
 \code{tau(object)}. By default the three largest values in
 \code{tau(object)} are used.}
+
+\item{lastFullYear}{Logical. It \code{TRUE} the value of the
+estimated \code{xi} is computed for the last full year of the
+data used to create \code{data}. See
+\code{\link{predict.rqTList}}.}
+
+\item{plot}{Logical. If \code{TRUE} a (gg)plot is shown.}
+
+\item{...}{Not used yet.}
 }
 \value{
 A data frame with a \code{xiHat} column containing the
