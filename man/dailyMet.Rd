@@ -96,10 +96,30 @@ The precomputed variables include the following ones.
          in the study of summer and winter extremes.
 
     }
-      
+
+    \item{\code{YearNum} }{
+
+         Numeric variable representing the time \emph{in years}
+         from the so-called \emph{Unix epoch} 
+         \code{1970-01-01}. For example \code{YearNum} is nearly
+         50.5 when \code{Date} is \code{"2020-07-02"},
+         corresponding to 50.5 years elapsed from the epoch.
+
+    }
+
+    Of course other variables related to the date can easily be
+    created.
+
 }
 }
 \note{
-We recommend to use the staion Ids and names given in
-    \code{\link{stationsMF}}.
+We recommend ehen possible to use the station Id and name as
+    given in \code{\link{stationsMF}}.
 }
+\section{Caution}{
+ Althouch some methods inherited from the
+    \code{"data.frame"} class work as expected (\code{nrow},
+    \code{names}, ...), the \code{subset} method requires a
+    coercion with \code{as.data.frame}.
+}
+

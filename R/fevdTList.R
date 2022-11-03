@@ -35,7 +35,7 @@ fevdTList <- function(...) {
              "and it must be \"GP\" or \"PP\"")
     }
     
-    class(L) <- c("fevList", "list")
+    class(L) <- c("fevdTList", "list")
     L
 }
 
@@ -63,7 +63,7 @@ fevdTList <- function(...) {
              "and it must be \"GP\" or \"PP\"")
     }
     
-    class(object) <- c("fevList", "list")
+    class(object) <- c("fevdTList", "list")
     object
 }
 
@@ -114,4 +114,12 @@ fevdTList <- function(...) {
 ##' 
 `vcov.fevdTList` <- function(object, ...) {
     lapply(object, vcov)
+}
+
+##' @importFrom stats logLik
+##' @export
+##' @method logLik fevdTList
+##' 
+`logLik.fevdTList` <- function(object, ...) {
+    sapply(object, logLik)
 }

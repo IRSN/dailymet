@@ -38,7 +38,7 @@
 ##' @export
 ##' 
 readECA <-  function(file, out = c("dailyMet", "data.frame"),
-                     station = NA, code = NA) {
+                     station = NA, id = NA) {
 
     out <- match.arg(out)
     Met <- read.table(file,
@@ -55,7 +55,7 @@ readECA <-  function(file, out = c("dailyMet", "data.frame"),
 
     if (out == "data.frame") return(Met)
 
-    dMet <- dailyMet(data = Met, station = station, code = code)
+    dMet <- dailyMet(data = Met, station = station, id = id)
     dMet    
         
 }

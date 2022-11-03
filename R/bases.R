@@ -1,31 +1,66 @@
 ## *****************************************************************************
 
-##' @title Check the Names for Trigonometric Components
+##' Check whether the names of trigonometric terms are used in a
+##' character vector or formula. A name is a trigonometric term if it
+##' is obtained by pasting \code{"cosj"} or \code{"sinj"} with an
+##' integer giving the harmonic. We expect that when a trigonometric
+##' \code{"cosj"} or \code{"sinj"} is found, it companion
+##' \code{"sinj"} or \code{"cosj"} is also found.
+##'
+##' @title Check a Vector of Names for Trigonometric Components
 ##' 
-##' @param name A character vector containing the names of
-##'     trigonometric variables.
+##' @param names A character vector containing names of variables,
+##'     possibly embeding trigonometric variables. Can also be a
+##'     formula from which the names are extracted.
 ##'
 ##' @return The positive integer \code{K} such that the names
-##'     \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"}, \code{"sinjK"}
-##'     are found in \code{name}.
+##'     \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"},
+##'     \code{"sinjK"} are found in \code{name}. If no trigonometric
+##'     term is found then the value \code{0} is returned.
 ##'
 ##' @section Caution: This fonction is likely to be come an internal
-##'     (non-exported) function.
+##'     (non-exported) function. Mind the \code{'j'} in \code{"cosj"} os
+##'     \code{"sinj"}.
 ##' 
 ##' @export
 ##' 
 ##' @examples
 ##' nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
 ##' checkTrigNames(nm)
+##' ## error: no 'sin' comapanion
+##' try(checkTrigNames(c("Cst", "cosj1")))
+##' ## Missing 'j': no trigonometric term
+##' checkTrigNames(c("Cst", "cos1"))
+##' checkTrigNames(c("Cst", "Prec"))
 ##' 
-checkTrigNames <- function(name) {
-    cosInd <- grep("cosj[1-9]*", name)
-    cosHarm <- sort(as.integer(gsub("cosj", "", name[cosInd])))
-    if (any(is.na(cosHarm))) stop("bad 'cos' term name")
-    sinInd <- grep("sinj[1-9]*", name)
-    sinHarm <- sort(as.integer(gsub("sinj", "", name[sinInd])))
-    if (any(is.na(sinHarm))) stop("bad 'sin' term name")
-    if (!all.equal(cosHarm, sinHarm)) {
+checkTrigNames <- function(names) {
+
+    if (inherits(names, "formula")) {
+        names <- attr(terms(names), "term.labels") 
+    }
+    
+    cosInd <- grep("cosj[1-9]*", names)
+    hasCos <- length(cosInd)
+    if (hasCos) {
+        cosHarm <- sort(as.integer(gsub("cosj", "", names[cosInd])))
+        if (any(is.na(cosHarm))) stop("bad 'cos' term name")
+    } 
+    
+    sinInd <- grep("sinj[1-9]*", names)
+    hasSin <- length(sinInd)
+    if (hasSin) {
+        sinHarm <- sort(as.integer(gsub("sinj", "", names[sinInd])))
+        if (any(is.na(sinHarm))) stop("bad 'sin' term name")
+    }
+
+    if (hasCos != hasSin) {
+        stop("Expect to find cos AND sin names or none of these")
+    }
+    
+    if (!hasCos) return(0)
+
+    ## now 'hasCos' is TRUE ...
+    if (!hasSin || !all.equal(cosHarm, sinHarm)) {
         stop("mismatch between 'cos' and 'sin' harmonics")
     }
     K <- max(sinHarm)

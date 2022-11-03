@@ -247,23 +247,27 @@ corresponding to the different harmonics are quite similar across
 probabilities $\tau < 0.95$. More precisely we may consider the following
 alternative parameterisation of the trigonometric polynomial
 
-$$
+\begin{equation}
    q_d(\tau) \approx 
 	\gamma_0^{q}(\tau) + \sum_{k=1}^K 
 	\gamma_k^{q}(\tau) \sin\left\{2\pi k \left[d - \phi_k^{q}(\tau)\right]/D\right\} 
-$$
+	
+\end{equation}
 
 where the parameter $\gamma_k^{q}(\tau)$ and $\phi_k^{q}(\tau)$ are
 called *amplitudes* and *phase shifts* or simply *phases*. The two
-formulations (XXX) and (YYY) are actually equivalent as can be seen
-from the trigonometric angle subtraction formula 
-$\sin(a -b) = \sin(a)\cos(b) - \cos(a) \sin(b)$.
+formulations (XXX) and \@ref(eq:qTrigPhases) are actually equivalent
+as can be seen from the trigonometric angle subtraction formula
+$\sin(a -b) = \sin(a)\cos(b) - \cos(a) \sin(b)$. We could think of
+using the second form in a `quanteg::rq` fit, but the phase $\phi_k^q$
+apears in a nonlinear fashion. So we can fit the linear cos-sin form
+and then compute the estimate for the amplitudes an phases by using
+some trigonometry.
 
 
 ```{r rqTList2, message=FALSE} 
 co <- coef(Rq)
 phases(co)
-
 ``` 
 
 The table shows the $K=3$ phases $\phi_k$ and amplitudes $\gamma_k$. Note that
@@ -309,7 +313,7 @@ when the threshold is increased.
 
 In order to describe the yearly seasonality, a natural idea is to use
 a trigonometric polynomial as described above. For instance the GP
-scale parameter $\sigma$ could be
+scale parameter $\sigma$ could depend on the Julian day $d$ as in
 
 $$
  \sigma_d = \alpha_0^{\sigma} + \sum_{k=1}^K \alpha_k^{\sigma} \cos\{2\pi k d/D\} +
@@ -323,17 +327,17 @@ estimation, one can use instead the amplitude-phase formulation
 
 $$
    \sigma_d = 
-	\gamma_0 + \sum_{k=1}^K 
+	\gamma_0^{\sigma} + \sum_{k=1}^K 
 	\gamma_k^{\sigma} \sin\left\{2\pi k \left[d - \phi_k \right]/D\right\} 
 $$
 
 where *the phases $\phi_k$ are considered as fixed* or known. In
-practice, we can use the phases 
-$\phi_k := {\hat{\phi}}^{q}_k(\tau_{\text{ref}})$ given by quantile
-regression for a fixed "reference" probability e.g., $\tau_{\text{ref}} = 0.95$. So
-we have only $K+1$ parameter to estimate. Since the phases are usually
-quite stable for the high quantiles, the same should be true also for
-the GP parameters.
+practice, we can use the phases $\phi_k :=
+{\hat{\phi}}^{q}_k(\tau_{\text{ref}})$ given by quantile regression
+for a fixed "reference" probability e.g., $\tau_{\text{ref}} =
+0.95$. So we have only $K+1$ parameter to estimate. Since the phases
+are usually quite stable for the high quantiles, hopefully the same
+should be true also for the GP parameters.
 
 In order to compute the sine wave basis functions with the prescribed
 phases we can use the argument `phi` of the `sinBasis` function or

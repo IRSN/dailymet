@@ -106,6 +106,14 @@ vcov.fevd <- function(object, ...) {
     parcov.fevd(x = object)
 }
 
+##' @importFrom stats logLik
+##' @export
+##' @method logLik fevd
+##' 
+logLik.fevd <- function(object, ...) {
+    -object$results$value
+}
+
 
 ## *****************************************************************************
 ##' @description This method computes the parameters of the marginal

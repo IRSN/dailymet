@@ -2,29 +2,42 @@
 % Please edit documentation in R/bases.R
 \name{checkTrigNames}
 \alias{checkTrigNames}
-\title{Check the Names for Trigonometric Components}
+\title{Check a Vector of Names for Trigonometric Components}
 \usage{
-checkTrigNames(name)
+checkTrigNames(names)
 }
 \arguments{
-\item{name}{A character vector containing the names of
-trigonometric variables.}
+\item{names}{A character vector containing names of variables,
+possibly embeding trigonometric variables. Can also be a
+formula from which the names are extracted.}
 }
 \value{
 The positive integer \code{K} such that the names
-    \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"}, \code{"sinjK"}
-    are found in \code{name}.
+    \code{"cosj1"}, \code{"sinj1"}, ..., \code{"cosjK"},
+    \code{"sinjK"} are found in \code{name}. If no trigonometric
+    term is found then the value \code{0} is returned.
 }
 \description{
-Check the Names for Trigonometric Components
+Check whether the names of trigonometric terms are used in a
+character vector or formula. A name is a trigonometric term if it
+is obtained by pasting \code{"cosj"} or \code{"sinj"} with an
+integer giving the harmonic. We expect that when a trigonometric
+\code{"cosj"} or \code{"sinj"} is found, it companion
+\code{"sinj"} or \code{"cosj"} is also found.
 }
 \section{Caution}{
  This fonction is likely to be come an internal
-    (non-exported) function.
+    (non-exported) function. Mind the \code{'j'} in \code{"cosj"} os
+    \code{"sinj"}.
 }
 
 \examples{
 nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
 checkTrigNames(nm)
+## error: no 'sin' comapanion
+try(checkTrigNames(c("Cst", "cosj1")))
+## Missing 'j': no trigonometric term
+checkTrigNames(c("Cst", "cos1"))
+checkTrigNames(c("Cst", "Prec"))
 
 }

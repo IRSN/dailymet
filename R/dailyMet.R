@@ -49,7 +49,20 @@
 ##'          in the study of summer and winter extremes.
 ##' 
 ##'     }
-##'       
+##'
+##'     \item{\code{YearNum} }{
+##'
+##'          Numeric variable representing the time \emph{in years}
+##'          from the so-called \emph{Unix epoch} 
+##'          \code{1970-01-01}. For example \code{YearNum} is nearly
+##'          50.5 when \code{Date} is \code{"2020-07-02"},
+##'          corresponding to 50.5 years elapsed from the epoch.
+##' 
+##'     }
+##'
+##'     Of course other variables related to the date can easily be
+##'     created.
+##' 
 ##' }
 ##' 
 ##' @title Create an Object with S3 Class \code{"dailyMet"}  
@@ -85,8 +98,13 @@
 ##' 
 ##' @export
 ##'
-##' @note We recommend to use the staion Ids and names given in
-##'     \code{\link{stationsMF}}.
+##' @note We recommend ehen possible to use the station Id and name as
+##'     given in \code{\link{stationsMF}}. 
+##'
+##' @section Caution: Althouch some methods inherited from the
+##'     \code{"data.frame"} class work as expected (\code{nrow},
+##'     \code{names}, ...), the \code{subset} method requires a
+##'     coercion with \code{as.data.frame}.
 ##' 
 dailyMet <- function(data,
                      dateVar = "Date", 
@@ -133,7 +151,7 @@ dailyMet <- function(data,
                           End = dMet$Date[nni$End])
     Duration <- as.numeric(periods$End - periods$Start) / 365.25
     periods <- data.frame(periods, Duration = round(Duration, digits = 2))
-    
+    duration <- sum(Duration)
     if (trace) {
         cat("Non-NA intervals\n")
         print(periods)
@@ -146,7 +164,7 @@ dailyMet <- function(data,
         YearDec <- as.factor(Year %% 10) })
     dMet <- within(dMet, {
         DateRef <- as.Date(format(Date, "1972-%m-%d"));
-        DateNum <- as.numeric(Date) / 365.25
+        YearNum <- as.numeric(Date) / 365.25
     })
     
     dMet <- within(dMet, {
@@ -173,6 +191,7 @@ dailyMet <- function(data,
     attr(dMet, "metVar") <- metVar
     attr(dMet, "periods") <- periods
     attr(dMet, "station") <- station
+    attr(dMet, "duration") <- duration
     attr(dMet, "id") <- id
     
     class(dMet) <- c("dailyMet", "data.frame")
@@ -216,9 +235,10 @@ summary.dailyMet <- function(object, ...) {
                      sep = "") 
       
     res <- list("station" =  attr(object, "station"),
-                "code" = attr(object, "code"),
+                "id" = attr(object, "id"),
                 "metVar" = attr(object, "metVar"),
                 "periods" = attr(object, "periods"),
+                "duration" = attr(object, "duration"),
                 "metVarSummary" = summary(y),
                 "minMax" = noquote(cbind(min = minInfo, max = maxInfo)))
    
@@ -236,9 +256,10 @@ summary.dailyMet <- function(object, ...) {
 ##' @noRd
 print.summary.dailyMet <- function(x, ...) {
     cat("o Daily Meteorological Time Series\n")
-    cat(sprintf("   o Station:         \"%s\"\n", x$station))
-    cat(sprintf("   o Code:            \"%s\"\n", x$code))
-    cat(sprintf("   o Variable name:   \"%s\"\n", x$metVar))
+    cat(sprintf("   o Station:            \"%s\"\n", x$station))
+    cat(sprintf("   o Id:                 \"%s\"\n", x$id))
+    cat(sprintf("   o Variable name:      \"%s\"\n", x$metVar))
+    cat(sprintf("   o Period length (yrs)  %5.2f\n", x$duration))
     cat("\n   o Non-missing periods\n")
     print(x$periods)
     cat("\n   o Summary for variable ", x$metVar, "\n")

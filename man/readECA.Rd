@@ -4,7 +4,7 @@
 \alias{readECA}
 \title{Read an ECA File and Add Extra Varables}
 \usage{
-readECA(file, out = c("dailyMet", "data.frame"), station = NA, code = NA)
+readECA(file, out = c("dailyMet", "data.frame"), station = NA, id = NA)
 }
 \arguments{
 \item{file}{The file to read as in \code{\link{read.table}}.}
