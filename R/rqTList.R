@@ -281,6 +281,13 @@ tau.rqTList <- function(object, ...) {
 ##' @return A matrix or a data frame, depending on the value or
 ##'     \code{out}.
 ##'
+##' @section Caution: For now, a \code{rqTList} object does not store
+##'     the calls to design functions used at creation time, although
+##'     these designs functions may have to be re-called on
+##'     \code{newdata}. A quick and dirty solution is used, based on
+##'     the variables names. It works only for trigonometric bases
+##'     created by using `tsDesign` with `type = "trigo"`.
+##' 
 ##' @importFrom stats na.pass
 ##' @export
 ##' 
@@ -302,17 +309,45 @@ tau.rqTList <- function(object, ...) {
 ##' }
 predict.rqTList <- function(object,
                             newdata,
-                            lastFullYear = TRUE,
+                            lastFullYear,
                             out = c("long", "short"),
                             na.action = na.pass,
                             ...)  {
 
+    TX <- u <- NULL
+    
     out <- match.arg(out)
     nq <- length(object)
 
     if (missing(newdata)) {
         newdata <- attr(object, "data")
+        if (missing(lastFullYear)) lastFullYear <- TRUE
+    } else {
+
+        ## =====================================================================
+        ## XXX We check the existence of the variables in 'newdata'
+        ## before (possibly re-) creating them. Yet this should be
+        ## made more general since some other design can be
+        ## used. Hopefully, if some variables are still missing, the
+        ## error message thrown will be easy to understand.
+        ## =====================================================================
+        
+        if (missing(lastFullYear)) lastFullYear <- FALSE
+        fmOK <- try(model.frame(delete.response(terms(formula(object))),
+                                newdata), silent = TRUE)
+        if (inherits(fmOK, "try-error")) {
+            K <- checkTrigNames(formula(object))
+            if (K) {
+                des <- tsDesign(dt = newdata$Date,
+                                type = "trigo", df = 2 * K + 1)
+                newdata <- data.frame(newdata, des$X)
+            }
+        }
     }
+    
+    ## ==========================================================================
+    ## XXX should be done before for the sake of efficiency
+    ## ==========================================================================
     
     DateTxt <- format(newdata$Date, "%Y-%m-%d")
     
@@ -344,8 +379,11 @@ predict.rqTList <- function(object,
             }
         }
         pred <- within(pred, tau <- as.factor(tau))
+        class(pred) <- c("predict.rqTList", "data.frame")
     }
-        
+
+    attr(pred, "lastFullYear") <- lastFullYear
+    
     pred
     
 }

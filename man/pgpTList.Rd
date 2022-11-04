@@ -22,6 +22,13 @@ pgpTList(
 \item{dailyMet}{An object with class \code{"dailyMet"} containing
 the data.}
 
+\item{subset}{A condition used to subset the data, typically to
+select a period within the year e.g., summer. Note that the
+condition is applied \emph{after declustering} and there are
+side effects: The exceedances in the first two days or last
+two days of a period within year may be lost. \bold{NOT
+IMPLEMENTED YET}.}
+
 \item{thresholds}{An object with class \code{"rqTList"} containing
 the thresholds.}
 
@@ -118,6 +125,9 @@ Pgp2 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
                  declust = TRUE, 
                  shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
                  fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+
+pred <- predict(Pgp1)
+autoplot(pred)
 
 }
 \seealso{

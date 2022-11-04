@@ -12,9 +12,9 @@
 ##'     attributes. This information inclues the name of the
 ##'     meteorological variable.
 ##'
-##' @param station,code Optional character vectors with length one
-##'     that will be attached to the object when the output class is
-##'     \code{"dailyMet"}.
+##' @param station,id Optional character vectors with length one that
+##'     will be attached as attributes of the object when the output
+##'     class is \code{"dailyMet"}.
 ##' 
 ##' @return A data frame with the temperature \code{TX}, the date
 ##'     \code{Date} and several functions of the Date.
@@ -31,7 +31,7 @@
 ##' @section Caution: The station identifier \code{StatId} used by
 ##'     European Climate Assessment & Dataset project (ECA&D)
 ##'     \url{https://www.ecad.eu/} is different from the one used by
-##'     Météo France. Also ECA&D makes a distinction between
+##'     Météo France. Also, ECA&D makes a distinction between
 ##'     \emph{Station Id} (\code{StatId}) and \emph{Source Id}
 ##'     (\code{SouId}).
 ##' 

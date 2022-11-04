@@ -15,9 +15,9 @@ S3 class with creator \code{\link{dailyMet}} extends the
 attributes. This information inclues the name of the
 meteorological variable.}
 
-\item{station, code}{Optional character vectors with length one
-that will be attached to the object when the output class is
-\code{"dailyMet"}.}
+\item{station, id}{Optional character vectors with length one that
+will be attached as attributes of the object when the output
+class is \code{"dailyMet"}.}
 }
 \value{
 A data frame with the temperature \code{TX}, the date
@@ -39,7 +39,7 @@ Read a file as provided by the ECA Data  with \code{StatId}
  The station identifier \code{StatId} used by
     European Climate Assessment & Dataset project (ECA&D)
     \url{https://www.ecad.eu/} is different from the one used by
-    Météo France. Also ECA&D makes a distinction between
+    Météo France. Also, ECA&D makes a distinction between
     \emph{Station Id} (\code{StatId}) and \emph{Source Id}
     (\code{SouId}).
 }

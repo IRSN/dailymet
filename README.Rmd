@@ -10,17 +10,18 @@ output: github_document
 
 **dailymet** is a (maybe temporary) R package providing tools than can
 help when studying the extremes of daily meteorological timeseries,
-mainly series of daily maximum temperature `TX`. Its puts some
+mainly series of daily maximum temperature `TX`. It puts some
 emphasis on Peaks Over Threshold (POT) models, and more specifically
 on time-varying POT models in which basis functions are used to
-describe the yearly seasonality and the trend.
+describe the yearly seasonality and the trend. The package scope 
+is as follows.
 
 - Read timeseries from `.csv` files, produce summaries and ggplots.
 
 - Provide supplementary S3 methods for the objects `rq` from the
   **quantreg** package and `fevd` from the **extRemes** package.
   
-- Provides bases of functions that can be used to describe the trend
+- Provide bases of functions that can be used to describe the trend
   and the seasonality. Among these, a basis of sine wave functions
   with prescribed phases is useful to get a precise description of the
   yearly seasonality with a reduced number of parameters hence with a

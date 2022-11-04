@@ -18,6 +18,9 @@ packages in the vignette.
 formulas (`threshold`, `location`, `scale` and `shape`) and a `dailyMet`
 object.
 
+\[ \] Add methods to coerce a `dailyMet` into suitable **zoo**
+object(s).
+
 ## Long-term
 
 \[ \] Allow the ML estimation, prediction, … for a full Poisson-GP

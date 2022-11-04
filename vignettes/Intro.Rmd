@@ -23,10 +23,12 @@ the sensitivity to the *threshold choice*, thanks to dedicated classes
 of objects that we may call "TLists" for *list by threshold*.
 
 
-# The `"dailyMet"` data class
+# Data classes and data manipulation functions
 
-## Rennes example
+## The `"dailyMet"` data class
 
+As its name may suggest the `"dailyMet"` S3 class contains objects
+descirbing meteorological timeseries sampled on a daily basis. 
 The package comes with the `Rennes` example.
 
 
@@ -35,7 +37,8 @@ library(dailymet)
 Rennes
 ```
 
-`Rennes` has a `print` method which shows the summary above
+The `print` method used for `Rennes` shows the summary above which 
+provides the essential information.
 
 
 ```{r Rennes0, message=FALSE} 
@@ -158,6 +161,24 @@ quantile regression.
 Implicitly assumed, the vector `tau` should be in strictly increasing
 order.
 
+Another *TList* class is the `"pgpTList"` class which corresponds to a
+list of fitted Poisson-GP models. Mind that consistenty whith `rq` and
+`fevd` a lower cas acronym is used, followed by `"TLIst`". However for
+now the class `pgp` does not exist. We can fit a `pgpTList` object
+with a vector `tau` of length one if needed. A `pgpTList` object is
+quite similar to a `fevdList` object. The main difference concerns the
+exceedances and their occurrence in time: Instead of an assuming
+constant rate $\lambda$, a purely temporal non-homogeneous Poisson
+process is used. A rate depending on the time $\lambda(t)$ or on the
+time and other covariates $\lambda(x, \mathbf{x})$ can be specified by
+using a devoted formula for $\log \lambda$.
+
+**Caution** The development of `pgpTList` class and of the relevant
+methods is far from being achieved. Some major changes are likely to occur.
+
+
+
+
 ### Some important remarks
 
 - A `rq` object does not encode a full distribution nor even a tail
@@ -211,10 +232,11 @@ More precisely the quantile $q(\tau)$ of the meteorological variable is
 considered as a trigonometric polynomial function $q_d(\tau)$ of the
 day in the year a.k.a Julian day $d$ ($1 \leqslant d \leqslant 366$)
 
-$$
+\begin{equation}
+\tag{1}
 q_d(\tau) \approx  \alpha_0^{q}(\tau) + \sum_{k=1}^K \alpha_k^{q}(\tau) \cos\{2\pi k d/D\} +
-	\beta_k^{q}(\tau) \sin\{2\pi k d/D\}
-$$
+	\beta_k^{q}(\tau) \sin\{2\pi k d/D\} 
+\end{equation}
 
 where $D:=365.25$ is yearly period expressed in days. The
 pseudo-exponent $q$ in the coefficients $\alpha$ and $\beta$ is used
@@ -225,7 +247,7 @@ coefficients $\hat{\alpha}_k^{q}(\tau)$ and $\hat{\beta}_k^{q}(\tau)$.
 
 
 ```{r rqTList1, message=FALSE, fig.width=8, fig.height=6} 
-methods(class = "rqTRList")
+methods(class = "rqTList")
 coef(Rq)
 coSd(Rq)
 
@@ -248,6 +270,7 @@ probabilities $\tau < 0.95$. More precisely we may consider the following
 alternative parameterisation of the trigonometric polynomial
 
 \begin{equation}
+   \tag{2}
    q_d(\tau) \approx 
 	\gamma_0^{q}(\tau) + \sum_{k=1}^K 
 	\gamma_k^{q}(\tau) \sin\left\{2\pi k \left[d - \phi_k^{q}(\tau)\right]/D\right\} 
@@ -256,13 +279,13 @@ alternative parameterisation of the trigonometric polynomial
 
 where the parameter $\gamma_k^{q}(\tau)$ and $\phi_k^{q}(\tau)$ are
 called *amplitudes* and *phase shifts* or simply *phases*. The two
-formulations (XXX) and \@ref(eq:qTrigPhases) are actually equivalent
-as can be seen from the trigonometric angle subtraction formula
-$\sin(a -b) = \sin(a)\cos(b) - \cos(a) \sin(b)$. We could think of
-using the second form in a `quanteg::rq` fit, but the phase $\phi_k^q$
-apears in a nonlinear fashion. So we can fit the linear cos-sin form
-and then compute the estimate for the amplitudes an phases by using
-some trigonometry.
+formulations (1) and (2) are actually equivalent, as can be seen from
+the trigonometric "angle subtraction formula" $\sin(a -b) =
+\sin(a)\cos(b) - \cos(a) \sin(b)$. We could think of using the second
+form in a `quanteg::rq` fit, but this is not possible since the phase
+$\phi_k^q$ apears in a nonlinear fashion. So we can fit the linear
+cos-sin form and then compute the estimate for the amplitudes an
+phases by using some trigonometry.
 
 
 ```{r rqTList2, message=FALSE} 
@@ -296,18 +319,23 @@ increases.
 ## Seasonality in (time-varying) POT models
 
 ### Why seasonality matters
-Using a suitable description of the seasonality is a major in POT
-models. Concerning our meteorological variables, a natural idea is to
-use GP or GEV parameters depending on the date through the Julian day
-$d$. There are many reasons to use a seasonaly time-varying threshold
-$u(d)$ depending as well on $d$. One motivation is the efficiency of
-the estimation. If a constant threshold is used, the results are
-likely to depend much on the threshold value because the distribution
+Using a suitable description of the seasonality is a major concern in
+POT modeling. Concerning our meteorological variables, a natural idea
+is to use GP or GEV parameters depending on the date through the
+Julian day $d$ since it is clear that the margnal distibution depends
+hevily on $d$.
+
+There are also many reasons to use a seasonaly time-varying
+threshold $u(d)$ depending as well on $d$. One motivation is the
+efficiency of the estimation: A constant threshold would be too low
+season and too high for another. Moreoved, if a constant threshold is
+used, the results are likely to depend much on the threshold value
+because the distribution over a period of several months in the year
 is actually a weighted mixture of different distributions
 corresponding to the values of $d$, and their weight will depend much
-on the threshold. For instance if a constant threshold is used for all
-the JJA period, the weight of the early June and late August will be smaller
-when the threshold is increased.
+on the constant threshold. For instance, if a constant threshold is
+used for all the JJA period, the weight of the early June and late
+August will be smaller when the threshold is increased.
 
 ### Poisson-GP models
 
@@ -339,23 +367,117 @@ for a fixed "reference" probability e.g., $\tau_{\text{ref}} =
 are usually quite stable for the high quantiles, hopefully the same
 should be true also for the GP parameters.
 
+The `"fevdTlist"` is a transitional class which requires to "manually"
+create a list of `fevd` objects having the same but different
+thresholds obtained by quantile regression. Once these objects have
+been fitted and gathered in a list, the `as.fevdTList` coercion method
+can be used. The `"pgpTList"` class is easier to use.
+
+Note that while using as above a large range of probability $\tau$ is
+adequate to get insights on the variable, a narrower range of
+probability values seems more adequate for POT models. We can use
+$\tau$ ranging, say, from $0.90$ to $0.98$.
+
+To create a `pgpTList` object, the appropriate way is *first, fit a
+`rqTList` object* with chosen thresholds. This object will be passed
+to the `thresholds` argument of the creator `pgpTList`. 
 In order to compute the sine wave basis functions with the prescribed
-phases we can use the argument `phi` of the `sinBasis` function or
-equivalently of the `tsDesign` function with `type = "sinwave"`.
+phases corresponing to the probability $\tau_{\text{ref}}$, the
+argument `tauRef` can be used. 
+
+```{r pgp, message=FALSE, results ="hide", fig.width=8, fig.height=6}
+Rq <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
+                declust = TRUE, fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+p <- predict(Pgp1, lastFullYear = TRUE)
+autoplot(p, facet = FALSE)
+``` 
+
+The output of the code was not shown because the
+`NHPoisson::fitPP.fun` function used to fit the time part of the model
+is very verbose.  The Figure above shows the 100-year return level
+(RL), which depends on the date, for the last full year of the fitting
+period. We see that rather realistic values are obtained and moreover
+that the fitted RL depends little on the threshold choice, which is a
+nice feature. The default formulas used in the creator for the GP part (hence 
+passed to `fevd`)  are
+
+- `scale.fun = ~Cst + sinjPhi1 + sinJPhi2 + sinjPhi3 - 1` 
+
+- `shape.fun = ~1`
+
+So no time-trend was specified in the GP part of the model. However
+a time-trend was used for the exceedance rate, namely
+$$
+   \lambda(t) = \exp\{ \beta_0^\lambda + \beta_1^\lambda t \},
+$$
+where the time $t$ is given by `YearNum` so the coefficient 
+$\beta^\lambda_1$ is in inverse years $\text{yr}^{-1}$.
+
+## How `pgpTList` works
+
+The value of `tauRef` is used to select the appropriate line in the
+matrix `phases(coef(thresholds))` which is used internally. So
+`tauRef` must correspond to a probability used to define the
+thresholds. The so-created vector of phases `phi` is then used to
+create the basis functions with the `sinBasis` function or
+equivalently of the `tsDesign` function with `type = "sinwave"`.  The
+sine wave basis functions are used to add new variables to the data
+frame given in `dailyMet`. Then the "fitting functions"
+`extRemes::fevd` and `NHPoisson:fitPP.fun` are used to fit the "GP"
+part" and the (temporal) "Poisson part" for each of the thresholds
+computed from the `thresholds` object. The results for the "GP" part
+and the the time Poisson part are stored as tyhe two elements `"GP"`
+and `"timePoisson"` of the returned list, the first having the class
+`"fevdTList"`. We hence can use the methods for the `"fevdTList"`
+class to get insigths on the `"GP"` partof our `pgpTList` object.
+
+**Caution** The log-likelihood of a Poisson-GP is the sum of two
+contributions corresponding to the GP and the time-Poisson parts, see
+Northrop et Al.
+
+
 
 ```{r phases, message=FALSE} 
 Phi <- phases(coef(Rq))
-phi <- Phi[5, ]
 
 ``` 
 
-# Technical issues
 
-## Related to **quantreg**
+
+
+# Appendix
+
+## Technical issues
+
+### Related to **quantreg**
 
 - An `rq` object as created by `quantreg::rq` does not store the data
-used.
+  used.
+  
+- Coping with missing value `NA` is difficult because the default
+  prediction corresponds to `na.omit` which removes the observations
+  with `NA` response.
 
-## Related to **extRemes**
+### Related to **extRemes**
 
+- An object with class `"fevd"` corresponding to a Poisson-GP POT
+  model does not fit the "time part" of the process. The is usually no
+  reason to assume that the exceedance rate is constant.
 
+- An object with class `"fevd"` corresponding to a Poisson-GP POT
+  model does not store the value of the threshold as required to make
+  a prediction on a new data. Consequently the `predict` method for
+  the `"fevd"` class as implemented in **dailymet** is unreliable
+  because an attempt is made to find the threshold from the stored
+  `call`, but the correponding objects are most often not found.
+  
+### Related to **HHPoisson**
+
+- There is no formula interface for `fitPP.fun`. The covariates are
+  given in a numeric matrix. The coefficients do not have appeling
+  names and the order of the columns in the matrix of covariates
+  matters.
+
+- The class `"mlePP"` corresponing to the objects created by
+  `fitPP.mle` does not have a `predict` method.

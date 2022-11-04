@@ -148,7 +148,7 @@ logLik.fevd <- function(object, ...) {
 ##'
 ##' @section Caution: This method is highly experimental since the
 ##'     \code{extRemes::fevd} package does not store all all the
-##'     information required for the prediction. The vector of
+##'     information required to make the prediction. The vector of
 ##'     coefficients for a covariate-dependent threshold is not
 ##'     stored.
 ##'

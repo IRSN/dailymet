@@ -282,3 +282,73 @@ autoplot.phasesMatrix <- function(object,
     gPhStab
 
 }
+
+##' @export
+##' @method autoplot predict.rqTList
+##' 
+autoplot.predict.rqTList <- function(object, ...) {
+
+    lastFullYear <- attr(object, "lastFullYear")
+    
+    g <- ggplot()
+  
+    g <- g + geom_line(data = object,
+                       mapping = aes_string(x = "Date", y = "u",
+                                            group = "tau", colour = "tau"),
+                       ...) +
+        scale_colour_brewer(palette = "Set2") + xlab("") 
+    if (lastFullYear) {
+        g <- g + scale_x_date(breaks = "month", labels = date_format("%m")) +
+            ggtitle(sprintf("Quantile regression thresholds Year = %s",
+                            format(object[["Date"]][1], "%Y")))
+    } else {
+        g <- g + ggtitle("Quantile regression thresholds")
+    }
+    
+    g
+    
+
+
+}
+
+##' @export
+##' @method autolayer predict.rqTList
+##' 
+autolayer.predict.rqTList <- function(object,  ...) {
+
+    geom_line(data = object,
+              mapping = aes_string(x = "Date", y = "u",
+                                   group = "tau", colour = "tau"),
+              ...) 
+   
+}
+
+##' @export
+##' @method autoplot predict.pgpTList
+##' 
+autoplot.predict.pgpTList <- function(object,
+                                      which = "RL100",
+                                      facet = TRUE,
+                                      ...) {
+    
+    lastFullYear <- attr(object, "lastFullYear")
+    g <- ggplot()
+    g <- g + geom_line(data = object,
+                       mapping = aes_string(x = "Date", y = which,
+                                            group = "tau", colour = "tau"),
+                       ...) +
+        scale_colour_brewer(palette = "Set2") + xlab("")
+    
+    if (lastFullYear) {
+        g <- g + scale_x_date(breaks = "month", labels = date_format("%m")) +
+            ggtitle(sprintf("Predicted %s, Year = %s", which,
+                            format(object[["Date"]][1], "%Y")))
+    } else {
+        g <- g + ggtitle(sprintf("Predicted %s", which))
+    }
+    if (facet) {
+        g <- g + facet_wrap(tau ~ .)
+    }
+    g
+
+}

@@ -123,3 +123,4 @@ fevdTList <- function(...) {
 `logLik.fevdTList` <- function(object, ...) {
     sapply(object, logLik)
 }
+

@@ -28,6 +28,13 @@
 ##' @param dailyMet An object with class \code{"dailyMet"} containing
 ##'     the data.
 ##'
+##' @param subset A condition used to subset the data, typically to
+##'     select a period within the year e.g., summer. Note that the
+##'     condition is applied \emph{after declustering} and there are
+##'     side effects: The exceedances in the first two days or last
+##'     two days of a period within year may be lost. \bold{NOT
+##'     IMPLEMENTED YET}.
+##' 
 ##' @param thresholds An object with class \code{"rqTList"} containing
 ##'     the thresholds.
 ##'
@@ -77,6 +84,8 @@
 ##'         }
 ##'     }
 ##'
+##' @importFrom NHPoisson fitPP.fun
+##' 
 ##' @export
 ##'
 ##' @seealso \code{\link{rqTList}} for the list of \code{rq} objects
@@ -104,6 +113,9 @@
 ##'                  declust = TRUE, 
 ##'                  shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
 ##'                  fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+##'
+##' pred <- predict(Pgp1)
+##' autoplot(pred)
 ##' 
 pgpTList <- function(dailyMet,
                      subset = NULL,
@@ -116,6 +128,8 @@ pgpTList <- function(dailyMet,
                      shape.fun = ~1,
                      trace = 1) {
 
+    TX <- u <- NULL ## avoid warnings at check
+    
     dailyMetBAK <- dailyMet
     metVar <- attr(dailyMet, "metVar")
     duration <- summary(dailyMet)$duration
@@ -149,7 +163,7 @@ pgpTList <- function(dailyMet,
     ## have been used in the formula for the threshold
     ## =========================================================================
 
-    Kthresh <- checkTrigNames(formula(Rq))
+    Kthresh <- checkTrigNames(formula(thresholds))
     trigDesign <- tsDesign(dt = dailyMet$Date,
                            type = "trigo", df = 2 * Kthresh + 1)
     dailyMet <- data.frame(dailyMet, trigDesign$X)
@@ -184,7 +198,7 @@ pgpTList <- function(dailyMet,
     tun <- sprintf("%6.2f/year", nrow(dailyMet) / duration)
     cat(sprintf("o Sampling rate : %s\n", tun))
     
-    U <- FitGP <- FitLambda <- list()
+    U <- FitGP <- FitLambda <- IndLambda <- list()
     lambdaBar <- rep(NA, length(tau))
     names(lambdaBar) <- paste0("tau=", format(tau))
     
@@ -192,6 +206,8 @@ pgpTList <- function(dailyMet,
     if (trace) {
         cat(sprintf("o Looping on %d thresholds\n", length(tau)))
     }
+
+    
     for (i in seq_along(tau)) {
         
         if (trace > 1) {
@@ -215,10 +231,10 @@ pgpTList <- function(dailyMet,
         if (declust){
             ## Met2 <- Met2[res$IndClust, ]
             indClust <- res$IndClust
-            indLambda <- res$IndClust
+            IndLambda[[i]] <- res$IndClust
         } else {
             indClust <- 1:nrow(Met2)
-            indLambda <- (1:nrow(Met2))[Met2[[metVar]] > U[[i]]]
+            IndLambda[[i]] <- (1:nrow(Met2))[Met2[[metVar]] > U[[i]]]
         }
 
         Met2 <- within(Met2, Excess <- TX - u)
@@ -241,7 +257,7 @@ pgpTList <- function(dailyMet,
                            shape.fun = shape.fun,
                            time.units = tun)
 
-        lambdaBar[i] <- nrow(Met2[indLambda, ]) / duration
+        lambdaBar[i] <- nrow(Met2[IndLambda[[i]], ]) / duration
         
         ## =====================================================================
         ## fit the Poisson (temporal) part
@@ -255,11 +271,12 @@ pgpTList <- function(dailyMet,
             L <- rep(0, ncol(Covs))
             names(L) <-  paste0("b", 1:ncol(Covs))
             
-            FitLambda[[i]] <- fitPP.fun(tind = TRUE,
-                                        covariates = Covs, 
-                                        posE = indLambda,
-                                        dplot = FALSE,
-                                        start = c(list(b0 = 10), as.list(L)))   
+            FitLambda[[i]] <-
+                NHPoisson::fitPP.fun(tind = TRUE,
+                                     covariates = Covs, 
+                                     posE = IndLambda[[i]],
+                                     dplot = FALSE,
+                                     start = c(list(b0 = 10), as.list(L)))   
         }
     }
 
@@ -269,7 +286,7 @@ pgpTList <- function(dailyMet,
                 lambdaBar = lambdaBar,
                 dailyMet = dailyMetBAK,
                 data = dailyMet,
-                indLambda = indLambda,
+                IndLambda = IndLambda,
                 thresholds = thresholds,
                 logLambda.fun = logLambda.fun,
                 scale.fun = scale.fun,
@@ -282,34 +299,77 @@ pgpTList <- function(dailyMet,
 
 }
 
-##' @method predict pgpTList
-##' @export
+## *****************************************************************************
 
-predict.pgpTList <- function(object, newdata, lastFullYear = FALSE,
+##'
+##' @title Predict a `pgpTList` Object.
+##' 
+##' @param object A \code{pgpTList} object representing a list of
+##'     Poisson-GP fitted models
+##'
+##' @param newdata \bold{Not implemented}. Nowe taken as
+##'     \code{object@data}.
+##' 
+##' @param lastFullYear Logical. When \code{TRUE}, only the last full
+##'     year in \code{newdata} will be used.
+##'
+##' @param ... Not used yet.
+##'
+##' @return An object with class \code{"predict.pgpTList"} A data
+##'     frame in long format. Among the columns we find \code{Date},
+##'     \code{tau} and \code{u} and the NHPP parameters \code{muStar},
+##'     \code{sigmaStar} and \code{xiStar}.
+##'
+##' @note Remind that the NHPP parameters do not depend on the
+##'     threshold, although their estimates obviously do. They can be
+##'     used to assess the sensitivity too the threshold choice.
+##'
+##' @section Caution: this method still may change.
+##'
+##' @method predict pgpTList
+##'
+##' @importFrom stats terms model.frame delete.response 
+##' 
+##' @export
+predict.pgpTList <- function(object, newdata,
+                             lastFullYear = FALSE,
                              ...) {
+    TX <- u <- NULL 
     
     if (!missing(newdata)) {
         stop("'newdata' can not be given for now")
     }
     newdata <- object$data
-    ind <- object$indLambda
  
     pu <- predict(object$thresholds, newdata = newdata,
                   lastFullYear = lastFullYear)
+
+    if (lastFullYear) {
+        indLY <- lastFullYear(format(newdata$Date, "%Y-%m-%d"),
+                                         out = "logical")
+        newdata <- newdata[indLY, , drop = FALSE]
+    } else {
+        indLY <- rep(TRUE, nrow(newdata))
+    }
     
     LambdaHat <- MuStar <- SigmaStar <- RL100 <- nExceed <- list()
     lambdaBar <- numeric(0)
     tau1 <- object$tau
     
     for (i in seq_along(tau1)) {
+
+        ## ind <- object$IndLambda[[i]]
         
         MetWithu <- data.frame(newdata,
                                subset(pu, tau == tau1[i]))
         MetWithu <- within(MetWithu, Ex <- TX > u)
-        
+
+        ## mind that we need  a correction.
         LambdaHat[[i]] <- object$timePoisson[[i]]@lambdafit /
             mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
-
+        
+        LambdaHat[[i]] <- LambdaHat[[i]][indLY]
+        
         Theta <- theta(object$GP[[i]], data = newdata)
         MuStar[[i]] <- MetWithu$u + (LambdaHat[[i]]^Theta[ , "shape"] - 1) /
             Theta[ , "shape"] * Theta[ , "scale"]
@@ -334,35 +394,41 @@ predict.pgpTList <- function(object, newdata, lastFullYear = FALSE,
                                  sigmaStar = SigmaStar[[i]],
                                  xiStar = Theta[ , "shape"],
                                  RL100 = RL100[[i]])
+
+        ## Computations on the exceedances are moved into the `exceed`
+        ## method
         
         if (i == 1) {
             dfRebuild <- dfRebuildi
-            ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
-            dfExceed <- data.frame(tau = unname(tau1[i]),
-                                   Year = unique(MetWithu[ind, ]$Year),
-                                   Nb = ex) 
+            ## ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
+            ## dfExceed <- data.frame(tau = unname(tau1[i]),
+            ##                        Year = unique(MetWithu[ind, ]$Year),
+            ##                        Nb = ex)
+            
         } else {
             dfRebuild <- rbind(dfRebuild, dfRebuildi, deparse.level = 0)
-            ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
-            dfExceed <- rbind(dfExceed,
-                              data.frame(tau = unname(tau1[i]),
-                                         Year = unique(MetWithu[ind, ]$Year),
-                                         Nb = ex))
+            ## ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
+            ## dfExceed <- rbind(dfExceed,
+            ##                   data.frame(tau = unname(tau1[i]),
+            ##                              Year = unique(MetWithu[ind, ]$Year),
+            ##                              Nb = ex))
         }
         
-        nExceed[[i]] <- with(dfRebuildi, tapply(TX > u, Year, sum))
+        # nExceed[[i]] <- with(dfRebuildi, tapply(TX > u, Year, sum))
     
     }
-
-    dfExceed <- within(dfExceed, tau <- as.factor(tau))
-    dfExceed <- within(dfExceed, Date <- as.Date(sprintf("%4d-06-01", Year)))
-
-    names(nExceed) <- paste0("tau=", format(tau1))
     
-    ## list(dfRebuild = dfRebuild,
+    ## dfExceed <- within(dfExceed, tau <- as.factor(tau))
+    ## dfExceed <- within(dfExceed, Date <- as.Date(sprintf("%4d-06-01", Year)))
+
+    ## names(nExceed) <- paste0("tau=", format(tau1))
+    
+    ## list(ParamAndRL = dfRebuild,
+    ##      Exceed = dfExceed,
     ##      nExceed = nExceed)
-    list(dfRebuild = dfRebuild,
-         dfExceed = dfExceed,
-         nExceed = nExceed)
+
+    attr(dfRebuild, "lastFullYear") <- lastFullYear
+    class(dfRebuild) <- c("predict.pgpTList", "data.frame")
+    dfRebuild
     
 }

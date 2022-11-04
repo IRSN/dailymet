@@ -7,7 +7,7 @@
 \method{predict}{rqTList}(
   object,
   newdata,
-  lastFullYear = TRUE,
+  lastFullYear,
   out = c("long", "short"),
   na.action = na.pass,
   ...
@@ -45,6 +45,15 @@ A matrix or a data frame, depending on the value or
 \description{
 Predict from a \code{rqTList} object.
 }
+\section{Caution}{
+ For now, a \code{rqTList} object does not store
+    the calls to design functions used at creation time, although
+    these designs functions may have to be re-called on
+    \code{newdata}. A quick and dirty solution is used, based on
+    the variables names. It works only for trigonometric bases
+    created by using `tsDesign` with `type = "trigo"`.
+}
+
 \examples{
 RqRennes <- rqTList(dailyMet = Rennes)
 ## use a matrix

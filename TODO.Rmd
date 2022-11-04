@@ -21,6 +21,10 @@ output: github_document
 [ ] Add a `fevdTList` creator allowing the definition from the
     formulas (`threshold`, `location`, `scale` and `shape`) and a
     `dailyMet` object.
+	
+[ ] Add methods to coerce a `dailyMet` into suitable **zoo**
+    object(s).
+	
 
 ## Long-term
 
