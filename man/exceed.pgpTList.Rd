@@ -4,13 +4,31 @@
 \alias{exceed.pgpTList}
 \title{Exceedances Over Threshold(s)}
 \usage{
-\method{exceed}{pgpTList}(object, ...)
+\method{exceed}{pgpTList}(object, byYear = TRUE, ...)
 }
 \arguments{
-\item{object}{The object to plot.}
+\item{object}{The object from which the exceedances are to be
+exctraced..}
+
+\item{byYear}{Logical. If \code{TRUE}, the exceedances are
+summarised as a number by year.}
 
 \item{...}{Not used.}
 }
+\value{
+A data frame in "long format" row-binding timeseries
+    relative to the exceedances for each of the thresholds used in
+    \code{object}.
+}
 \description{
-Exceedances Over Threshold(s)
+Extracts the exceedances from a \code{pgpTList} object. The
+typical use of the result is in a ggplot showing the temporal
+evolution of the number of exceedances. The annual number of
+exceedances can be plotted along with the rate of a time-varying
+Poisson process inasmuch this rate is expressed in inverse year
+\eqn{\text{yr}^{-1}}{yr^{-1}}.
+}
+\details{
+Even when \code{byYear} is \code{TRUE}, the returned data frame
+has a \code{Date} column that can be used in plots.
 }

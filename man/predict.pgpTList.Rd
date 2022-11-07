@@ -22,7 +22,8 @@ year in \code{newdata} will be used.}
 An object with class \code{"predict.pgpTList"} A data
     frame in long format. Among the columns we find \code{Date},
     \code{tau} and \code{u} and the NHPP parameters \code{muStar},
-    \code{sigmaStar} and \code{xiStar}.
+    \code{sigmaStar} and \code{xiStar}. The column \code{sigma}
+    contains the GP scale parameter.
 }
 \description{
 Predict a `pgpTList` Object.

@@ -109,13 +109,25 @@
 ##'                  fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
 ##'
 ##' ## try a varying GP shape 'xi'
-##' Pgp2 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
-##'                  declust = TRUE, 
-##'                  shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
-##'                  fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
-##'
-##' pred <- predict(Pgp1)
-##' autoplot(pred)
+##' \dontrun{
+##'     Pgp2 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
+##'                      declust = TRUE, 
+##'                      shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
+##'                      fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+##' }
+##' ## plot one year to 
+##' predYear <- predict(Pgp1, last = TRUE)
+##' gYear <- autoplot(predYear, facet = FALSE)
+##' gYear
+##' 
+##' ## show the evolution of the exceedance rate on the lon-run
+##' predAll <- predict(Pgp1, last = FALSE)
+##' exceed <- exceed(Pgp1)
+##' gAll <- autoplot(predAll, which = "lambda", size = 1.2) +
+##'             geom_point(data = exceed, mapping = aes(x = Date, y = Nb)) +
+##'                 ggtitle(paste("Fitted rate 'lambda' and annual number of",
+##'                               "declustered exceedances"))
+##' gAll
 ##' 
 pgpTList <- function(dailyMet,
                      subset = NULL,
@@ -124,7 +136,7 @@ pgpTList <- function(dailyMet,
                      tauRef = 0.95,
                      fitLambda = FALSE,
                      logLambda.fun = ~1,
-                     scale.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
+                     scale.fun = ~Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
                      shape.fun = ~1,
                      trace = 1) {
 
@@ -294,7 +306,7 @@ pgpTList <- function(dailyMet,
                 timePoisson = FitLambda,
                 GP = as.fevdTList(FitGP))
     
-    class(res) <- "pgpTList"
+    class(res) <- c("pgpTList", "list")
     res
 
 }
@@ -318,7 +330,8 @@ pgpTList <- function(dailyMet,
 ##' @return An object with class \code{"predict.pgpTList"} A data
 ##'     frame in long format. Among the columns we find \code{Date},
 ##'     \code{tau} and \code{u} and the NHPP parameters \code{muStar},
-##'     \code{sigmaStar} and \code{xiStar}.
+##'     \code{sigmaStar} and \code{xiStar}. The column \code{sigma}
+##'     contains the GP scale parameter.
 ##'
 ##' @note Remind that the NHPP parameters do not depend on the
 ##'     threshold, although their estimates obviously do. They can be
@@ -391,6 +404,7 @@ predict.pgpTList <- function(object, newdata,
                                  tau = MetWithu$tau,
                                  lambda = LambdaHat[[i]],
                                  muStar = MuStar[[i]],
+                                 sigma = Theta[ , "scale"],
                                  sigmaStar = SigmaStar[[i]],
                                  xiStar = Theta[ , "shape"],
                                  RL100 = RL100[[i]])

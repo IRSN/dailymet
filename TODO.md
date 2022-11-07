@@ -21,6 +21,17 @@ object.
 \[ \] Add methods to coerce a `dailyMet` into suitable **zoo**
 object(s).
 
+\[ \] Add methods for the `pgpTList` class.
+
+## Interface
+
+\[ \] Allow some renaming of the coefficients both for the GP part and
+for the time Poisson part. For the GP part, the coefficients could be
+renamed by using prefixes such as `scale_` and `shape_` followed by the
+name of the variables as in `lm`. For instance we would get names like
+`"scale_Cst"` and `"scale_sinPhi1"`for the models used in the examples
+of the package.
+
 ## Long-term
 
 \[ \] Allow the ML estimation, prediction, … for a full Poisson-GP

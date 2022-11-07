@@ -54,7 +54,7 @@ autoplot.dailyMet <- function(object,
                                                 group = "Year",
                                                 colour = "YearDec"),
                            alpha = 1.0)
-        g <- g + facet_wrap( ~ Dec)
+        g <- g + facet_wrap( ~ Dec, labeller = label_both)
         g <- g + scale_colour_brewer(palette = "Set3")
         g <- g + theme(panel.grid.minor.x = element_blank(),
                        panel.grid.major.x = element_blank())
@@ -76,7 +76,7 @@ autoplot.dailyMet <- function(object,
              g <- g + scale_x_date(breaks = "month", labels = date_format("%m"))
              g <- g + scale_colour_brewer(palette = "Set2") + xlab("") +
                  ylab(metVar)
-             g <- g + facet_wrap( ~ Year)
+             g <- g + facet_wrap( ~ Year, labeller = label_both)
              g <- g + ggtitle(sprintf("%s in %s by year",
                                  metVar, attr(object, "station")))
              
@@ -85,7 +85,7 @@ autoplot.dailyMet <- function(object,
             g <- g + scale_x_date(breaks = "month", labels = date_format("%m"))
             g <- g + scale_colour_brewer(palette = "Set2") + xlab("") +
                 ylab(metVar)
-            g <- g + facet_wrap( ~ YearW)
+            g <- g + facet_wrap( ~ YearW, labeller = label_both)
             g <- g + ggtitle(sprintf("%s in %s by winter year",
                                      metVar, attr(object, "station")))
         }
@@ -296,7 +296,8 @@ autoplot.predict.rqTList <- function(object, ...) {
                        mapping = aes_string(x = "Date", y = "u",
                                             group = "tau", colour = "tau"),
                        ...) +
-        scale_colour_brewer(palette = "Set2") + xlab("") 
+        scale_colour_brewer(palette = "Set2") + xlab("")
+    
     if (lastFullYear) {
         g <- g + scale_x_date(breaks = "month", labels = date_format("%m")) +
             ggtitle(sprintf("Quantile regression thresholds Year = %s",
@@ -347,7 +348,7 @@ autoplot.predict.pgpTList <- function(object,
         g <- g + ggtitle(sprintf("Predicted %s", which))
     }
     if (facet) {
-        g <- g + facet_wrap(tau ~ .)
+        g <- g + facet_wrap(tau ~ ., labeller = label_both)
     }
     g
 

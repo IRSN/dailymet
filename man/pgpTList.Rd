@@ -121,13 +121,25 @@ Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
                  fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
 
 ## try a varying GP shape 'xi'
-Pgp2 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
-                 declust = TRUE, 
-                 shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
-                 fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+\dontrun{
+    Pgp2 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
+                     declust = TRUE, 
+                     shape.fun = ~ Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
+                     fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
+}
+## plot one year to 
+predYear <- predict(Pgp1, last = TRUE)
+gYear <- autoplot(predYear, facet = FALSE)
+gYear
 
-pred <- predict(Pgp1)
-autoplot(pred)
+## show the evolution of the exceedance rate on the lon-run
+predAll <- predict(Pgp1, last = FALSE)
+exceed <- exceed(Pgp1)
+gAll <- autoplot(predAll, which = "lambda", size = 1.2) +
+            geom_point(data = exceed, mapping = aes(x = Date, y = Nb)) +
+                ggtitle(paste("Fitted rate 'lambda' and annual number of",
+                              "declustered exceedances"))
+gAll
 
 }
 \seealso{
