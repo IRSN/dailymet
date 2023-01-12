@@ -210,15 +210,13 @@ pgpTList <- function(dailyMet,
     tun <- sprintf("%6.2f/year", nrow(dailyMet) / duration)
     cat(sprintf("o Sampling rate : %s\n", tun))
     
-    U <- FitGP <- FitLambda <- IndLambda <- list()
+    U <- Clusters <- FitGP <- FitLambda <- IndLambda <- list()
     lambdaBar <- rep(NA, length(tau))
     names(lambdaBar) <- paste0("tau=", format(tau))
-    
     
     if (trace) {
         cat(sprintf("o Looping on %d thresholds\n", length(tau)))
     }
-
     
     for (i in seq_along(tau)) {
         
@@ -234,13 +232,15 @@ pgpTList <- function(dailyMet,
                           y = dailyMet[[metVar]][ind],
                           u = U[[i]][ind])
 
+        Clusters[[i]] <- res
+        
         ## =====================================================================
         ## now add the threshold and decluster if required.
         ## =====================================================================
         
         Met2 <- data.frame(dailyMet, u = U[[i]])
         
-        if (declust){
+        if (declust) {
             ## Met2 <- Met2[res$IndClust, ]
             indClust <- res$IndClust
             IndLambda[[i]] <- res$IndClust
@@ -291,8 +291,16 @@ pgpTList <- function(dailyMet,
                                      start = c(list(b0 = 10), as.list(L)))   
         }
     }
+    
+    ## names of the GP list
+    if (!is.null(names(thresholds))) {
+        names(Clusters) <- names(FitGP) <- names(FitLambda) <- names(thresholds)
+    } else {
+        names(Clusters) <- names(FitGP) <- names(FitLambda) <-
+            paste0("tau=", format(tau))
+    }
 
-    names(FitGP) <- names(thresholds)
+    clusterSize <- sapply(Clusters, function(x) mean(x$end- x$start + 1))
     
     res <- list(tau = tau,
                 lambdaBar = lambdaBar,
@@ -300,6 +308,9 @@ pgpTList <- function(dailyMet,
                 data = dailyMet,
                 IndLambda = IndLambda,
                 thresholds = thresholds,
+                declust = declust,
+                clusters = Clusters,
+                clusterSize = clusterSize,
                 logLambda.fun = logLambda.fun,
                 scale.fun = scale.fun,
                 shape.fun = shape.fun,
@@ -445,4 +456,65 @@ predict.pgpTList <- function(object, newdata,
     class(dfRebuild) <- c("predict.pgpTList", "data.frame")
     dfRebuild
     
+}
+
+## *****************************************************************************
+
+##'
+##' @title Summary Method for `pgpTList` Objects.
+##' 
+##' @param object A \code{pgpTList} object representing a list of
+##'     Poisson-GP fitted models
+##'
+##'
+##' @param ... Not used yet.
+##'
+##' @return An object with class \code{"pgpTList"}.
+##'
+##' @method summary pgpTList
+##'
+##' 
+##' @export
+summary.pgpTList <- function(object, ...) {
+    res <- object
+    if (object$declust) {
+        CL <- sapply(res$clusters, function(x) x$end- x$start + 1)
+        res$clustersStat <- data.frame(mean = round(sapply(CL, mean), digits = 2),
+                                       min  = sapply(CL, min),
+                                       max  = sapply(CL, max))
+    } 
+    class(res) <- "summary.pgpTList"
+    res
+}
+
+## *****************************************************************************
+##' @method print summary.pgpTList
+##' @export
+##' 
+print.summary.pgpTList <- function(x, ...) {
+    cat("Object with class \"pgpTList\"\n")
+    cat("o Threshold part\n")
+    print(x$thresholds)
+    if (x$declust) {
+        cat("o Clusters\n")
+        print(x$clustersStat)
+    }
+    cat("o \"GP\" part: coefficients for the Generalized Pareto with standard errors\n")
+    print(coSd(x$GP))
+    cat("\no \"Time\" part: coefficients for log-rate with standard errors\n")
+    print(noquote(t(sapply(x$timePoisson, coSd))))
+}
+
+## *****************************************************************************
+##' @method print pgpTList
+##' @export
+##' 
+print.pgpTList <- function(x, ...) {
+    cat("Object with class \"pgpTList\"\n\n")
+    cat("o \"Threshold\" part:\n")
+    print(x$thresholds)
+    cat("\no Formulas\n")
+    cat("    o GP scale:      ", noquote(format(x$scale.fun)), "\n")
+    cat("    o GP shape:      ", noquote(format(x$shape.fun)), "\n")
+    cat("    o log-rate:      ", noquote(format(x$logLambda.fun)), "\n")
 }

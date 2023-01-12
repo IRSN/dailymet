@@ -28,7 +28,7 @@ of objects that we may call "TLists" for *list by threshold*.
 ## The `"dailyMet"` data class
 
 As its name may suggest the `"dailyMet"` S3 class contains objects
-descirbing meteorological timeseries sampled on a daily basis. 
+describing meteorological timeseries sampled on a daily basis. 
 The package comes with the `Rennes` example.
 
 
@@ -113,7 +113,7 @@ m
 
 See the help `stationsMF` for a **leaflet** map of these. Note that
 the codes of the main MF stations for the metropolitan area correspond
-rougthly to an ordering from North to South (decreasing latitude) and
+roughly to an ordering from North to South (decreasing latitude) and
 West to East (increasing longitude). This can be of some help.
 
 Provided that the data is available in `.csv` files suitably named, we
@@ -135,7 +135,7 @@ try(readMet(myStation))
 Sys.setenv(metData = "~/Bureau/climatoData")
 try(Troyes <- readMet(myStation))
 ```
-Although the file is not found, we now see the name of the file that is seeked
+Although the file is not found, we now see the name of the file that is sought
 for.
 
 # Functions and classes for analyses and models
@@ -162,16 +162,16 @@ Implicitly assumed, the vector `tau` should be in strictly increasing
 order.
 
 Another *TList* class is the `"pgpTList"` class which corresponds to a
-list of fitted Poisson-GP models. Mind that consistenty whith `rq` and
-`fevd` a lower cas acronym is used, followed by `"TLIst`". However for
-now the class `pgp` does not exist. We can fit a `pgpTList` object
-with a vector `tau` of length one if needed. A `pgpTList` object is
-quite similar to a `fevdList` object. The main difference concerns the
-exceedances and their occurrence in time: Instead of an assuming
-constant rate $\lambda$, a purely temporal non-homogeneous Poisson
-process is used. A rate depending on the time $\lambda(t)$ or on the
-time and other covariates $\lambda(x, \mathbf{x})$ can be specified by
-using a devoted formula for $\log \lambda$.
+list of fitted Poisson-GP models. Mind that consistently with `rq` and
+`fevd` a lower case acronym is used, followed by `"TList`". However,
+for now, the class `"pgp"` does not exist. We can fit a `pgpTList`
+object with a vector `tau` of length one, if needed. A `pgpTList`
+object is quite similar to a `fevdList` object. The main difference
+concerns the exceedances and their occurrence in time: Instead of an
+assuming constant rate $\lambda$, a purely temporal non-homogeneous
+Poisson process is used. A rate depending on the time $\lambda(t)$ or
+on the time and other covariates $\lambda(\mathbf{x})$ can be
+specified by using a devoted formula for $\log \lambda$.
 
 **Caution** The development of `pgpTList` class and of the relevant
 methods is far from being achieved. Some major changes are likely to occur.
@@ -186,7 +186,7 @@ methods is far from being achieved. Some major changes are likely to occur.
   quantile may fail to increase with the probability $\tau$. See XXX
   Northrop.
 
-- Stricly speaking, the `fevd` objects in a `fevdTList` object are
+- Strictly speaking, the `fevd` objects in a `fevdTList` object are
   *different* Poisson-GP models, although they must have the same
   formulas. Indeed, the Poisson-GP parameterisation is not independent
   of the threshold: if the GPD scale depends linearly of a covariate
@@ -212,9 +212,9 @@ By default the creator `rqTList`
   be assessed by the `tau` method.
 
 - Uses a `formula` which defines a yearly seasonality for the
-  quantiles. The default formula uses a base of trigonometric
+  quantiles. The default formula uses a basis of trigonometric
   functions with 3 harmonics, corresponding the the fundamental
-  frequency $1/365.25\:\text{day}^{-1}$ and its integer multiples 
+  frequency $1/365.25\:\text{day}^{-1}$ and its integer multiples
   $2/365.25$, $3/365.25$, ...
 
 - Considers a "design" function which creates the required variables
@@ -256,7 +256,7 @@ coSd(Rq)
 The `coSd` method (for "coef" and "Standard error" or "Standard
 deviation") gives the coefficients and their standard error. We see
 that some estimated coefficients are not significant, namely those for
-the 3-rd harmonic for the "small" probablities. However, when $\tau$
+the 3-rd harmonic for the "small" probabilities. However, when $\tau$
 becomes larger, the estimated coefficients for the $3$-rd harmonic
 becomes significant, although their standard error increases because
 they are based on a smaller number of observations. This suggests that
@@ -283,8 +283,8 @@ formulations (1) and (2) are actually equivalent, as can be seen from
 the trigonometric "angle subtraction formula" $\sin(a -b) =
 \sin(a)\cos(b) - \cos(a) \sin(b)$. We could think of using the second
 form in a `quanteg::rq` fit, but this is not possible since the phase
-$\phi_k^q$ apears in a nonlinear fashion. So we can fit the linear
-cos-sin form and then compute the estimate for the amplitudes an
+$\phi_k^q$ appears in a nonlinear fashion. So we can fit the linear
+cos-sin form and then compute the estimate for the amplitudes and
 phases by using some trigonometry.
 
 
@@ -307,7 +307,7 @@ autoplot(phases(co))
 
 ``` 
 
-The constant $\gamma_0^{[\tau]}$ does not apear on the plot..  Note
+The constant $\gamma_0^{[\tau]}$ does not appear on the plot..  Note
 that the amplitudes $\gamma_k^{[\tau]}$ rapidly decrease with the
 frequency, consistently with the fact that the quantiles are quite
 smooth functions of the day $d$. The amplitude slightly increases with
@@ -320,22 +320,22 @@ increases.
 
 ### Why seasonality matters
 Using a suitable description of the seasonality is a major concern in
-POT modeling. Concerning our meteorological variables, a natural idea
+POT modelling. Concerning our meteorological variables, a natural idea
 is to use GP or GEV parameters depending on the date through the
-Julian day $d$ since it is clear that the margnal distibution depends
-hevily on $d$.
+Julian day $d$ since it is clear that the marginal distribution heavily
+depends on $d$.
 
-There are also many reasons to use a seasonaly time-varying
-threshold $u(d)$ depending as well on $d$. One motivation is the
-efficiency of the estimation: A constant threshold would be too low
-season and too high for another. Moreoved, if a constant threshold is
-used, the results are likely to depend much on the threshold value
-because the distribution over a period of several months in the year
-is actually a weighted mixture of different distributions
-corresponding to the values of $d$, and their weight will depend much
-on the constant threshold. For instance, if a constant threshold is
-used for all the JJA period, the weight of the early June and late
-August will be smaller when the threshold is increased.
+There are also many reasons to use a seasonally time-varying threshold
+$u(d)$ depending as well on $d$. One motivation is the efficiency of
+the estimation: A constant threshold would be too low for a season and
+too high for another. Moreover, if a constant threshold is used, the
+results are likely to depend much on the threshold value because the
+distribution over a period of several months in the year is actually a
+weighted mixture of different distributions corresponding to the
+values of $d$, and their weight will depend much on the constant
+threshold. For instance, if a constant threshold is used for all the
+JJA period, the weight of the early June and late August will be
+smaller when the threshold is increased.
 
 ### Poisson-GP models
 
@@ -382,7 +382,7 @@ To create a `pgpTList` object, the appropriate way is *first, fit a
 `rqTList` object* with chosen thresholds. This object will be passed
 to the `thresholds` argument of the creator `pgpTList`. 
 In order to compute the sine wave basis functions with the prescribed
-phases corresponing to the probability $\tau_{\text{ref}}$, the
+phases corresponding to the probability $\tau_{\text{ref}}$, the
 argument `tauRef` can be used. 
 
 ```{r pgp, message=FALSE, results ="hide", fig.width=8, fig.height=6}
@@ -427,10 +427,10 @@ frame given in `dailyMet`. Then the "fitting functions"
 `extRemes::fevd` and `NHPoisson:fitPP.fun` are used to fit the "GP"
 part" and the (temporal) "Poisson part" for each of the thresholds
 computed from the `thresholds` object. The results for the "GP" part
-and the the time Poisson part are stored as tyhe two elements `"GP"`
+and the the time Poisson part are stored as the two elements `"GP"`
 and `"timePoisson"` of the returned list, the first having the class
 `"fevdTList"`. We hence can use the methods for the `"fevdTList"`
-class to get insigths on the `"GP"` partof our `pgpTList` object.
+class to get insights on the `"GP"` part of our `pgpTList` object.
 
 **Caution** The log-likelihood of a Poisson-GP is the sum of two
 contributions corresponding to the GP and the time-Poisson parts, see
@@ -462,22 +462,22 @@ Phi <- phases(coef(Rq))
 ### Related to **extRemes**
 
 - An object with class `"fevd"` corresponding to a Poisson-GP POT
-  model does not fit the "time part" of the process. The is usually no
-  reason to assume that the exceedance rate is constant.
+  model does not fit the "time part" of the process. There is usually
+  no reason to assume that the exceedance rate is constant.
 
 - An object with class `"fevd"` corresponding to a Poisson-GP POT
   model does not store the value of the threshold as required to make
   a prediction on a new data. Consequently the `predict` method for
   the `"fevd"` class as implemented in **dailymet** is unreliable
   because an attempt is made to find the threshold from the stored
-  `call`, but the correponding objects are most often not found.
+  `call`, but the corresponding objects are most often not found.
   
 ### Related to **HHPoisson**
 
 - There is no formula interface for `fitPP.fun`. The covariates are
-  given in a numeric matrix. The coefficients do not have appeling
+  given in a numeric matrix. The coefficients do not have appealing
   names and the order of the columns in the matrix of covariates
   matters.
 
-- The class `"mlePP"` corresponing to the objects created by
+- The class `"mlePP"` corresponding to the objects created by
   `fitPP.mle` does not have a `predict` method.
