@@ -140,6 +140,8 @@ pgpTList <- function(dailyMet,
                      shape.fun = ~1,
                      trace = 1) {
 
+    logLambda.fun <- as.formula(logLambda.fun)
+    
     TX <- u <- NULL ## avoid warnings at check
     
     dailyMetBAK <- dailyMet
@@ -276,20 +278,39 @@ pgpTList <- function(dailyMet,
         ## =====================================================================
         
         if (fitLambda) {
-            
-            if (trace) cat("o Fit the temporal Poisson process\n")
 
-            Covs <- model.matrix(logLambda.fun, data = Met2)
-            L <- rep(0, ncol(Covs))
-            names(L) <-  paste0("b", 1:ncol(Covs))
             
-            FitLambda[[i]] <-
-                NHPoisson::fitPP.fun(tind = TRUE,
-                                     covariates = Covs, 
-                                     posE = IndLambda[[i]],
-                                     dplot = FALSE,
-                                     start = c(list(b0 = 10), as.list(L)))   
+            ## we must use 'all.equal' here and not 'identical', because
+            ## the two formulas do not have the same environement!
+            
+            if (!all.equal( logLambda.fun, ~1)) {
+
+                if (trace) cat("o Fit the temporal Poisson process: non-homogeneous\n")
+                
+                Covs <- model.matrix(logLambda.fun, data = Met2)
+                L <- rep(0, ncol(Covs))
+                names(L) <-  paste0("b", 1:ncol(Covs))
+            
+                FitLambda[[i]] <-
+                    NHPoisson::fitPP.fun(tind = TRUE,
+                                         covariates = Covs, 
+                                         posE = IndLambda[[i]],
+                                         dplot = FALSE,
+                                         start = c(list(b0 = 10), as.list(L)))   
+            } else {
+
+                if (trace) cat("o Fit the temporal Poisson process: homogeneous\n")
+          
+                FitLambda[[i]] <-
+                    NHPoisson::fitPP.fun(tind = TRUE,
+                                         nobs = nrow(Met2),
+                                         covariates = NULL, 
+                                         posE = IndLambda[[i]],
+                                         dplot = FALSE,
+                                         start = list(b0 = 10)) 
+            }
         }
+            
     }
     
     ## names of the GP list
@@ -314,6 +335,7 @@ pgpTList <- function(dailyMet,
                 logLambda.fun = logLambda.fun,
                 scale.fun = scale.fun,
                 shape.fun = shape.fun,
+                fitLambda = fitLambda,
                 timePoisson = FitLambda,
                 GP = as.fevdTList(FitGP))
     
@@ -321,6 +343,89 @@ pgpTList <- function(dailyMet,
     res
 
 }
+
+##  ============================================================================
+
+##' When using a 'time varying' model, some functions of the
+##' \code{Date} variable are required to compute the prediction. The
+##' \code{makeNewData} method can be used for that goal.
+##' 
+##' @title Prepare a Data Object for a Prediction
+##'
+##' @param object An object from a class having a \code{predict}
+##'     method.
+##'
+##' @param ... Arguments for methods.
+##' 
+##' @return A "data" object that can be used as value for the
+##'     \code{newdata} argument of the \code{predict} method.
+##'
+##' @export 
+##' 
+makeNewData <- function(object, ...) {
+    UseMethod("makeNewData")
+}
+
+## =============================================================================
+
+##' The object given in \code{object} can be used to compute a
+##' prediction on  "new" data. 
+##'
+##' @title Prepare a Data Object for a Prediction
+##'
+##' @param object An object with class \code{"PgpTList"}
+##'
+##' @param newdata A "sketch of data" allowing the construction. This
+##'     can be a \code{dailyMet} object, a data frame or simply a
+##'     vector with class \code{"Date"}. With the default value, the
+##'     new data is taken as the \code{dailyMet} object which is
+##'     attached to \code{object}.
+##'
+##' @param trace Integer level of verbosity.
+##' 
+##' @param ... Arguments for methods.
+##' 
+##' @return A \code{dailyMet} object with the suitable variables.
+##'
+##' @method makeNewData pgpTList
+##' 
+##' @export
+##'
+makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
+    
+    if (inherits(newdata, "data.frame")) {
+        
+        if (inherits(newdata, "dailyMet")) {
+            if (trace) {
+                cat("'newData' has class \"dailyMet\"")
+            }
+        } else {
+            newdata <- dailyMet(data,
+                                dateVar = "Date", 
+                                metVar = attr(object$dailyMet, "metVar"),
+                                station = attr(object$dailyMet, "station"),
+                                id = attr(object$dailyMet, "id"),
+                                trace = trace) 
+        } 
+    } else if (inherits(newdata, "Date")) {
+        
+        Date <- seq(from = min(newdata), to = max(newdata), by = "day")
+        
+        newdata <- data.frame(Date = Date, MetVar = as.numeric(NA))
+        names(newdata) <- c("Date", attr(object$dailyMet, "metVar"))
+        
+        newdata <- dailyMet(data = newdata,
+                            dateVar = "Date", 
+                            metVar = attr(object$dailyMet, "metVar"),
+                            station = attr(object$dailyMet, "station"),
+                            id = attr(object$dailyMet, "id"),
+                            trace = trace)
+        
+    }
+    
+    newdata
+}
+
 
 ## *****************************************************************************
 
@@ -336,6 +441,8 @@ pgpTList <- function(dailyMet,
 ##' @param lastFullYear Logical. When \code{TRUE}, only the last full
 ##'     year in \code{newdata} will be used.
 ##'
+##' @param trace Integer level of verbosity.
+##' 
 ##' @param ... Not used yet.
 ##'
 ##' @return An object with class \code{"predict.pgpTList"} A data
@@ -355,16 +462,23 @@ pgpTList <- function(dailyMet,
 ##' @importFrom stats terms model.frame delete.response 
 ##' 
 ##' @export
-predict.pgpTList <- function(object, newdata,
+##' 
+predict.pgpTList <- function(object, newdata = NULL,
                              lastFullYear = FALSE,
+                             trace = 0,
                              ...) {
     TX <- u <- NULL 
     
-    if (!missing(newdata)) {
-        stop("'newdata' can not be given for now")
+    if (!missing(newdata) && !is.null(newdata)) {
+        missNewData <- FALSE
+        warning("'newdata' is still experimental")
+        newdata <- makeNewData(object, newdata = newdata,
+                               trace = trace)
+    } else {
+        missNewData <- TRUE
+        newdata <- object$data
     }
-    newdata <- object$data
- 
+        
     pu <- predict(object$thresholds, newdata = newdata,
                   lastFullYear = lastFullYear)
 
@@ -379,6 +493,17 @@ predict.pgpTList <- function(object, newdata,
     LambdaHat <- MuStar <- SigmaStar <- RL100 <- nExceed <- list()
     lambdaBar <- numeric(0)
     tau1 <- object$tau
+
+    ## Non homogeneous case 
+    if (object$fitLambda) {
+        if (!all.equal(object$logLambda.fun, ~1)) {
+            Xtime <- model.matrix(object$logLambda.fun, data = dailyMet)
+            Xtime <- cbind("b0" = rep(1, nrow(dailyMet)), Xtime)
+            timeNH <- TRUE
+        } else {
+            timeNH <- FALSE
+        }
+    } 
     
     for (i in seq_along(tau1)) {
 
@@ -388,11 +513,25 @@ predict.pgpTList <- function(object, newdata,
                                subset(pu, tau == tau1[i]))
         MetWithu <- within(MetWithu, Ex <- TX > u)
 
-        ## mind that we need  a correction.
-        LambdaHat[[i]] <- object$timePoisson[[i]]@lambdafit /
-            mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
-        
-        LambdaHat[[i]] <- LambdaHat[[i]][indLY]
+        if (missNewData) {
+            ## mind that we need  a correction.
+            LambdaHat[[i]] <- object$timePoisson[[i]]@lambdafit /
+                mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
+            
+            LambdaHat[[i]] <- LambdaHat[[i]][indLY]
+        } else { 
+            if (object$fitLambda) {
+                if (timeNH) {
+                    LambdaHat[[i]] <- exp(Xtime %*% object$timePoisson[[i]]@coef)
+                } else {
+                    LambdaHat[[i]] <- rep(exp(object$timePoisson[[i]]@coef),
+                                         nrow(newdata))
+                }
+            } else {
+                LambdaHat[[i]] <- rep(object$lambdaBar[i],
+                                     nrow(newdata))
+            }
+        }
         
         Theta <- theta(object$GP[[i]], data = newdata)
         MuStar[[i]] <- MetWithu$u + (LambdaHat[[i]]^Theta[ , "shape"] - 1) /

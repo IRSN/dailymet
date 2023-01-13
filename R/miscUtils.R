@@ -77,13 +77,15 @@ clusters3 <- function(Date, y, u) {
         xBak <- x[1]
         
         if (!is.na(y[i]) && (y[i] > u[i])) {
-            if (!x[3] & !x[2] & !x[1]) {
+            if (!x[3] && !x[2] && !x[1]) {
                 start <- c(start, i)
             }
             x[1] <- TRUE
-        } else x[1] <- FALSE
+        } else {
+            x[1] <- FALSE
+        }
         
-        if (x[4] & !x[3] & !x[2] & !xBak) {
+        if (x[4] && !x[3] && !x[2] && !xBak) {
             end <- c(end, i - 4)
         }
         

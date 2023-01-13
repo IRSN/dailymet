@@ -4,7 +4,7 @@
 \alias{predict.pgpTList}
 \title{Predict a `pgpTList` Object.}
 \usage{
-\method{predict}{pgpTList}(object, newdata, lastFullYear = FALSE, ...)
+\method{predict}{pgpTList}(object, newdata = NULL, lastFullYear = FALSE, trace = 0, ...)
 }
 \arguments{
 \item{object}{A \code{pgpTList} object representing a list of
@@ -15,6 +15,8 @@ Poisson-GP fitted models}
 
 \item{lastFullYear}{Logical. When \code{TRUE}, only the last full
 year in \code{newdata} will be used.}
+
+\item{trace}{Integer level of verbosity.}
 
 \item{...}{Not used yet.}
 }
