@@ -27,7 +27,7 @@
 ##' @examples
 ##' nm <- c("Cst", "sinj1", "cosj1", "sinj2", "cosj2", "sinj3", "cosj3")
 ##' checkTrigNames(nm)
-##' ## error: no 'sin' comapanion
+##' ## error: no 'sin' companion
 ##' try(checkTrigNames(c("Cst", "cosj1")))
 ##' ## Missing 'j': no trigonometric term
 ##' checkTrigNames(c("Cst", "cos1"))

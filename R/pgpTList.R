@@ -176,15 +176,15 @@ pgpTList <- function(dailyMet,
     ## add new variables id needed. Note that we can only use the harmonics that
     ## have been used in the formula for the threshold
     ## =========================================================================
-
-    Kthresh <- checkTrigNames(formula(thresholds))
+    
+    Kthresh <- checkTrigNames(threshold.fun)
     trigDesign <- tsDesign(dt = dailyMet$Date,
                            type = "trigo", df = 2 * Kthresh + 1)
     dailyMet <- data.frame(dailyMet, trigDesign$X)
     
-   ## Kscale <- checkTrigNames(scale.fun)
-   ##  Kshape <- checkTrigNames(shape.fun)
-   ##  K <- max(c(Kscale, Kshape))
+    ## Kscale <- checkTrigNames(scale.fun)
+    ##  Kshape <- checkTrigNames(shape.fun)
+    ##  K <- max(c(Kscale, Kshape))
     K <- 3
     
     if (trace) cat("o Adding new variables \n")
@@ -198,8 +198,8 @@ pgpTList <- function(dailyMet,
         }
         
         sinDesignX <- sinBasis(dt = dailyMet[["Date"]],
-                              df = 2 * K + 1,
-                              phi = phi)
+                               df = 2 * K + 1,
+                               phi = phi)
         dailyMet <- data.frame(dailyMet, sinDesignX)
         
     } else {        
@@ -233,7 +233,7 @@ pgpTList <- function(dailyMet,
         res <-  clusters3(Date = dailyMet[["Date"]][ind],
                           y = dailyMet[[metVar]][ind],
                           u = U[[i]][ind])
-
+        
         Clusters[[i]] <- res
         
         ## =====================================================================
@@ -250,13 +250,13 @@ pgpTList <- function(dailyMet,
             indClust <- 1:nrow(Met2)
             IndLambda[[i]] <- (1:nrow(Met2))[Met2[[metVar]] > U[[i]]]
         }
-
+        
         Met2 <- within(Met2, Excess <- TX - u)
-
+        
         if (!is.null(subset)) {
             if (trace) cat("Using 'subset'\n")
         }
-
+        
         ## =====================================================================
         ## fit the GP part. Note that in the threshold part we give
         ## the vector of coefficients and the formula.
@@ -270,7 +270,7 @@ pgpTList <- function(dailyMet,
                            scale.fun = scale.fun,
                            shape.fun = shape.fun,
                            time.units = tun)
-
+        
         lambdaBar[i] <- nrow(Met2[IndLambda[[i]], ]) / duration
         
         ## =====================================================================
@@ -310,9 +310,9 @@ pgpTList <- function(dailyMet,
                                          start = list(b0 = 10)) 
             }
         }
-            
+        
     }
-    
+
     ## names of the GP list
     if (!is.null(names(thresholds))) {
         names(Clusters) <- names(FitGP) <- names(FitLambda) <- names(thresholds)
@@ -324,6 +324,7 @@ pgpTList <- function(dailyMet,
     clusterSize <- sapply(Clusters, function(x) mean(x$end- x$start + 1))
     
     res <- list(tau = tau,
+                tauRef = tauRef,
                 lambdaBar = lambdaBar,
                 dailyMet = dailyMetBAK,
                 data = dailyMet,
@@ -400,7 +401,12 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
                 cat("'newData' has class \"dailyMet\"")
             }
         } else {
-            newdata <- dailyMet(data,
+            nm <- names(newdata)
+            if (!(attr(object$dailyMet, "metVar") %in% nm)) {
+                newdata <- cbind(newdata, .XXX = NA) 
+                nm(newdata) <- c(nm, attr(object$dailyMet, "metVar"))
+            }
+            newdata <- dailyMet(data = newdata,
                                 dateVar = "Date", 
                                 metVar = attr(object$dailyMet, "metVar"),
                                 station = attr(object$dailyMet, "station"),
@@ -422,8 +428,49 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
                             trace = trace)
         
     }
+
+    tau <- tau(object$threshold)
+    indRef <- match(object$tauRef, tau(object$threshold))
+    if (is.na(indRef)) {
+        stop("'tauRef' must be found in tau(object$threshold)")
+    }
+    threshold.fun <- formula(object$threshold)
     
+    Kthresh <- checkTrigNames(threshold.fun)
+    trigDesign <- tsDesign(dt = newdata$Date,
+                           type = "trigo", df = 2 * Kthresh + 1)
+    newdata <- data.frame(newdata, trigDesign$X)
+    
+    ## Kscale <- checkTrigNames(scale.fun)
+    ##  Kshape <- checkTrigNames(shape.fun)
+    ##  K <- max(c(Kscale, Kshape))
+    K <- 3
+    
+    if (trace) cat("o Adding new variables \n")
+    Phi <- phases(coef(object$threshold))
+    
+    if (K) {
+        phi <- Phi[indRef, ]
+        if (trace) {
+            cat("o Using K =", K, "and the following phases\n")
+            print(round(phi, digits = 2))
+        }
+        
+        sinDesignX <- sinBasis(dt = newdata[["Date"]],
+                              df = 2 * K + 1,
+                              phi = phi)
+        newdata <- data.frame(newdata, sinDesignX)
+        
+    } else {        
+        if (trace) {
+            cat("No trigonometric variables needed.\n")
+        }
+    }
+    ## Now prepare the time variables
+
+    class(newdata) <- c("dailyMet", "data.frame")
     newdata
+    
 }
 
 
@@ -522,14 +569,15 @@ predict.pgpTList <- function(object, newdata = NULL,
         } else { 
             if (object$fitLambda) {
                 if (timeNH) {
-                    LambdaHat[[i]] <- exp(Xtime %*% object$timePoisson[[i]]@coef)
+                    LambdaHat[[i]] <- exp(Xtime %*% object$timePoisson[[i]]@coef) /
+                        mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
                 } else {
                     LambdaHat[[i]] <- rep(exp(object$timePoisson[[i]]@coef),
-                                         nrow(newdata))
-                }
+                                          nrow(newdata)) /
+                        mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
+                } 
             } else {
-                LambdaHat[[i]] <- rep(object$lambdaBar[i],
-                                     nrow(newdata))
+                LambdaHat[[i]] <- rep(object$lambdaBar[i], nrow(newdata))
             }
         }
         
