@@ -353,3 +353,26 @@ autoplot.predict.pgpTList <- function(object,
     g
 
 }
+
+
+
+##' @export
+##' @method autoplot simulate.pgpTList
+##' 
+autoplot.simulate.pgpTList <- function(object, ...) {
+
+    object$Sim <- factor(object$Sim)
+    
+    g <- ggplot()
+    g <- g + geom_segment(data = object,
+                          mapping = aes_string(x = "Date", xend = "Date",
+                                               yend = "TX",
+                                               group = "Sim"),
+                          y = 0.0, alpha = 0.6,
+                          ...) +
+        scale_colour_brewer(palette = "Set2") + xlab("") 
+    g <- g + facet_wrap(tau ~ ., labeller = label_both)
+    
+    g
+    
+}
