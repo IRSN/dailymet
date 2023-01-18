@@ -218,7 +218,7 @@ sinPhasesOld <- function(object)  {
 
 ## *****************************************************************************
 
-##' @title Print a \code{phasesMatrix} object
+##' @title Print a \code{phasesMatrix} Object
 ##'
 ##' @param x The \code{phasesMatrix} object.
 ##'

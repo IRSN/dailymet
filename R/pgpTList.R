@@ -17,10 +17,16 @@
 ##'         with the formulas prescribed.
 ##'      }
 ##'      \item{ }{
-##'         Fit a non-stationary Poisson process model using
-##'         \code{NHPoisson::xxx} with \code{type = "GP"} 
+##'         Fit a non-stationary temporal Poisson process model using
+##'         \code{NHPoisson::fitPP.fun}. 
 ##'      }
 ##' }
+##' The formula given in \code{logLambda.fun} will typically involve
+##' \code{YearNum}. Note that the constant is alaways included by
+##' the function \code{NHPoisson::fitPP.fun} so it should be discarded
+##' from the formula when covariates are used. For instance in order
+##' to use the covariare \code{YearNum} we must use the formla
+##' \code{~ YearNum -1}.
 ##'
 ##' @title Fit a non-stationary Poisson-GP Model using several
 ##'     Thresholds computed by Quantile Regression.
@@ -32,7 +38,7 @@
 ##'     select a period within the year e.g., summer. Note that the
 ##'     condition is applied \emph{after declustering} and there are
 ##'     side effects: The exceedances in the first two days or last
-##'     two days of a period within year may be lost. \bold{NOT
+##'     two days of a period within year may be lost. \emph{NOT
 ##'     IMPLEMENTED YET}.
 ##' 
 ##' @param thresholds An object with class \code{"rqTList"} containing
@@ -48,10 +54,10 @@
 ##' @param fitLambda Logical. If \code{TRUE} the temporal Poisson
 ##'     process is fitted, using the formula \code{logLambda.fun}.
 ##' 
-##' @param logLambda.fun Formula for the log-rate of the time Poisson 
+##' @param logLambda.fun Formula for the log-rate of the time Poisson
 ##'     process. For now, there are only a few possibilities. See
-##'     \bold{Details}. Mind that
-##'     \bold{only numeric covariates can be used}.
+##'     \bold{Details}. Mind that \emph{only numeric covariates can be
+##'     used}.
 ##'
 ##' @param scale.fun,shape.fun Formulas for the GP scale and shape as
 ##' in \code{\link[extRemes]{fevd}}.
@@ -287,7 +293,8 @@ pgpTList <- function(dailyMet,
             
             if (lambdaNH) {
 
-                if (trace) cat("o Fit the temporal Poisson process: non-homogeneous\n")
+                if (trace) cat("o Fit the temporal Poisson process:",
+                               " non-homogeneous\n")
                 
                 Covs <- model.matrix(logLambda.fun, data = Met2)
                 L <- rep(0, ncol(Covs))
@@ -301,7 +308,8 @@ pgpTList <- function(dailyMet,
                                          start = c(list(b0 = 10), as.list(L)))   
             } else {
 
-                if (trace) cat("o Fit the temporal Poisson process: homogeneous\n")
+                if (trace) cat("o Fit the temporal Poisson process:",
+                               " homogeneous\n")
           
                 FitLambda[[i]] <-
                     NHPoisson::fitPP.fun(tind = TRUE,
@@ -347,305 +355,6 @@ pgpTList <- function(dailyMet,
 
 }
 
-## ##  ============================================================================
-
-## ##' When using a 'time varying' model, some functions of the
-## ##' \code{Date} variable are required to compute the prediction. The
-## ##' \code{makeNewData} method can be used for that goal.
-## ##' 
-## ##' @title Prepare a Data Object for a Prediction
-## ##'
-## ##' @param object An object from a class having a \code{predict}
-## ##'     method.
-## ##'
-## ##' @param ... Arguments for methods.
-## ##' 
-## ##' @return A "data" object that can be used as value for the
-## ##'     \code{newdata} argument of the \code{predict} method.
-## ##'
-## ##' @export 
-## ##' 
-## makeNewData <- function(object, ...) {
-##     UseMethod("makeNewData")
-## }
-
-## ## =============================================================================
-
-## ##' The object given in \code{object} can be used to compute a
-## ##' prediction on  "new" data. 
-## ##'
-## ##' @title Prepare a Data Object for a Prediction
-## ##'
-## ##' @param object An object with class \code{"PgpTList"}
-## ##'
-## ##' @param newdata A "sketch of data" allowing the construction. This
-## ##'     can be a \code{dailyMet} object, a data frame or simply a
-## ##'     vector with class \code{"Date"}. With the default value, the
-## ##'     new data is taken as the \code{dailyMet} object which is
-## ##'     attached to \code{object}.
-## ##'
-## ##' @param trace Integer level of verbosity.
-## ##' 
-## ##' @param ... Arguments for methods.
-## ##' 
-## ##' @return A \code{dailyMet} object with the suitable variables.
-## ##'
-## ##' @method makeNewData pgpTList
-## ##' 
-## ##' @export
-## ##'
-## makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
-    
-##     if (inherits(newdata, "data.frame")) {
-        
-##         if (inherits(newdata, "dailyMet")) {
-##             if (trace) {
-##                 cat("'newData' has class \"dailyMet\"")
-##             }
-##         } else {
-##             nm <- names(newdata)
-##             if (!(attr(object$dailyMet, "metVar") %in% nm)) {
-##                 newdata <- cbind(newdata, .XXX = NA) 
-##                 nm(newdata) <- c(nm, attr(object$dailyMet, "metVar"))
-##             }
-##             newdata <- dailyMet(data = newdata,
-##                                 dateVar = "Date", 
-##                                 metVar = attr(object$dailyMet, "metVar"),
-##                                 station = attr(object$dailyMet, "station"),
-##                                 id = attr(object$dailyMet, "id"),
-##                                 trace = trace) 
-##         } 
-##     } else if (inherits(newdata, "Date")) {
-        
-##         Date <- seq(from = min(newdata), to = max(newdata), by = "day")
-        
-##         newdata <- data.frame(Date = Date, MetVar = as.numeric(NA))
-##         names(newdata) <- c("Date", attr(object$dailyMet, "metVar"))
-        
-##         newdata <- dailyMet(data = newdata,
-##                             dateVar = "Date", 
-##                             metVar = attr(object$dailyMet, "metVar"),
-##                             station = attr(object$dailyMet, "station"),
-##                             id = attr(object$dailyMet, "id"),
-##                             trace = trace)
-        
-##     }
-
-##     tau <- tau(object$threshold)
-##     indRef <- match(object$tauRef, tau(object$threshold))
-##     if (is.na(indRef)) {
-##         stop("'tauRef' must be found in tau(object$threshold)")
-##     }
-##     threshold.fun <- formula(object$threshold)
-    
-##     Kthresh <- checkTrigNames(threshold.fun)
-##     trigDesign <- tsDesign(dt = newdata$Date,
-##                            type = "trigo", df = 2 * Kthresh + 1)
-##     newdata <- data.frame(newdata, trigDesign$X)
-    
-##     ## Kscale <- checkTrigNames(scale.fun)
-##     ##  Kshape <- checkTrigNames(shape.fun)
-##     ##  K <- max(c(Kscale, Kshape))
-##     K <- 3
-    
-##     if (trace) cat("o Adding new variables \n")
-##     Phi <- phases(coef(object$threshold))
-    
-##     if (K) {
-##         phi <- Phi[indRef, ]
-##         if (trace) {
-##             cat("o Using K =", K, "and the following phases\n")
-##             print(round(phi, digits = 2))
-##         }
-        
-##         sinDesignX <- sinBasis(dt = newdata[["Date"]],
-##                               df = 2 * K + 1,
-##                               phi = phi)
-##         newdata <- data.frame(newdata, sinDesignX)
-        
-##     } else {        
-##         if (trace) {
-##             cat("No trigonometric variables needed.\n")
-##         }
-##     }
-##     ## Now prepare the time variables
-
-##     class(newdata) <- c("dailyMet", "data.frame")
-##     newdata
-    
-## }
-
-
-## ## *****************************************************************************
-
-## ##'
-## ##' @title Predict a `pgpTList` Object.
-## ##' 
-## ##' @param object A \code{pgpTList} object representing a list of
-## ##'     Poisson-GP fitted models
-## ##'
-## ##' @param newdata \bold{Not implemented}. Nowe taken as
-## ##'     \code{object@data}.
-## ##' 
-## ##' @param lastFullYear Logical. When \code{TRUE}, only the last full
-## ##'     year in \code{newdata} will be used.
-## ##'
-## ##' @param trace Integer level of verbosity.
-## ##' 
-## ##' @param ... Not used yet.
-## ##'
-## ##' @return An object with class \code{"predict.pgpTList"} A data
-## ##'     frame in long format. Among the columns we find \code{Date},
-## ##'     \code{tau} and \code{u} and the NHPP parameters \code{muStar},
-## ##'     \code{sigmaStar} and \code{xiStar}. The column \code{sigma}
-## ##'     contains the GP scale parameter.
-## ##'
-## ##' @note Remind that the NHPP parameters do not depend on the
-## ##'     threshold, although their estimates obviously do. They can be
-## ##'     used to assess the sensitivity too the threshold choice.
-## ##'
-## ##' @section Caution: this method still may change.
-## ##'
-## ##' @method predict pgpTList
-## ##'
-## ##' @importFrom stats terms model.frame delete.response 
-## ##' 
-## ##' @export
-## ##' 
-## predict.pgpTList <- function(object, newdata = NULL,
-##                              lastFullYear = FALSE,
-##                              trace = 0,
-##                              ...) {
-##     TX <- u <- NULL 
-    
-##     if (!missing(newdata) && !is.null(newdata)) {
-##         missNewData <- FALSE
-##         warning("'newdata' is still experimental")
-##         newdata <- makeNewData(object, newdata = newdata,
-##                                trace = trace)
-##     } else {
-##         missNewData <- TRUE
-##         newdata <- object$data
-##     }
-        
-##     pu <- predict(object$thresholds, newdata = newdata,
-##                   lastFullYear = lastFullYear)
-
-##     if (lastFullYear) {
-##         indLY <- lastFullYear(format(newdata$Date, "%Y-%m-%d"),
-##                                          out = "logical")
-##         newdata <- newdata[indLY, , drop = FALSE]
-##     } else {
-##         indLY <- rep(TRUE, nrow(newdata))
-##     }
-    
-##     LambdaHat <- MuStar <- SigmaStar <- RL100 <- nExceed <- list()
-##     lambdaBar <- numeric(0)
-##     tau1 <- object$tau
-
-##     ## Non homogeneous case 
-##     if (object$fitLambda) {
-##         lambdaNH <- !(all.equal(object$logLambda.fun, ~1) == TRUE)
-##         if (lambdaNH) {
-##             Xtime <- model.matrix(object$logLambda.fun, data = newdata)
-##             Xtime <- cbind("b0" = rep(1, nrow(newdata)), Xtime)
-##             timeNH <- TRUE
-##         } 
-##     } 
-    
-##     for (i in seq_along(tau1)) {
-
-##         ## ind <- object$IndLambda[[i]]
-        
-##         MetWithu <- data.frame(newdata,
-##                                subset(pu, tau == tau1[i]))
-##         MetWithu <- within(MetWithu, Ex <- TX > u)
-
-##         if (missNewData) {
-##             ## mind that we need  a correction.
-##             LambdaHat[[i]] <- object$timePoisson[[i]]@lambdafit /
-##                 mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
-            
-##             LambdaHat[[i]] <- LambdaHat[[i]][indLY]
-##         } else { 
-##             if (object$fitLambda) {
-##                 if (lambdaNH) {
-##                     LambdaHat[[i]] <- exp(Xtime %*% object$timePoisson[[i]]@coef) /
-##                         mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
-##                 } else {
-##                     LambdaHat[[i]] <- rep(exp(object$timePoisson[[i]]@coef),
-##                                           nrow(newdata)) /
-##                         mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
-##                 } 
-##             } else {
-##                 LambdaHat[[i]] <- rep(object$lambdaBar[i], nrow(newdata))
-##             }
-##         }
-        
-##         Theta <- theta(object$GP[[i]], data = newdata)
-##         MuStar[[i]] <- MetWithu$u + (LambdaHat[[i]]^Theta[ , "shape"] - 1) /
-##             Theta[ , "shape"] * Theta[ , "scale"]
-
-##         n1 <- length(MuStar[[i]])
-##         ## MuStar[[i]][1] <- MuStar[[i]][n1] <- NA
-        
-##         SigmaStar[[i]] <- LambdaHat[[i]]^Theta[ , "shape"] * Theta[ , "scale"]
-        
-##         RL100[[i]] <- MuStar[[i]] + SigmaStar[[i]] *
-##             ((-log(1 - 1 / 100))^(-Theta[ , "shape"]) - 1) / Theta[ , "shape"]
-        
-##         dfRebuildi <- data.frame(TX = MetWithu$TX,
-##                                  Date = MetWithu$Date,
-##                                  DateRef = newdata$DateRef,
-##                                  Year = newdata$Year,
-##                                  Day = newdata$Day,
-##                                  u = MetWithu$u,
-##                                  tau = MetWithu$tau,
-##                                  lambda = LambdaHat[[i]],
-##                                  muStar = MuStar[[i]],
-##                                  sigma = Theta[ , "scale"],
-##                                  sigmaStar = SigmaStar[[i]],
-##                                  xiStar = Theta[ , "shape"],
-##                                  RL100 = RL100[[i]])
-
-##         ## Computations on the exceedances are moved into the `exceed`
-##         ## method
-        
-##         if (i == 1) {
-##             dfRebuild <- dfRebuildi
-##             ## ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
-##             ## dfExceed <- data.frame(tau = unname(tau1[i]),
-##             ##                        Year = unique(MetWithu[ind, ]$Year),
-##             ##                        Nb = ex)
-            
-##         } else {
-##             dfRebuild <- rbind(dfRebuild, dfRebuildi, deparse.level = 0)
-##             ## ex <- with(MetWithu[ind, ], tapply(Ex, Year, sum))
-##             ## dfExceed <- rbind(dfExceed,
-##             ##                   data.frame(tau = unname(tau1[i]),
-##             ##                              Year = unique(MetWithu[ind, ]$Year),
-##             ##                              Nb = ex))
-##         }
-        
-##         # nExceed[[i]] <- with(dfRebuildi, tapply(TX > u, Year, sum))
-    
-##     }
-    
-##     ## dfExceed <- within(dfExceed, tau <- as.factor(tau))
-##     ## dfExceed <- within(dfExceed, Date <- as.Date(sprintf("%4d-06-01", Year)))
-
-##     ## names(nExceed) <- paste0("tau=", format(tau1))
-    
-##     ## list(ParamAndRL = dfRebuild,
-##     ##      Exceed = dfExceed,
-##     ##      nExceed = nExceed)
-
-##     attr(dfRebuild, "lastFullYear") <- lastFullYear
-##     class(dfRebuild) <- c("predict.pgpTList", "data.frame")
-##     dfRebuild
-    
-## }
-
 ## *****************************************************************************
 
 ##'
@@ -667,9 +376,10 @@ summary.pgpTList <- function(object, ...) {
     res <- object
     if (object$declust) {
         CL <- sapply(res$clusters, function(x) x$end- x$start + 1)
-        res$clustersStat <- data.frame(mean = round(sapply(CL, mean), digits = 2),
-                                       min  = sapply(CL, min),
-                                       max  = sapply(CL, max))
+        res$clustersStat <-
+            data.frame(mean = round(sapply(CL, mean), digits = 2),
+                       min  = sapply(CL, min),
+                       max  = sapply(CL, max))
     } 
     class(res) <- "summary.pgpTList"
     res
@@ -687,7 +397,8 @@ print.summary.pgpTList <- function(x, ...) {
         cat("o Clusters\n")
         print(x$clustersStat)
     }
-    cat("o \"GP\" part: coefficients for the Generalized Pareto with standard errors\n")
+    cat("o \"GP\" part: coefficients for the Generalized Pareto",
+        " with standard errors\n")
     print(coSd(x$GP))
     cat("\no \"Time\" part: coefficients for log-rate with standard errors\n")
     print(noquote(t(sapply(x$timePoisson, coSd))))
@@ -705,4 +416,149 @@ print.pgpTList <- function(x, ...) {
     cat("    o GP scale:      ", noquote(format(x$scale.fun)), "\n")
     cat("    o GP shape:      ", noquote(format(x$shape.fun)), "\n")
     cat("    o log-rate:      ", noquote(format(x$logLambda.fun)), "\n")
+    cat("Use 'summary' for more information\n")
+}
+
+## *****************************************************************************
+##'
+##' @title logLik Method for `pgpTList` Objects.
+##' 
+##' @param object A \code{pgpTList} object representing a list of
+##'     Poisson-GP fitted models
+##'
+##' @param ... Not used yet.
+##'
+##' @return A numeric matrix with two columns containing the
+##'     log-likelihoods for the "GP" part and the "time Poisson"
+##'     part. This matrix has as a \code{"df"} attribute a vector with
+##'     length 2 giving the degrees of freedom used by the two parts
+##'     of the model. While the log-likelihoods differ across
+##'     thresholds, the degrees of freedom are the same by
+##'     construction.
+##'
+##' @section Caution: One should not compare log-likelihoods for POT
+##'     models using different thresholds. So the comparison only
+##'     makes sense when one use two \code{pgpTlist} objects using the
+##'     same probabilities \code{tau} and the same formulas in the
+##'     quantile regression as well as the same data.
+##' 
+##' @importFrom stats logLik
+##' @method logLik  pgpTList
+##' @export
+##' 
+logLik.pgpTList <- function(object, ...) {
+    
+    logLik <- array(as.numeric(NA), dim = c(length(object$tau), 2),
+                    dimnames = list(names(object$tau),
+                                    c("GP", "timePoisson")))
+    df <- rep(NA, 2)
+    names(df) <- c("GP", "timePoisson")
+    
+    for (i in seq_along(object$tau)) {
+        if (object$GP[[i]]$results$convergence == 0) {
+            logLik[i, 1] <- -object$GP[[i]]$results$value
+        }
+        if (object$timePoisson[[i]]@convergence == 0) {
+            logLik[i, 2] <- - object$timePoisson[[i]]@min
+        }
+    }
+    
+    df[1] <- length(object$GP[[1]]$parnames)
+    df[2] <-  object$timePoisson[[1]]@npar
+    attr(logLik, "df") <- df
+
+    logLik
+}
+
+## *****************************************************************************
+##'
+##' @title Checks that two \code{pgpTList} Objects correspond to
+##'     Nested Models.
+##'
+##' @param object,object1 Two \code{pgpTlist} objects for which we
+##'     want to know if \code{object} is nested in \code{object1}.
+##'
+##' @param ... Not used
+##'
+##' @return Either the logical \code{TRUE} or a character message
+##'     indicating the source from which one can conclude that the
+##'     models are not nested.
+##'
+##' @export
+##' 
+isNested <- function(object, object1, ...) {
+    
+    if (!all.equal(object$dailyMet, object1$dailyMet)) {
+        return("The 'dailyMet' parts of the objects differ") 
+    }
+    if (!all.equal(object$tau, object1$tau)) {
+        return("The 'tau' parts of the objects differ") 
+    }
+    for (i in seq_along(object$tau)) {
+        if (!all.equal(object$thresholds[[i]], object1$thresholds[[i]])) {
+            return("quantile regression models for tau = ", tau, "differ") 
+        }       
+    }
+    
+    tl <- attr(terms(object$scale.fun), "term.labels")
+    tl1 <- attr(terms(object1$scale.fun), "term.labels")
+    if (!all(tl %in% tl)) {
+        return("'scale.fun' indicates that 'object' is not nested in",
+             " 'object1'") 
+    }
+    tl <- attr(terms(object$shape.fun), "term.labels")
+    tl1 <- attr(terms(object1$shape.fun), "term.labels")
+    if (!all(tl %in% tl)) {
+        return("'scale.fun' indicates that 'object' is not nested in",
+             " 'object1'") 
+    }
+    TRUE
+}
+
+## *****************************************************************************
+##' 
+##' @title Log-Likelihood Ratio for \code{pgpTList} objects 
+##'
+##' @param object,object1 Two \code{pgpTlist} objects for with
+##'     \code{object} nested in \code{object1}.
+##'
+##' @param which The log-likelihood to be used. With the values
+##'     \code{"GP"} and \code{"timePoisson"}, only the corresponding
+##'     part of the Poisson-GP model is used. With the value
+##'     \code{"total"} the tola log-likelihood is used.
+##' 
+##' @param ... Not used yet.
+##'
+##' @return A matrix with the results likelihood-ratio tests, one by
+##'     threshold.
+##'
+##' 
+anova.pgpTList <- function(object, object1,
+                           which = c("total", "GP", "timePoisson"),
+                           ...) {
+
+    which <- match.arg(which)
+
+    if (res <- isNested(object, object1) != TRUE) stop(res) 
+    
+    if (which == "total") which <- c("GP", "timePoisson") 
+    
+    ll <- logLik(object)
+    df <- sum(attr(ll, "df")[which])
+    ll <- apply(ll[ , which, drop = FALSE], 1, sum)
+    
+    ll1 <- logLik(object1)
+    df1 <- sum(attr(ll1, "df")[which])
+    ll1 <- apply(ll1[ , which, drop = FALSE], 1, sum)
+    
+    ddf <- df1 - df
+    stat <- 2 * (ll1 - ll)
+    pVal <- pchisq(stat, df = ddf, lower.tail = FALSE)
+    cbind("logLik0" = round(ll, digits = 2),
+          df = df,
+          "logLik1" = round(ll1, digits = 2),
+          df1 = df1, 
+          "stat" = round(stat, digits = 2),
+          "p-value" = pVal)
+    
 }

@@ -26,7 +26,7 @@ the data.}
 select a period within the year e.g., summer. Note that the
 condition is applied \emph{after declustering} and there are
 side effects: The exceedances in the first two days or last
-two days of a period within year may be lost. \bold{NOT
+two days of a period within year may be lost. \emph{NOT
 IMPLEMENTED YET}.}
 
 \item{thresholds}{An object with class \code{"rqTList"} containing
@@ -42,10 +42,10 @@ sine waves.}
 \item{fitLambda}{Logical. If \code{TRUE} the temporal Poisson
 process is fitted, using the formula \code{logLambda.fun}.}
 
-\item{logLambda.fun}{Formula for the log-rate of the time Poisson 
+\item{logLambda.fun}{Formula for the log-rate of the time Poisson
 process. For now, there are only a few possibilities. See
-\bold{Details}. Mind that
-\bold{only numeric covariates can be used}.}
+\bold{Details}. Mind that \emph{only numeric covariates can be
+used}.}
 
 \item{scale.fun, shape.fun}{Formulas for the GP scale and shape as
 in \code{\link[extRemes]{fevd}}.}
@@ -98,10 +98,16 @@ For each probability \code{tau[i]}
         with the formulas prescribed.
      }
      \item{ }{
-        Fit a non-stationary Poisson process model using
-        \code{NHPoisson::xxx} with \code{type = "GP"} 
+        Fit a non-stationary temporal Poisson process model using
+        \code{NHPoisson::fitPP.fun}. 
      }
 }
+The formula given in \code{logLambda.fun} will typically involve
+\code{YearNum}. Note that the constant is alaways included by
+the function \code{NHPoisson::fitPP.fun} so it should be discarded
+from the formula when covariates are used. For instance in order
+to use the covariare \code{YearNum} we must use the formla
+\code{~ YearNum -1}.
 }
 \section{Caution}{
  At the time being, a \code{pgpTList} object is

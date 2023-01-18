@@ -2,7 +2,7 @@
 % Please edit documentation in R/rqTList.R
 \name{predict.rqTList}
 \alias{predict.rqTList}
-\title{Predict from a \code{rqTList} object.}
+\title{Predict from a \code{rqTList} Object.}
 \usage{
 \method{predict}{rqTList}(
   object,
@@ -43,7 +43,7 @@ A matrix or a data frame, depending on the value or
     \code{out}.
 }
 \description{
-Predict from a \code{rqTList} object.
+Predict from a \code{rqTList} Object.
 }
 \section{Caution}{
  For now, a \code{rqTList} object does not store

@@ -97,7 +97,6 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
 ##' \code{rq} objects that differ only by the value of \code{tau}.
 ##' This class is useful to compare the object e.g., graphically.
 ##'
-##' 
 ##' @title Create a \code{rqTList} Object
 ##'
 ##' @param ... A collection of objects with class \code{"rq"}
@@ -252,7 +251,7 @@ tau.rqTList <- function(object, ...) {
 }
 
 ##  *****************************************************************************
-##' Predict from a \code{rqTList} object.
+##' Predict from a \code{rqTList} Object.
 ##' 
 ##' @param object A \code{rqTList} object representing a list of
 ##'     regression quantile models as created by the

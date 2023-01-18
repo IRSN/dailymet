@@ -32,8 +32,7 @@ makeNewData <- function(object, ...) {
 ##' @param newdata A "sketch of data" allowing the construction. This
 ##'     can be a \code{dailyMet} object, a data frame or simply a
 ##'     vector with class \code{"Date"}. With the default value, the
-##'     new data is taken as the \code{dailyMet} object which is
-##'     attached to \code{object}.
+##'     new data is taken as \code{object$data}.
 ##'
 ##' @param trace Integer level of verbosity.
 ##' 
@@ -135,11 +134,17 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
 ##' @param object A \code{pgpTList} object representing a list of
 ##'     Poisson-GP fitted models
 ##'
-##' @param newdata \bold{Not implemented}. Now taken as
-##'     \code{object@data}.
+##' @param newdata An optional object giving the "new" dates for which
+##'     the simulation will be done. It can simply be an object with
+##'     class \code{"Date"} or an object with class
+##'     \code{"dailyMet"}. Depending on the class of \code{newdata},
+##'     the variables required for the prediction (such as sine waves)
+##'     will be recomputed or not. When \code{newdata} is not given or
+##'     is \code{NULL}, \code{object$data} is used.
 ##' 
-##' @param lastFullYear Logical. When \code{TRUE}, only the last full
-##'     year in \code{newdata} will be used.
+##' @param lastFullYear Logical, used only when \code{newdata} is not
+##'     provided or is \code{NULL}. When \code{TRUE}, only the last
+##'     full year in \code{newdata} will be used.
 ##'
 ##' @param trace Integer level of verbosity.
 ##' 
@@ -165,20 +170,32 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
 ##' 
 predict.pgpTList <- function(object, newdata = NULL,
                              lastFullYear = FALSE,
+                             ## tau = NULL,  XXX to be added later?
                              trace = 0,
                              ...) {
     TX <- u <- NULL 
     
     if (!missing(newdata) && !is.null(newdata)) {
         missNewData <- FALSE
-        warning("'newdata' is still experimental")
+        ## warning("'newdata' is still experimental")
         newdata <- makeNewData(object, newdata = newdata,
                                trace = trace)
     } else {
         missNewData <- TRUE
         newdata <- object$data
     }
-        
+
+    ## ## With 'tau' we will proceed as in the 'simulate'method
+    ## ## 
+    ## if (!missing(tau) && !is.null(tau)) {
+    ##     if (!all(tau %in% object$tau)) {
+    ##         stop("When given, 'tau' must provide values that are ",
+    ##              "found in 'object$tau'")
+    ##     }
+    ## } else {
+    ##     tau <- object$tau
+    ## }
+    
     pu <- predict(object$thresholds, newdata = newdata,
                   lastFullYear = lastFullYear)
 
@@ -222,11 +239,13 @@ predict.pgpTList <- function(object, newdata = NULL,
             if (object$fitLambda) {
                 if (lambdaNH) {
                     LambdaHat[[i]] <- exp(Xtime %*% object$timePoisson[[i]]@coef) /
-                        mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
+                        mean(object$timePoisson[[i]]@lambdafit) *
+                        object$lambdaBar[i]
                 } else {
                     LambdaHat[[i]] <- rep(exp(object$timePoisson[[i]]@coef),
                                           nrow(newdata)) /
-                        mean(object$timePoisson[[i]]@lambdafit) * object$lambdaBar[i]
+                        mean(object$timePoisson[[i]]@lambdafit) *
+                        object$lambdaBar[i]
                 } 
             } else {
                 LambdaHat[[i]] <- rep(object$lambdaBar[i], nrow(newdata))
@@ -277,19 +296,9 @@ predict.pgpTList <- function(object, newdata = NULL,
             ##                              Year = unique(MetWithu[ind, ]$Year),
             ##                              Nb = ex))
         }
-        
-        # nExceed[[i]] <- with(dfRebuildi, tapply(TX > u, Year, sum))
     
     }
-    
-    ## dfExceed <- within(dfExceed, tau <- as.factor(tau))
-    ## dfExceed <- within(dfExceed, Date <- as.Date(sprintf("%4d-06-01", Year)))
-
-    ## names(nExceed) <- paste0("tau=", format(tau1))
-    
-    ## list(ParamAndRL = dfRebuild,
-    ##      Exceed = dfExceed,
-    ##      nExceed = nExceed)
+   
 
     attr(dfRebuild, "lastFullYear") <- lastFullYear
     attr(dfRebuild, "metVar") <- attr(object$dailyMet, "metVar")
@@ -313,7 +322,7 @@ print.predict.pgpTList <- function(x, ...) {
 
 ## *****************************************************************************
 
-##' Simulate from a `pgpTList` Object. F>or each of the thresholds of
+##' Simulate from a `pgpTList` Object. For each of the thresholds of
 ##' the object, a collection of \code{n} random drawings of the
 ##' exeedance events and the related values are provided.
 ##'
@@ -332,14 +341,31 @@ print.predict.pgpTList <- function(x, ...) {
 ##' @param object A \code{pgpTList} object representing a list of
 ##'     Poisson-GP fitted models
 ##'
-##' @param newdata \bold{Not implemented}. Now taken as
-##'     \code{object@data}.
+##' @param newdata An optional object that giving the "new" dates for
+##'     which the simulation will be done. It can simply be an object
+##'     with class \code{"Date"} or an object with class
+##'     \code{"dailyMet"}. Depending on the class of \code{newdata},
+##'     the variables required for the prediction (such as sine waves)
+##'     will be recomputed or not. When \code{newdata} is not given or
+##'     is \code{NULL}, \code{object$data} is used.
 ##' 
-##' @param lastFullYear Logical used only when \code{newdata} is not
-##'     provided. When \code{TRUE}, only the last full year in the
-##'     data used when fitting the object will be used.
+##' @param lastFullYear Logical, used only when \code{newdata} is not
+##'     provided or is \code{NULL}. When \code{TRUE}, only the last
+##'     full year in the data used when fitting the object will be
+##'     used.
 ##'
 ##' @param trace Integer level of verbosity.
+##'
+##' @param how A technical argument telling how the big data frame on
+##'     output is to be constructed by concatenation. The
+##'     \code{"list"} method (default and recommended) makes a list
+##'     containing a large number of data frames, one by simulation
+##'     and then makes use of the very efficient
+##'     \code{\link[data.table]{rbindlist}} function. With
+##'     \code{"vector"}, once concatenates vectors, and with
+##'     \code{"data.frame"} one rbinds data fames at each
+##'     simulation. The tow later options are by far slower when
+##'     \code{n} is large, say \code{n > 100}.
 ##' 
 ##' @param ... Not used yet.
 ##'
@@ -348,18 +374,39 @@ print.predict.pgpTList <- function(x, ...) {
 ##'     long format containing the simulated events with the
 ##'     corresponding simulated values of the meteorological variable.
 ##'
-##' @section Caution: this method still may change.
+##' @section Caution: the returned data frame can be very large since
+##'     \code{n} simulations are made for each value of \code{tau},
+##'     and each simulation can will typically give several dozens of
+##'     events.
 ##'
+##' @note In the returned data frame, the (factor) column \code{Sim}
+##'     gives the simulation number. It can happen that a simulation
+##'     generates no event, especially if \code{tau} is close to 1
+##'     and if the simulation period is short.
+##' 
 ##' @method simulate pgpTList
 ##' 
 ##' @export
+##'
+##' @importFrom data.table rbindlist
+##' 
+##' @examples
+##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+##' Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = RqU, declust = TRUE,
+##'                  fitLambda = TRUE, logLambda.fun = ~YearNum - 1)
+##' Date <- seq(from = as.Date("2022-01-01"), to = as.Date("2043-01-01"), by = "day")
+##' st <- system.time(sim <- simulate(Pgp1, n = 8, newdata = Date, trace = 1))
+##' autoplot(sim)
 ##' 
 simulate.pgpTList <- function(object, n = 1,
                               newdata,
                               lastFullYear = FALSE,
                               tau = NULL,
                               trace = 0,
+                              how = c("list", "vector", "data.frame"),
                               ...) {
+    ## library(tibble)
+    how <- match.arg(how)
     
     if (!missing(tau) && !is.null(tau)) {
         if (!all(tau %in% object$tau)) {
@@ -370,14 +417,21 @@ simulate.pgpTList <- function(object, n = 1,
         tau <- object$tau
     }
 
+    print(tau)
+    
     ## XXX pass tau here as well???
     pred <- predict(object, newdata = newdata, lastFullYear = lastFullYear,
                     ...)
     iAll <- 1
     
     for (taui in tau) {
+
+        if (trace) {
+            cat(sprintf("tau = %5.2f\n", taui))
+        }
         
         predTau <- subset(pred, tau == taui)
+        ## predTau <- as_tibble(predTau)
         Lambda <- c(0, with(predTau, cumsum(lambda) / 365.25))
         nSim <- 3 * max(Lambda)
     
@@ -390,6 +444,9 @@ simulate.pgpTList <- function(object, n = 1,
         
         for (i in 1:n) {
 
+            if (trace >= 2 && i %% 100 == 0) {
+                cat(sprintf("    i = %d\n", i))
+            }
             TH <- cumsum(rexp(nSim))
             TH <- TH[TH < Lambda[length(Lambda)]]
 
@@ -406,40 +463,74 @@ simulate.pgpTList <- function(object, n = 1,
                 
                 TNH <- TNH[!dup]
                 
-                if (trace) {
+                if (trace >= 3) {
                     cat(sprintf("n = %d, tau = %4.2f, sim = %d, nb event = %d\n",
                                 n, taui, i, length(TNH)))
                 }
                 
                 ## here we could select a smaller number of variables
-                resi <- predTau[TNH, ]
                 
+                resi <- predTau[TNH, ]
+                ## print(class(resi))
+                ## print(head(resi$sigma))
+                ## print(head(resi$xi))
                 ## relace 'TX' by a simulated value
                 resi$TX <- resi$u + nieve::rGPD2(n = 1,
                                                  scale = resi$sigma,
-                                                 shape = resi$xi)
+                                                 shape = resi$xiStar)
                 resi$Sim <- i
                 resi
                 
                 if (iAll == 1) {
-                    res <- resi
+                    if (how == "data.frame") {
+                        res <- resi
+                    } else if (how == "vector") {
+                        resSim <- rep(i, length(TNH))
+                        resDate <- predTau[["Date"]][TNH]
+                        resTau <- predTau[["tau"]][TNH]
+                        resTX <- resi$TX
+                    } else if (how == "list") {
+                        L <- list(as.data.frame(resi[ , c("Sim", "Date", "tau", "TX")]))
+                    }
                 } else {
-                    res <- rbind(res, resi, deparse.level = 0)
+                    if (how == "data.frame") {
+                        ## res <- rbind(res, resi, deparse.level = 0)
+                        ## res <- dplyr::bind_rows(res, resi)
+                        res <- data.table::rbindlist(list(res, resi))
+                    } else if (how == "vector") {
+                        resSim <- c(resSim, rep(i, length(TNH)))
+                        resDate <- c(resDate, predTau[["Date"]][TNH])
+                        resTau <- c(resTau, predTau[["tau"]][TNH])
+                        resTX <- c(resTX, resi$TX)
+                    } else if (how == "list") {
+                        L[[iAll]] <- as.data.frame(resi[ , c("Sim", "Date", "tau", "TX")])
+                    }
                 }
             }
-            
             iAll <- iAll + 1
         }
 
         ## length(TNH) / (as.numeric(diff(range(p$Date))) / 365.25)
     }
-
-    res <- within(res, Sim <- factor(Sim))
-    attr(dfRebuild, "lastFullYear") <- lastFullYear
-    attr(dfRebuild, "nSim") <- attr(object$dailyMet, "nSim")
-    attr(dfRebuild, "metVar") <- attr(object$dailyMet, "metVar")
-    attr(dfRebuild, "station") <- attr(object$dailyMet, "station")
-    attr(dfRebuild, "id") <- attr(object$dailyMet, "id")
+    
+    if (how == "data.frame") {
+        ## res <- within(res, Sim <- factor(Sim, levels = 1:n))
+        res$Sim <- factor(res$Sim, levels = 1:n)
+    } else if (how == "vector") {
+        res <- data.frame(Sim = factor(resSim, levels = 1:n),
+                          Date = resDate,
+                          tau = resTau,
+                          TX = resTX)
+    } else if (how == "list") {
+        res <- data.table::rbindlist(L)
+        res$Sim <- factor(res$Sim, levels = 1:n)
+    }
+        
+    attr(res, "lastFullYear") <- lastFullYear
+    attr(res, "nSim") <- attr(object$dailyMet, "nSim")
+    attr(res, "metVar") <- attr(object$dailyMet, "metVar")
+    attr(res, "station") <- attr(object$dailyMet, "station")
+    attr(res, "id") <- attr(object$dailyMet, "id")
 
     
     class(res) <- c("simulate.pgpTList", "data.frame")
@@ -455,3 +546,4 @@ print.simulate.pgpTList <- function(x, ...) {
     cat(sprintf("variable: \"%s\", station: \"%s\", id:  \"%s\"\n",
                 attr(x, "metVar"), attr(x, "station"), attr(x, "id")))
 }
+

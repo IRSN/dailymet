@@ -2,7 +2,7 @@
 % Please edit documentation in R/bases.R
 \name{print.phasesMatrix}
 \alias{print.phasesMatrix}
-\title{Print a \code{phasesMatrix} object}
+\title{Print a \code{phasesMatrix} Object}
 \usage{
 \method{print}{phasesMatrix}(x, digits = 3, ...)
 }
@@ -17,5 +17,5 @@
 Nothing.
 }
 \description{
-Print a \code{phasesMatrix} object
+Print a \code{phasesMatrix} Object
 }
