@@ -11,26 +11,30 @@ on Peaks Over Threshold (POT) models, and more specifically on
 time-varying POT models in which basis functions are used to describe
 the yearly seasonality and the trend. The package scope is as follows.
 
--   Read timeseries from `.csv` files, produce summaries and ggplots.
+- Read timeseries from `.csv` files, produce summaries and ggplots.
 
--   Provide supplementary S3 methods for the objects `rq` from the
-    **quantreg** package and `fevd` from the **extRemes** package.
+- Provide supplementary S3 methods for the objects `rq` from the
+  **quantreg** package and `fevd` from the **extRemes** package.
 
--   Provide bases of functions that can be used to describe the trend
-    and the seasonality. Among these, a basis of sine wave functions
-    with prescribed phases is useful to get a precise description of the
-    yearly seasonality with a reduced number of parameters hence with a
-    easier estimation.
+- Provide bases of functions that can be used to describe the trend and
+  the seasonality. Among these, a basis of sine wave functions with
+  prescribed phases is useful to get a precise description of the yearly
+  seasonality with a reduced number of parameters hence with a easier
+  estimation.
 
--   Provide the new S3 classes `"rqTList"` and `"fevdTList"`
-    representing lists of `rq` or `fevd`objects “by threshold” i.e.,
-    differing only by their threshold. These classes are helpful to
-    assess the sensitivity of the results to the threshold choice, which
-    generally remains highly subective.
+- Provide the new S3 classes `"rqTList"` and `"fevdTList"` representing
+  lists of `rq` or `fevd`objects “by threshold” i.e., differing only by
+  their threshold. These classes are helpful to assess the sensitivity
+  of the results to the threshold choice, which generally remains highly
+  subective.
 
 For now, the package focuses on univariate approaches in which the
 analysis is for only *one* meteorological timeseries, often assumed to
 be the `TX`.
+
+# News
+
+See the [NEWS.md](https://github.com/yvesdeville/dailymet/NEWS.md) file
 
 # Install release version from GitHub
 

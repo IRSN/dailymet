@@ -37,7 +37,10 @@ For now, the package focuses on univariate approaches in which the
 analysis is for only *one* meteorological timeseries, often assumed to
 be the `TX`.
 
+# News
 
+  See the [NEWS.md](https://github.com/yvesdeville/dailymet/NEWS.md) file
+   
 # Install release version from GitHub
 
 ## Using the *remotes* package
