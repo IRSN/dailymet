@@ -29,7 +29,7 @@ for \eqn{k = 1}, ..., \eqn{K} such that
 \deqn{ 
  \alpha_ 0 + \sum_{k=1}^K \alpha_k \cos\{\omega_k t\} +
    \beta_k \sin\{\omega_k t \}
- = \text{Cst} + \sum_{k=1}^K \gamma_k \sin\{ \omega_k [t - \phi_k] \}
+ = \textrm{Cst} + \sum_{k=1}^K \gamma_k \sin\{ \omega_k [t - \phi_k] \}
 }
 where \eqn{\omega_k = 2 \pi k /365.25} and where the coefficients
 \eqn{\alpha_k} and \eqn{\beta_k} are given in the \code{object}

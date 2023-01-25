@@ -425,8 +425,8 @@ xi <- function(object, ...) {
 ##' the corresponding return periods \eqn{T_i = 1 / (1 - \tau_i)}. Let
 ##' \eqn{q_1}, \eqn{q_2}, \eqn{q_3} be the corresponding quantiles as computed
 ##' by quantile regression. Then we can find \eqn{\xi} by solving the equation
-##' \deqn{\dfrac{T_3^\xi - T_1^\xi}{T_2^\xi - T_1^\xi} =
-##'    \dfrac{q_3 - q_1}{q_2 - q_1}.}{[T_3^xi - T_1^xi] / [T_2^\xi - T_1^\xi] =
+##' \deqn{\frac{T_3^\xi - T_1^\xi}{T_2^\xi - T_1^\xi} =
+##'    \frac{q_3 - q_1}{q_2 - q_1}.}{[T_3^xi - T_1^xi] / [T_2^\xi - T_1^\xi] =
 ##'  [q_3 - q_1] / [q_2 - q_1].} 
 ##' The value of \eqn{\xi} then depends on the covariates used in the quantile
 ##' regression. We only consider here the case where the quantiles depend on

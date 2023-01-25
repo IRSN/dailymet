@@ -24,7 +24,7 @@ exceed <- function(object, ...) {
 ##' evolution of the number of exceedances. The annual number of
 ##' exceedances can be plotted along with the rate of a time-varying
 ##' Poisson process inasmuch this rate is expressed in inverse year
-##' \eqn{\text{yr}^{-1}}{yr^{-1}}.
+##' \eqn{\textrm{yr}^{-1}}{yr^{-1}}.
 ##'
 ##' Even when \code{byYear} is \code{TRUE}, the returned data frame
 ##' has a \code{Date} column that can be used in plots.

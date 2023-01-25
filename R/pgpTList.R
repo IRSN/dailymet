@@ -532,6 +532,7 @@ isNested <- function(object, object1, ...) {
 ##' @return A matrix with the results likelihood-ratio tests, one by
 ##'     threshold.
 ##'
+##' @importFrom stats pchisq
 ##' 
 anova.pgpTList <- function(object, object1,
                            which = c("total", "GP", "timePoisson"),

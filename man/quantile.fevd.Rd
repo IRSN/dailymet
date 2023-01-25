@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{An object with class \code{"fevd"}.}
 
-\item{probs}{See \code{\link[NSGEV]{quantile.TVGEV}}}
+\item{probs}{A vector of probabilities.}
 
 \item{data}{A data frame containing the covariates needed.}
 

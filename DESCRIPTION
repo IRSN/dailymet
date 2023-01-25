@@ -8,7 +8,7 @@ Description: Provide utility functions to model meteorological variables
     on a daily basis with emphasis on the extremes and Peaks Over Threshold
     (POT) models.
 Depends: R (>= 4.0.0), extRemes, quantreg, NHPoisson, ggplot2, scales
-Imports: methods, NSGEV, potomax, utils, data.table
+Imports: methods, nieve, utils, data.table
 Suggests: leaflet, knitr, rmarkdown
 License: GPL (>= 2)
 Encoding: UTF-8

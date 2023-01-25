@@ -357,7 +357,7 @@ predict.fevd <- function(object, newdata = NULL,
 ##' 
 ##' @importFrom stats residuals
 ##'
-##' @importFrom potomax pGPD2
+##' @importFrom nieve pGPD2
 ##'
 ##' @export
 ##' 
@@ -393,12 +393,12 @@ residuals.fevd <- function (object,
         e <- rep(as.numeric(NA), length(y))
         ind <- y > p[ , "location"]
         if (any(ind)) {
-            e[ind] <- potomax::pGPD2(y[ind] - p[ind, "location"],
-                                     scale = p[ind, "scale"],
-                                     shape = p[ind, "shape"])
+            e[ind] <- nieve::pGPD2(y[ind] - p[ind, "location"],
+                                   scale = p[ind, "scale"],
+                                   shape = p[ind, "shape"])
         }
     } else if (object$type == "PP") {
-        e <- NSGEV::pGEV(y, loc = p[ , "location"],
+        e <- nieve::pGEV(y, loc = p[ , "location"],
                          scale = p[ , "scale"], shape = p[ , "shape"]) 
     }
 
@@ -500,7 +500,7 @@ theta <- function(object, data = NULL) {
 ##'
 ##' @param x An object with class \code{"fevd"}.
 ##'
-##' @param probs See \code{\link[NSGEV]{quantile.TVGEV}}
+##' @param probs A vector of probabilities.
 ##'
 ##' @param data A data frame containing the covariates needed.
 ##'
@@ -514,7 +514,7 @@ theta <- function(object, data = NULL) {
 ##'
 ##' @export
 ##' 
-##' @importFrom NSGEV qGEV
+##' @importFrom nieve qGEV
 ##' 
 quantile.fevd <- function(x, probs = c(0.9, 0.95, 0.99),
                           data = NULL, ...) {
@@ -531,7 +531,7 @@ quantile.fevd <- function(x, probs = c(0.9, 0.95, 0.99),
     theta <- theta(x, data = data)
     
     for (i in seq_along(probs)) {
-        quant[, i] <- NSGEV::qGEV(probs[i],
+        quant[, i] <- nieve::qGEV(probs[i],
                                   loc = theta[, 1L],
                                   scale = theta[ , 2L],
                                   shape = theta[, 3L])

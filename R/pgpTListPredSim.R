@@ -56,7 +56,7 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
             nm <- names(newdata)
             if (!(attr(object$dailyMet, "metVar") %in% nm)) {
                 newdata <- cbind(newdata, .XXX = NA) 
-                nm(newdata) <- c(nm, attr(object$dailyMet, "metVar"))
+                names(newdata) <- c(nm, attr(object$dailyMet, "metVar"))
             }
             newdata <- dailyMet(data = newdata,
                                 dateVar = "Date", 
@@ -164,7 +164,8 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
 ##'
 ##' @method predict pgpTList
 ##'
-##' @importFrom stats terms model.frame delete.response 
+##' @importFrom stats terms model.frame delete.response as.formula rexp
+##' @importFrom stats approx
 ##' 
 ##' @export
 ##' 
@@ -341,6 +342,10 @@ print.predict.pgpTList <- function(x, ...) {
 ##' @param object A \code{pgpTList} object representing a list of
 ##'     Poisson-GP fitted models
 ##'
+##' @param nsim Number of simulation wanted.
+##'
+##' @param seed Not used yet.
+##' 
 ##' @param newdata An optional object that giving the "new" dates for
 ##'     which the simulation will be done. It can simply be an object
 ##'     with class \code{"Date"} or an object with class
@@ -354,6 +359,9 @@ print.predict.pgpTList <- function(x, ...) {
 ##'     full year in the data used when fitting the object will be
 ##'     used.
 ##'
+##' @param tau If provided, the simulation is only made for the
+##'     provided value of \code{tau}.
+##' 
 ##' @param trace Integer level of verbosity.
 ##'
 ##' @param how A technical argument telling how the big data frame on
@@ -389,6 +397,7 @@ print.predict.pgpTList <- function(x, ...) {
 ##' @export
 ##'
 ##' @importFrom data.table rbindlist
+##' @importFrom stats simulate
 ##' 
 ##' @examples
 ##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
@@ -398,7 +407,9 @@ print.predict.pgpTList <- function(x, ...) {
 ##' st <- system.time(sim <- simulate(Pgp1, n = 8, newdata = Date, trace = 1))
 ##' autoplot(sim)
 ##' 
-simulate.pgpTList <- function(object, n = 1,
+simulate.pgpTList <- function(object,
+                              nsim = 1,
+                              seed = NULL,
                               newdata,
                               lastFullYear = FALSE,
                               tau = NULL,
@@ -407,6 +418,7 @@ simulate.pgpTList <- function(object, n = 1,
                               ...) {
     ## library(tibble)
     how <- match.arg(how)
+    n <- nsim
     
     if (!missing(tau) && !is.null(tau)) {
         if (!all(tau %in% object$tau)) {

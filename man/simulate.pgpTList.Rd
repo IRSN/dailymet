@@ -6,7 +6,8 @@
 \usage{
 \method{simulate}{pgpTList}(
   object,
-  n = 1,
+  nsim = 1,
+  seed = NULL,
   newdata,
   lastFullYear = FALSE,
   tau = NULL,
@@ -18,6 +19,10 @@
 \arguments{
 \item{object}{A \code{pgpTList} object representing a list of
 Poisson-GP fitted models}
+
+\item{nsim}{Number of simulation wanted.}
+
+\item{seed}{Not used yet.}
 
 \item{newdata}{An optional object that giving the "new" dates for
 which the simulation will be done. It can simply be an object
@@ -31,6 +36,9 @@ is \code{NULL}, \code{object$data} is used.}
 provided or is \code{NULL}. When \code{TRUE}, only the last
 full year in the data used when fitting the object will be
 used.}
+
+\item{tau}{If provided, the simulation is only made for the
+provided value of \code{tau}.}
 
 \item{trace}{Integer level of verbosity.}
 
