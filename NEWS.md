@@ -15,3 +15,8 @@
 - The `predict` and the `simulate` methods return objects having the
   S3 classes `"predict.pgpTList"` and `"simulate.pgpTList"` for which
   some methds are available, such as `autoplot`.
+
+- The package no longer depends on **NSGEV** and **potomax** from
+  which it imported the GEV and the GPD2 distributions
+  respectively. These distributions are now imported from the
+  **nieve** package.
