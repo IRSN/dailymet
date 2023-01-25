@@ -1,6 +1,6 @@
 
-% **dailymet** Package News
-
+**dailymet** Package News
+===========================
 
 # News in version 0.1.1
 
