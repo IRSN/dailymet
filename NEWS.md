@@ -2,6 +2,17 @@
 **dailymet** Package News
 ===========================
 
+# News in version 0.1.2
+
+## Enhancements
+
+- The `predict` method for the class `"PgpTList"` provides new
+  variables on output.
+  
+- The new method `quantile` for the classes `"PgpTList"` and
+  `"predict.PgpTList"` allows to investigate the tail distribution of
+  the maximum on a "new" period of interest.
+
 # News in version 0.1.1
 
 ## Enhancements

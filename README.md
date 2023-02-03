@@ -34,7 +34,9 @@ be the `TX`.
 
 # News
 
-See the [NEWS.md](https://github.com/yvesdeville/dailymet/NEWS.md) file
+See the
+[NEWS.md](https://github.com/yvesdeville/dailymet/blob/main/NEWS.md)
+file
 
 # Install release version from GitHub
 

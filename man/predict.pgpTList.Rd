@@ -4,7 +4,15 @@
 \alias{predict.pgpTList}
 \title{Predict a `pgpTList` Object.}
 \usage{
-\method{predict}{pgpTList}(object, newdata = NULL, lastFullYear = FALSE, trace = 0, ...)
+\method{predict}{pgpTList}(
+  object,
+  newdata = NULL,
+  lastFullYear = FALSE,
+  trace = 0,
+  which = c("param", "max"),
+  probExcM = c(0.05, 0.01, 0.005, 0.001, 5e-04, 1e-04),
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{pgpTList} object representing a list of
@@ -24,6 +32,18 @@ full year in \code{newdata} will be used.}
 
 \item{trace}{Integer level of verbosity.}
 
+\item{which}{The kind of result wanted.}
+
+\item{probExcM}{A vector of (small) probabilities of exceedance
+for the maximum \eqn{M} of the marks on the prediction
+period. For each probability \eqn{p}, the value of the
+quantile \eqn{m} of \eqn{M} with probability \eqn{1 - p} will
+be computed. Note that the quantile may be \code{NA} if the
+value \eqn{F_M(m)} of distribution function of \eqn{M} is
+lower than \eqn{1 -p} when \eqn{m := \textrm{max}_t\{u_t\}}{m
+:= max_t _(t)} because the POT model can only provide the tail
+distribution of \eqn{M}.}
+
 \item{...}{Not used yet.}
 }
 \value{
@@ -42,6 +62,6 @@ Remind that the NHPP parameters do not depend on the
     used to assess the sensitivity too the threshold choice.
 }
 \section{Caution}{
- this method still may change.
+ This method still may change.
 }
 

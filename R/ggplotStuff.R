@@ -1,3 +1,23 @@
+
+.gumBreaks_p <- c(0.5, 0.2, 0.1, 0.05, 0.02, 0.01,  0.005, 0.002, 0.001)
+
+##' @importFrom scales trans_new
+.gumbel_trans_p <- trans_new(name = "gumbel",
+                             transform = function(p) -log(-log(1 - p)),
+                             inverse = function(y) 1 - exp(-exp(-y)),
+                             breaks = myBreaks <- c(0.5, 0.2, 0.1,
+                                 0.05, 0.02, 0.01,  0.005, 0.002, 0.001),
+                             domain = c(0, 1))
+
+.gumBreaks_m <- c(2, 5, 10, 20, 50, 100, 200, 500, 1000)
+.gumbel_trans_m <- trans_new(name = "gumbel",
+                            transform = function(m) -log(-log(1 - 1 / m)),
+                            inverse = function(y) 1 / (1 - exp(-exp(-y))),
+                            breaks = myBreaks <- c(2, 5, 10,
+                                20, 50, 100, 200, 500, 1000),
+                            domain = c(1, 1000))
+
+
 ## *****************************************************************************
 
 ##' Autoplot a daily meteorological series, usually covering a very
@@ -384,4 +404,22 @@ autoplot.simulate.pgpTList <- function(object, ...) {
     
     g
     
+}
+
+##' @export
+##' @method autoplot quantile.pgpTList
+##' 
+autoplot.quantile.pgpTList <- function(object, ...) {
+    
+    g <- ggplot(data = object) +
+        geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
+                                       colour = "tau"))
+    
+    g <- g + scale_x_continuous(trans = .gumbel_trans_p,
+                                breaks = .gumBreaks_p,
+                                minor_breaks = .gumBreaks_p) +
+        xlab("Prob. of exceedance") + ylab("Quantile") +
+        ggtitle("Tail distribution for the maximum")
+    g
+
 }

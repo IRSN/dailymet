@@ -109,8 +109,8 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
         }
         
         sinDesignX <- sinBasis(dt = newdata[["Date"]],
-                              df = 2 * K + 1,
-                              phi = phi)
+                               df = 2 * K + 1,
+                               phi = phi)
         newdata <- data.frame(newdata, sinDesignX)
         
     } else {        
@@ -146,10 +146,22 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
 ##'     provided or is \code{NULL}. When \code{TRUE}, only the last
 ##'     full year in \code{newdata} will be used.
 ##'
-##' @param trace Integer level of verbosity.
+##' @param which The kind of result wanted. 
 ##' 
+##' @param probExcM A vector of (small) probabilities of exceedance
+##'     for the maximum \eqn{M} of the marks on the prediction
+##'     period. For each probability \eqn{p}, the value of the
+##'     quantile \eqn{m} of \eqn{M} with probability \eqn{1 - p} will
+##'     be computed. Note that the quantile may be \code{NA} if the
+##'     value \eqn{F_M(m)} of distribution function of \eqn{M} is
+##'     lower than \eqn{1 -p} when \eqn{m := \textrm{max}_t\{u_t\}}{m
+##'     := max_t _(t)} because the POT model can only provide the tail
+##'     distribution of \eqn{M}.
+##'
 ##' @param ... Not used yet.
 ##'
+##' @param trace Integer level of verbosity.
+##' 
 ##' @return An object with class \code{"predict.pgpTList"} A data
 ##'     frame in long format. Among the columns we find \code{Date},
 ##'     \code{tau} and \code{u} and the NHPP parameters \code{muStar},
@@ -160,7 +172,7 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
 ##'     threshold, although their estimates obviously do. They can be
 ##'     used to assess the sensitivity too the threshold choice.
 ##'
-##' @section Caution: this method still may change.
+##' @section Caution: This method still may change.
 ##'
 ##' @method predict pgpTList
 ##'
@@ -173,8 +185,12 @@ predict.pgpTList <- function(object, newdata = NULL,
                              lastFullYear = FALSE,
                              ## tau = NULL,  XXX to be added later?
                              trace = 0,
+                             which = c("param", "max"),
+                             probExcM = c(0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001),
                              ...) {
-    TX <- u <- NULL 
+    
+    TX <- u <- lambda <- v <- xiStar <- sigma <- NULL
+    which <- match.arg(which)
     
     if (!missing(newdata) && !is.null(newdata)) {
         missNewData <- FALSE
@@ -185,17 +201,6 @@ predict.pgpTList <- function(object, newdata = NULL,
         missNewData <- TRUE
         newdata <- object$data
     }
-
-    ## ## With 'tau' we will proceed as in the 'simulate'method
-    ## ## 
-    ## if (!missing(tau) && !is.null(tau)) {
-    ##     if (!all(tau %in% object$tau)) {
-    ##         stop("When given, 'tau' must provide values that are ",
-    ##              "found in 'object$tau'")
-    ##     }
-    ## } else {
-    ##     tau <- object$tau
-    ## }
     
     pu <- predict(object$thresholds, newdata = newdata,
                   lastFullYear = lastFullYear)
@@ -279,8 +284,8 @@ predict.pgpTList <- function(object, newdata = NULL,
                                  xiStar = Theta[ , "shape"],
                                  RL100 = RL100[[i]])
 
-        ## Computations on the exceedances are moved into the `exceed`
-        ## method
+        ## The computations on the exceedances have been moved into
+        ## the `exceed` method
         
         if (i == 1) {
             dfRebuild <- dfRebuildi
@@ -299,17 +304,124 @@ predict.pgpTList <- function(object, newdata = NULL,
         }
     
     }
-   
-
+    
+    dfRebuild$v <- tapply(dfRebuild$u, INDEX = dfRebuild$tau, FUN = max)
+    
+    dfRebuild <- within(dfRebuild, {
+        lambdav <- lambda * (1 - nieve::pGPD2(v - u, sigma, xiStar));
+        omega <- ifelse(xiStar < 0, u - sigma / xiStar, Inf)})
+        
     attr(dfRebuild, "lastFullYear") <- lastFullYear
     attr(dfRebuild, "metVar") <- attr(object$dailyMet, "metVar")
     attr(dfRebuild, "station") <- attr(object$dailyMet, "station")
     attr(dfRebuild, "id") <- attr(object$dailyMet, "id")
+    attr(dfRebuild, "tau") <- tau1
     
     class(dfRebuild) <- c("predict.pgpTList", "data.frame")
     dfRebuild
     
 }
+
+
+
+## *****************************************************************************
+
+##' The Poisson-GP model given in \code{x} only describes the tail of
+##' the distribution of the maximum. So when a probability is too
+##' small the quantile may be \code{NA}.
+##'
+##' The computation of the quantiles without any inference result can
+##' be performed at a lower cost by using the results of a
+##' \code{predict} step it these have already been computed. Of course
+##' the "new" period will be that which was used in the \code{predict}
+##' step and can not be changed.
+##' 
+##' @title Compute Quantiles for the Maximum the Marks of a Poisson-GP
+##'     Model
+##'
+##' @param x An object with class \code{"predict.pgpTList"} as created
+##'     by applying the \code{predict} method on an object with class
+##'     \code{"pgpTList"}.
+##' 
+##' @param prob Vector of probabilities.
+##' 
+##' @param ... Not used yet.
+##' 
+##' @return A data frame with columns \code{Prob} and \code{Quant}.
+##'
+##' @method quantile pgpTList
+##' @export
+##'
+##' @seealso \code{\link{predict.pgpTList}}.
+##'
+##' @examples
+##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+##' Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = RqU, declust = TRUE,
+##'                  fitLambda = TRUE, logLambda.fun = ~YearNum - 1)
+##' Date <- seq(from = as.Date("2020-01-01"), to = as.Date("2050-01-01"), by = "day")
+##' ## compute the quantile for the maximum on the "new" period
+##' qMax <- quantile(Pgp1, newdata = Date)
+##' autoplot(qMax)
+##' 
+quantile.pgpTList <- function(x,
+                              prob = NULL,
+                              ...) {
+    pred <- predict(x, ...)
+    quantile(pred, prob = prob)
+    
+}
+
+##' @method quantile predict.pgpTList
+##' @export
+quantile.predict.pgpTList <- function(x,
+                                      prob = NULL,
+                                      ...) {
+    dots <- list(...)
+    pm <- pmatch("newdata", names(dots))
+    if (!is.na(pm)) {
+        stop("'newdata' can not be given when the quantiles ",
+             "are computed from predictions. Use either the ",
+             "'rqTList' object in the formal 'x' of the 'quantile' ",
+             "method, or use a new 'predict' step")
+    }
+    
+    tau1 <- attr(x, "tau")
+    nm <- 40
+    L <- list()
+    x <- as.data.frame(x)
+    
+    if (is.null(prob)) {
+        prob <- 1 - c(0.06, 0.05, 0.04, 0.03, 0.02, 0.01,
+                      0.0075,  0.005, 0.0025,
+                      0.001, 0.002, 0.005)
+    }
+
+    for (i in seq_along(tau1)) {
+        predi <- subset(x, tau == tau1[i])
+        m <- seq(from = min(predi$v), to = max(predi$omega), length.out = nm)
+        Fm <- rep(NA, nm)
+        for (j in seq_along(m)) {
+            Fm[j] <- exp(-sum(predi$lambda *
+                          (1 - nieve::pGPD2(m[j] - predi$u,
+                                            scale = predi$sigma,
+                                            shape = predi$xiStar))) / 365.25)
+        }
+        L[[i]] <- data.frame(tau = unname(tau1[i]),
+                             Prob = prob,
+                             ProbExc = 1 - prob,
+                             Quant = approx(x = Fm, y = m, xout = prob)$y)
+        
+    }
+    
+    res <- data.table::rbindlist(L)
+    res$tau <- factor(res$tau)
+    class(res) <- c("quantile.pgpTList", "data.frame")
+    res
+    
+}
+
+
+
 
 
 ##' @method print predict.pgpTList
@@ -320,6 +432,27 @@ print.predict.pgpTList <- function(x, ...) {
                 attr(x, "metVar"), attr(x, "station"), attr(x, "id")))
 }
 
+##' @method subset predict.pgpTList
+##' @export
+subset.predict.pgpTList <- function(x, ...) {
+
+    newx <- subset(as.data.frame(x), ...)
+    for (attNm in c("lastFullYear", "metVar", "station", "id", "tau")) {
+        attr(newx, attNm) <- attr(x, attNm)
+    }
+    class(newx) <- c("predict.pgpTList", "data.frame")
+    newx
+    
+}
+
+##' @importFrom utils head
+##' @method head predict.pgpTList
+##' @export
+head.predict.pgpTList <- function(x, n = 6L, ...) {
+
+    head(as.data.frame(x), n = n, ...)
+
+}
 
 ## *****************************************************************************
 
@@ -429,7 +562,7 @@ simulate.pgpTList <- function(object,
         tau <- object$tau
     }
 
-    print(tau)
+    if (trace) print(tau)
     
     ## XXX pass tau here as well???
     pred <- predict(object, newdata = newdata, lastFullYear = lastFullYear,
@@ -441,8 +574,8 @@ simulate.pgpTList <- function(object,
         if (trace) {
             cat(sprintf("tau = %5.2f\n", taui))
         }
-        
-        predTau <- subset(pred, tau == taui)
+        ind <- pred$tau == taui
+        predTau <- pred[ind, , drop = FALSE]
         ## predTau <- as_tibble(predTau)
         Lambda <- c(0, with(predTau, cumsum(lambda) / 365.25))
         nSim <- 3 * max(Lambda)

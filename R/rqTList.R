@@ -460,8 +460,9 @@ xi <- function(object, ...) {
 ##'
 ##' @section Caution: There seems to be a huge uncertainty on this
 ##'     estimate, and it seems that the variations are somewhat
-##'     exaggerated. An alternative method is estimating \eqn{xi} by
-##'     using a moving time window in the year.
+##'     exaggerated. An alternative method is estimating \eqn{\xi} by
+##'     using a moving time window in the year. Also the question
+##'     arises as whether declustering should be taking into account.
 ##'
 ##' @importFrom stats uniroot
 ##'

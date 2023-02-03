@@ -4,7 +4,7 @@ Yves Deville <deville.yves@alpestat.com>
 
 ## Package scope and management
 
-\[ \] Replace the dependency on the **NSGEV** and the **potomax** by a
+\[x\] Replace the dependency on the **NSGEV** and the **potomax** by a
 dependency on the publicly released package **nieve**.
 
 ## Documentation
@@ -23,6 +23,13 @@ object(s).
 
 \[ \] Add methods for the `pgpTList` class.
 
+\[ \] Change the `simulate` method for the class `"pgpTList"` so that it
+simulates the marks that are are exceeds a *high threshold* chosen as
+the threshold `v` now given by the `predict` method which computes the
+corresponding rate `lambdav`as well. By doing so the maximum of the
+simulated marks will also be the simulate maximum for all the marks on
+the period of interest.
+
 ## Interface
 
 \[ \] Allow some renaming of the coefficients both for the GP part and
@@ -34,6 +41,6 @@ of the package.
 
 ## Long-term
 
-\[ \] Allow the ML estimation, prediction, … for a full Poisson-GP
+\[x\] Allow the ML estimation, prediction, … for a full Poisson-GP
 model, with a formula for the rate. This eventually should the
 dependency on **extRemes** and **NHPoisson**.
