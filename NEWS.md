@@ -2,6 +2,21 @@
 **dailymet** Package News
 ===========================
 
+# News in version 0.1.3
+
+## Bug fixes
+
+- In the ` predict.pgpTList` there was an error in the determination
+  of the maximum of the thresholds. This could have an impact on the
+  result of the `quantile` method although it seems very small in
+  practice.
+
+## Enhancements
+
+- The `simulate.pgpTList` can now be used to compute the quantiles of 
+  the maximum `M` over the prediction/simulation period.
+
+
 # News in version 0.1.2
 
 ## Enhancements
