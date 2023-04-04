@@ -10,6 +10,7 @@
   seed = NULL,
   newdata,
   lastFullYear = FALSE,
+  tailOnly = TRUE,
   tau = NULL,
   trace = 0,
   how = c("list", "vector", "data.frame"),
@@ -36,6 +37,14 @@ is \code{NULL}, \code{object$data} is used.}
 provided or is \code{NULL}. When \code{TRUE}, only the last
 full year in the data used when fitting the object will be
 used.}
+
+\item{tailOnly}{Logical. If \code{TRUE} the simulation will be
+only for tail events. More precisely only for each of the
+threshold \eqn{u_i(t)} corresponding to a non-exceedance
+probability \eqn{\tau_i} the maximum \eqn{v_i:=\max_t
+\u_i(t)\}} of the the thresholds over the predicted period is
+computed, and the simulated events correspond to exceedances
+over $v_i$.}
 
 \item{tau}{If provided, the simulation is only made for the
 provided value of \code{tau}.}
@@ -91,11 +100,21 @@ In the returned data frame, the (factor) column \code{Sim}
 }
 
 \examples{
-RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98))
 Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = RqU, declust = TRUE,
                  fitLambda = TRUE, logLambda.fun = ~YearNum - 1)
 Date <- seq(from = as.Date("2022-01-01"), to = as.Date("2043-01-01"), by = "day")
-st <- system.time(sim <- simulate(Pgp1, n = 8, newdata = Date, trace = 1))
-autoplot(sim)
-
+st <- system.time(sim <- simulate(Pgp1, nsim = 8, newdata = Date, trace = 1))
+autoplot(subset(sim, tau == 0.95))
+## more realistic example
+\dontrun{
+    pred <- predict(Pgp1, newdata = Date)
+    st <- system.time(sim <- simulate(Pgp1, nsim = 1000, newdata = Date, trace = 1))
+    ## compute the maximum 'M' on the period by simulation and by threshold
+    M <- with(sim, tapply(TX, list(Sim, tau), max))
+    ## quantile over the simulation (by threshold)
+    apply(M, 2, quantile, prob = 0.99, na.rm = TRUE)
+    ## compare with the computation
+    quantile(pred, p = 0.99)
+}
 }

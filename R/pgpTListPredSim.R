@@ -304,13 +304,17 @@ predict.pgpTList <- function(object, newdata = NULL,
         }
     
     }
-    
-    dfRebuild$v <- tapply(dfRebuild$u, INDEX = dfRebuild$tau, FUN = max)
+
+    ind <- as.integer(dfRebuild$tau)
+    dfRebuild$v <- tapply(dfRebuild$u, INDEX = dfRebuild$tau, FUN = max)[ind]
     
     dfRebuild <- within(dfRebuild, {
         lambdav <- lambda * (1 - nieve::pGPD2(v - u, sigma, xiStar));
+        sigmav <- sigma  + xiStar * (v - u);
         omega <- ifelse(xiStar < 0, u - sigma / xiStar, Inf)})
-        
+
+    dfRebuild$sigmav[dfRebuild$sigmav <= 0.0] <- NA 
+    
     attr(dfRebuild, "lastFullYear") <- lastFullYear
     attr(dfRebuild, "metVar") <- attr(object$dailyMet, "metVar")
     attr(dfRebuild, "station") <- attr(object$dailyMet, "station")
@@ -492,6 +496,14 @@ head.predict.pgpTList <- function(x, n = 6L, ...) {
 ##'     full year in the data used when fitting the object will be
 ##'     used.
 ##'
+##' @param tailOnly Logical. If \code{TRUE} the simulation will be
+##'     only for tail events. More precisely only for each of the
+##'     threshold \eqn{u_i(t)} corresponding to a non-exceedance
+##'     probability \eqn{\tau_i} the maximum \eqn{v_i:=\max_t
+##'     \u_i(t)\}} of the the thresholds over the predicted period is
+##'     computed, and the simulated events correspond to exceedances
+##'     over $v_i$.
+##' 
 ##' @param tau If provided, the simulation is only made for the
 ##'     provided value of \code{tau}.
 ##' 
@@ -533,18 +545,29 @@ head.predict.pgpTList <- function(x, n = 6L, ...) {
 ##' @importFrom stats simulate
 ##' 
 ##' @examples
-##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98))
 ##' Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = RqU, declust = TRUE,
 ##'                  fitLambda = TRUE, logLambda.fun = ~YearNum - 1)
 ##' Date <- seq(from = as.Date("2022-01-01"), to = as.Date("2043-01-01"), by = "day")
-##' st <- system.time(sim <- simulate(Pgp1, n = 8, newdata = Date, trace = 1))
-##' autoplot(sim)
-##' 
+##' st <- system.time(sim <- simulate(Pgp1, nsim = 8, newdata = Date, trace = 1))
+##' autoplot(subset(sim, tau == 0.95))
+##' ## more realistic example
+##' \dontrun{
+##'     pred <- predict(Pgp1, newdata = Date)
+##'     st <- system.time(sim <- simulate(Pgp1, nsim = 1000, newdata = Date, trace = 1))
+##'     ## compute the maximum 'M' on the period by simulation and by threshold
+##'     M <- with(sim, tapply(TX, list(Sim, tau), max))
+##'     ## quantile over the simulation (by threshold)
+##'     apply(M, 2, quantile, prob = 0.99, na.rm = TRUE)
+##'     ## compare with the computation
+##'     quantile(pred, p = 0.99)
+##' }
 simulate.pgpTList <- function(object,
                               nsim = 1,
                               seed = NULL,
                               newdata,
                               lastFullYear = FALSE,
+                              tailOnly = TRUE,
                               tau = NULL,
                               trace = 0,
                               how = c("list", "vector", "data.frame"),
@@ -567,7 +590,7 @@ simulate.pgpTList <- function(object,
     ## XXX pass tau here as well???
     pred <- predict(object, newdata = newdata, lastFullYear = lastFullYear,
                     ...)
-    iAll <- 1
+    iAll <- 1    
     
     for (taui in tau) {
 
@@ -577,9 +600,13 @@ simulate.pgpTList <- function(object,
         ind <- pred$tau == taui
         predTau <- pred[ind, , drop = FALSE]
         ## predTau <- as_tibble(predTau)
-        Lambda <- c(0, with(predTau, cumsum(lambda) / 365.25))
+        if (tailOnly) {
+            Lambda <- c(0, with(predTau, cumsum(lambdav) / 365.25))
+        } else {
+            Lambda <- c(0, with(predTau, cumsum(lambda) / 365.25))
+        }
         nSim <- 3 * max(Lambda)
-    
+        
         ## ====================================================================
         ## 'TH' are the events of a Homogeneous PP on (0, n) with unit rate.
         ## 'TNH' are the events of the NHPP obtained by using the reciprocal
@@ -620,9 +647,16 @@ simulate.pgpTList <- function(object,
                 ## print(head(resi$sigma))
                 ## print(head(resi$xi))
                 ## relace 'TX' by a simulated value
-                resi$TX <- resi$u + nieve::rGPD2(n = 1,
-                                                 scale = resi$sigma,
-                                                 shape = resi$xiStar)
+                
+                if (tailOnly) {
+                    resi$TX <- resi$v + drop(nieve::rGPD2(n = 1,
+                                                          scale = resi$sigmav,
+                                                          shape = resi$xiStar))
+                } else {
+                    resi$TX <- resi$u + drop(nieve::rGPD2(n = 1,
+                                                          scale = resi$sigma,
+                                                          shape = resi$xiStar))
+                }
                 resi$Sim <- i
                 resi
                 
@@ -692,3 +726,8 @@ print.simulate.pgpTList <- function(x, ...) {
                 attr(x, "metVar"), attr(x, "station"), attr(x, "id")))
 }
 
+##' @method head simulate.pgpTList
+##' @export
+head.simulate.pgpTList <- function(x, ...) {
+    head(as.data.frame(x), ...)
+}
