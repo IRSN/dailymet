@@ -7,7 +7,8 @@
 \method{coSd}{mlePP}(object, sOnly = FALSE, ...)
 }
 \arguments{
-\item{object}{An object with class \code{"mlePP"}.}
+\item{object}{An object with class \code{"mlePP"} from the
+\pkg{NHPoisson} package.}
 
 \item{sOnly}{Logical. If \code{TRUE} only the standard deviation
 (a.k.a standard errors) wille be show.}

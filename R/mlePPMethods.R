@@ -4,7 +4,8 @@
 ##' 
 ##' @title Coefficients and Standard Errors
 ##' 
-##' @param object An object with class \code{"mlePP"}.
+##' @param object An object with class \code{"mlePP"} from the
+##'     \pkg{NHPoisson} package.
 ##'
 ##' @param sOnly Logical. If \code{TRUE} only the standard deviation
 ##'     (a.k.a standard errors) wille be show.
@@ -27,4 +28,11 @@ coSd.mlePP <- function(object, sOnly = FALSE, ...) {
                   FUN = function(x) sprintf("%6.3f [%5.3f]", x[1], x[2]))
     names(text) <- names(hat)
     noquote(text)
+}
+
+
+
+modelMatrices.mlePP <- function(object, ...) {
+
+
 }

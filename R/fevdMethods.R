@@ -115,6 +115,216 @@ logLik.fevd <- function(object, ...) {
 }
 
 
+
+##' This (pseudo) S3 generic function aims at simlifying the
+##' computations related to fitted models, such as confidence
+##' intervals.
+##' 
+##' @title Extract or Compute the Model Matrices related to an Object
+##' 
+##' @param object An object with class \code{"fevd"}.
+##' 
+##' @param ... Arguments for methods.
+##'
+##' @export
+modelMatrices <- function(object, ...) {
+    UseMethod("modelMatrices")
+}
+
+##'
+##' @title Extract or Compute the Model Matrices related to a
+##'     \code{fevd} Object.
+##'
+##' @param object An object with class \code{"fevd"} representing a
+##'     non-stationary POT model, either Poisson-GP (\code{type =
+##'     "GP"}) or NHPP (\code{type = "PP"}).
+##' 
+##' @param newdata A data frame containing the covariates. 
+##'
+##' @param threshold The threshold. This can be either a suitable
+##'     vector of an object representing a quantile regression,
+##'     inheriting from \code{"rq"}.
+##'
+##' @param trace Level of verbosity
+##'
+##' @param ... Not used yet.
+##'
+##' @return A list of "design" matrices.
+##' 
+##' @author Yves Deville
+##'
+##' @method modelMatrices fevd
+##'
+##' @export
+##' 
+##' @examples
+##' 
+##' ## use centimetres as precipitation unit
+##' data(Fort) 
+##' Fort <- within(Fort, Prec <- 2.54 * Prec)
+##' tau <- 0.97; u0 <- quantile(Fort$Prec, prob = tau)
+##' fit0 <- fevd(x = Prec, data = Fort, threshold = u0, type = "GP")
+##' p0 <- predict(fit0)
+##' rq <- rq(Prec ~ cos(2 * pi * tobs / 365.25) + sin(2 * pi * tobs / 365.25),
+##'          data = Fort, tau = tau)
+##' summary(rq)
+##' ## compute the threshold and extract the fitted coefficients
+##' u <- predict(rq, newdata = Fort)
+##' beta_u <- coef(rq)
+##' fit1 <- fevd(x = Prec, data = Fort, type = "GP",
+##'              scale.fun = ~ cos(2 * pi * tobs / 365.25) + sin(2 * pi * tobs / 365.25),
+##'              threshold = beta_u,
+##'              threshold.fun = ~ cos(2 * pi * tobs / 365.25) + sin(2 * pi * tobs / 365.25))
+##'
+##' mM <- modelMatrices(fit1)
+##' names(mM)
+##' head(mM$threshold)
+##' lapply(mM, dim)
+##' 
+modelMatrices.fevd <- function(object,
+                               newdata = NULL,
+                               threshold = NULL,
+                               trace = 1,
+                               ...) {
+
+    if (!(object$type %in% c("GP", "PP"))) {
+        stop("'type' can only be \"GP\" or \"PP\"") 
+    }
+
+    ## is this good?
+    distName <- c("GP" = "GPD", "PP"= "GEV")
+    parNames <- list("GP" = c("location", "scale", "shape"),
+                     "PP" = c("location", "scale", "shape"))
+    prefixes <- list("GP" = c("location" = "mu", "scale" = "sigma", "shape" = "xi"),
+                     "PP" = c("location" = "mu", "scale" = "sigma", "shape" = "xi"))
+    
+    parNames <- parNames[[object$type]]
+    distName <- distName[object$type]
+    prefixes <- prefixes[[object$type]]
+    
+    if (is.null(newdata)) { 
+        newdata <- object$cov.data
+    }
+   
+    newn <- nrow(newdata)
+    varNames <- object$par.models$term.names
+    modelMatrices <- list()
+
+    ## =========================================================================
+    ## Manage the threshold
+    ## =========================================================================
+    
+    cstThreshold <- FALSE
+    
+    if (!length(varNames$threshold)) {
+        
+        if (length(object$threshold) > 1) {
+            stop("'object$threshold' has length > 1 and is not given ",
+                 "by a formula. So we can not compute this threshold ",
+                 "on any new data")
+        } else {
+            cstThreshold <- TRUE
+            newThreshold <- rep(object$threshold, newn)
+        }
+        
+    } else {
+
+        if (is.null(threshold)) {
+            
+            ## The also work with the defaut formula ~1
+            modelMatrices[["threshold"]] <-
+                model.matrix(object$par.models[["threshold"]], data = newdata)
+            
+            ## XXX not robust. Yet we can not do anything better because
+            ## the given value of 'threshold' is not stored in the object.  
+            threshold <- eval(object$call$threshold)
+            
+            if (ncol(modelMatrices[["threshold"]]) != length(threshold)) {
+                stop("'object$threshold' is not compliant with ",
+                     "'object$threshold.fun'")
+            }
+            
+            newThreshold  <- modelMatrices[["threshold"]] %*% threshold
+
+        } else {
+            if (is.numeric(threshold)) {
+                if (trace) {
+                    cat("Use the threshold provided in `threshold`\n")
+                }
+                if (length(threshold) != nrow(newdata)) {
+                    stop("'when threshold is given as a numeric vector ",
+                         "its length must match the number of rows in ",
+                         "'newdata'")
+                } else {
+                    warning("'threshold' is provided as a numeric vector. ",
+                            "Make sure that it is compliant with the one used ",
+                            "when fitting the 'fevd' model.")
+                }
+                newThreshold <- threshold
+            } else if (inherits(threshold, "rq")) {
+                if (trace) {
+                    cat("Predict the threshold from the provided 'rq' object\n")
+                }
+                newThreshold <- predict(threshold, newdata = newdata)
+                if (trace) {
+                    cat("Range of the threshold:", range(newThreshold), "\n")
+                }
+            }
+
+        }
+    }
+
+    ## =========================================================================
+    ## Check covariables names Caution, some variables such as 'pi' may not
+    ## be variables
+    ## =========================================================================
+    
+    varNamesU <- unique(unlist(varNames))
+    ## m <- match(varNamesU, names(Met2))
+    m <- match(varNamesU, names(newdata))
+    
+    ## if (any(is.na(m))) {
+    ##     stop("Variables ", paste(varNamesU[m[is.na(m)]], collapse = ", "),
+    ##         " can not be found in 'newdata'")
+    ##}
+
+    ## =========================================================================
+    ## For each parameter we find the design matrix and compute the
+    ## vector of parameter values
+    ## =========================================================================
+    
+    nPar <- length(parNames)
+    pp <- rep(NA, nPar)
+    names(pp) <- parNames
+    newTheta <- array(0.0, dim = c(newn, 3),
+                      dimnames = list(rownames(newdata), parNames))
+    ppc <- 0
+    
+    for (pn in parNames) {
+        
+        ## this can only happen for the location parameter
+        ## in the "GP" case
+        if (length(object$results$num.pars[[pn]]) == 0) {
+            pp[pn] <- 0
+            modelMatrices[[pn]] <- matrix(nrow = newn, ncol = 0)
+        } else {
+            pp[pn] <- object$results$num.pars[[pn]]
+            modelMatrices[[pn]] <-
+                model.matrix(object$par.models[[pn]], data = newdata)
+            newTheta[ , pn] <- modelMatrices[[pn]] %*%
+                object$results$par[ppc + 1:pp[pn]]
+            ppc <- ppc + pp[pn]
+        }
+
+       
+    }
+
+    attr(newTheta, "distName") <- distName 
+    modelMatrices
+    
+}
+
+
 ## *****************************************************************************
 ##' @description This method computes the parameters of the marginal
 ##'     distribution (\code{GP} or \code{GEV}) for the response. This

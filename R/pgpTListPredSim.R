@@ -375,6 +375,7 @@ quantile.pgpTList <- function(x,
     
 }
 
+
 ##' @method quantile predict.pgpTList
 ##' @export
 quantile.predict.pgpTList <- function(x,
@@ -730,4 +731,123 @@ print.simulate.pgpTList <- function(x, ...) {
 ##' @export
 head.simulate.pgpTList <- function(x, ...) {
     head(as.data.frame(x), ...)
+}
+
+##' @method modelMatrices pgpTList
+##' @export
+modelMatrices.pgpTList <- function(object, 
+                                   newdata = NULL,
+                                   trace = 1,
+                                   ...) {
+   
+    if (!missing(newdata) && !is.null(newdata)) {
+        missNewData <- FALSE
+        ## warning("'newdata' is still experimental")
+        newdata <- makeNewData(object, newdata = newdata,
+                               trace = trace)
+    } else {
+        missNewData <- TRUE
+        newdata <- object$data
+    }
+    
+    if (object$fitLambda) {
+        lambdaNH <- !(all.equal(object$logLambda.fun, ~1) == TRUE)
+        if (lambdaNH) {
+            Xtime <- model.matrix(object$logLambda.fun, data = newdata)
+            Xtime <- cbind("b0" = rep(1, nrow(newdata)), Xtime)
+            timeNH <- TRUE
+        } else
+            Xtime <- cbind("b0" = rep(1, nrow(newdata)))
+    }
+
+    ## we MUST pass 'threshold' here because object$GP[[1]] does not
+    ## stroe the threshold !
+    L <- modelMatrices(object$GP[[1]],
+                       newdata = newdata,
+                       threshold = object$thresholds[[1]]$formula)
+    L[["logLambda"]] <- Xtime
+    L
+    
+}
+
+
+##' @title Provide Information about the Parameters of a Fitted Model
+##'     Object
+##'
+##' @export
+##' 
+parInfo <- function(object, ...) {
+    UseMethod("parInfo")
+}
+
+
+##' @title Provide Information about the Parameters of a
+##'     \code{pgpTList} Object.
+##'
+##' @param object A \code{pgpTList} object.
+##'
+##' @param ... Not used.
+##' 
+##' @return A list with two elements
+##' \itemize{
+##'     \item{length }{
+##'         A list containing the lengths of the blocks.
+##'     }
+##'     \item{names }{
+##'         A list containing the names of the blocks and their
+##'         elements.
+##'     }
+##'  }
+##'
+##' @method parInfo pgpTList
+##' @export
+##' 
+parInfo.pgpTList <- function(object, 
+                             ...) {
+    
+    p <- list()
+    p$GP <- unlist(object$GP[[1]]$results$num.pars)
+    p$timePoisson <- length(coef(object$timePoisson[[1]]))
+    
+    pn <- list()
+    pn$GP <- list()
+    n <- 0
+    allNames <- names(coef(Pgp1$GP[[1]]))
+    for (i in seq_along(p$GP)) {
+        pn$GP[[i]] <- allNames[(n + 1):(n + p$GP[i])]
+        n <- n + p$GP[i]
+    }
+    pn$GP[[3]] <- allNames
+    names(pn$GP) <- c(names(p$GP), "all")
+    pn$timePoisson[["all"]] <- names(coef(object$timePoisson[[1]]))
+
+    list(length = p,
+         names = pn) 
+    
+}
+
+##' @method modelMatrices pgpTList
+##' @export
+vcov.pgpTList <- function(object, 
+                          ...) {
+
+    covList <- list()
+    
+    pI <- parInfo(object)
+    pLengthTot <- sum(sapply(pI$length, sum))
+    pNamesTot <- c(pI$names$GP[["all"]],
+                   pI$names$timePoisson[["all"]])
+    indGP <- 1:sum(pI$length$GP)  
+    indTimePoisson <- sum(pI$length$GP) + (1:pI$length$timePoisson)    
+    for (i in seq_along(object$GP)) {
+        mat <- array(0,
+                     dim = c(pLengthTot, pLengthTot),
+                     dimnames = list(pNamesTot,  pNamesTot))
+        mat[indGP, indGP] <- vcov(object$GP[[i]])
+        mat[indTimePoisson, indTimePoisson] <- vcov(object$timePoisson[[i]])
+        covList[[i]] <- mat                              
+    }
+    names(covList) <- names(object$GP)
+    covList
+    
 }
