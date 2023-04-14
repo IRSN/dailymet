@@ -2,6 +2,25 @@
 **dailymet** Package News
 ===========================
 
+# New in version 0.1.4
+
+## Enhancements
+
+- The `quantile` method for the class `"pgpTList"` now computes the
+  confidence intevals by the "delta method". The quantiles and
+  confidence intervals are computed for a quite large number of
+  probabilities in order to build nice-looking plots.
+
+- For the objects with class `"quantile.pgpTList"` as created when
+  applying the `quantile` method, there now exist an `autoplot` method
+  and a `format` method. The first builds a ggplot, the second makes a
+  table with suitably rounded quantiles and selecting round
+  probabilities as is often needed in reports.
+
+- The `Intro` vignette has been enhanced to illustrate the use of the
+  new methods. The secion *Investigating the distribution of the
+  maximum* should be instructive for the users.
+
 # News in version 0.1.3
 
 ## Bug fixes

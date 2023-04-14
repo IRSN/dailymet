@@ -34,12 +34,16 @@
 ##' @param dailyMet An object with class \code{"dailyMet"} containing
 ##'     the data.
 ##'
-##' @param subset A condition used to subset the data, typically to
-##'     select a period within the year e.g., summer. Note that the
-##'     condition is applied \emph{after declustering} and there are
-##'     side effects: The exceedances in the first two days or last
-##'     two days of a period within year may be lost. \emph{NOT
-##'     IMPLEMENTED YET}.
+##' @param subset A character defining a condition used to subset the
+##'     data, typically to select a period within the year e.g.,
+##'     summer. Note that the condition is applied \emph{after
+##'     declustering} and there are side effects: The exceedances in
+##'     the first two days or last two days of a period within year
+##'     may be lost. \emph{NOT IMPLEMENTED YET}. Note that the
+##'     condition is used only for the Extreme Value part of the
+##'     model, not on the determination of the threshold. Therefore,
+##'     \emph{the fitted thresholds remain unchanged} whether the the
+##'     condition is used or not.
 ##' 
 ##' @param thresholds An object with class \code{"rqTList"} containing
 ##'     the thresholds.
@@ -103,6 +107,16 @@
 ##'     not a list of \code{pgp} objects. The output is likely to be
 ##'     re-designed, so a \code{pgpTList} object is better used via
 ##'     methods.
+##'
+##' @note The use of \code{subset}, still experimental, is aimed to
+##'     focus the estimation on a period \emph{within the year},
+##'     typically summer or winter. This should not be used to use a
+##'     shorter timeseries. The rate of the temporal Poisson process
+##'     is computed on the basis of the full times series, not on the
+##'     basis of the cumulated duration of the subset. For instance if
+##'     \code{subset} selects 6 months in a year and if the timeseries
+##'     duration is 60 year, then the rate is still computed on the
+##'     basis of a 60-year duration, not on a 30-year duration.
 ##' 
 ##' @examples
 ##' ## define the thresholds with the default seasonality, see 'rqTList'
@@ -146,6 +160,8 @@ pgpTList <- function(dailyMet,
                      shape.fun = ~1,
                      trace = 1) {
 
+    .Ind <- NULL
+    
     logLambda.fun <- as.formula(logLambda.fun)
     
     TX <- u <- NULL ## avoid warnings at check
@@ -153,6 +169,7 @@ pgpTList <- function(dailyMet,
     dailyMetBAK <- dailyMet
     metVar <- attr(dailyMet, "metVar")
     duration <- summary(dailyMet)$duration
+    
     ## XX to be removed
     if (metVar != "TX") {
         stop("For now 'dailMet' can only have  \"TX\" as metVar") 
@@ -260,7 +277,17 @@ pgpTList <- function(dailyMet,
         Met2 <- within(Met2, Excess <- TX - u)
         
         if (!is.null(subset)) {
-            if (trace) cat("Using 'subset'\n")
+            
+            if (trace) cat("\no Using 'subset'\n")
+            if (trace) cat("    o Number of rows before:    ", nrow(Met2), "\n")
+            
+            Met2 <- data.frame(Met2, .Ind = 1L:nrow(Met2))
+            Met2 <- subset(Met2, subset = eval(parse(text = subset)))
+            indClust <- (1L:nrow(Met2))[indClust %in% Met2$.Ind]
+            IndLambda[[i]] <- (1L:nrow(Met2))[IndLambda[[i]] %in% Met2$.Ind]
+            
+            Met2 <- subset(Met2, select = - .Ind)
+            if (trace) cat("    o Number of rows after:     ", nrow(Met2), "\n\n")
         }
         
         ## =====================================================================
@@ -285,7 +312,6 @@ pgpTList <- function(dailyMet,
         
         if (fitLambda) {
 
-            
             ## we must use 'all.equal' here and not 'identical', because
             ## the two formulas do not have the same environement!
 
@@ -293,7 +319,7 @@ pgpTList <- function(dailyMet,
             
             if (lambdaNH) {
 
-                if (trace) cat("o Fit the temporal Poisson process:",
+                if (trace) cat("\no Fit the temporal Poisson process:",
                                " non-homogeneous\n")
                 
                 Covs <- model.matrix(logLambda.fun, data = Met2)
@@ -308,7 +334,7 @@ pgpTList <- function(dailyMet,
                                          start = c(list(b0 = 10), as.list(L)))   
             } else {
 
-                if (trace) cat("o Fit the temporal Poisson process:",
+                if (trace) cat("\no Fit the temporal Poisson process:",
                                " homogeneous\n")
           
                 FitLambda[[i]] <-
@@ -337,6 +363,7 @@ pgpTList <- function(dailyMet,
                 tauRef = tauRef,
                 lambdaBar = lambdaBar,
                 dailyMet = dailyMetBAK,
+                subset = subset,
                 data = dailyMet,
                 IndLambda = IndLambda,
                 thresholds = thresholds,
@@ -397,7 +424,7 @@ print.summary.pgpTList <- function(x, ...) {
         cat("o Clusters\n")
         print(x$clustersStat)
     }
-    cat("o \"GP\" part: coefficients for the Generalized Pareto",
+    cat("\no \"GP\" part: coefficients for the Generalized Pareto",
         " with standard errors\n")
     print(coSd(x$GP))
     cat("\no \"Time\" part: coefficients for log-rate with standard errors\n")

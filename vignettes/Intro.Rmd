@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
     toc: true
+bibliography: Intro.bib
 vignette: >
   %\VignetteIndexEntry{R Package `dailymet`: Overview}
   %\VignetteEngine{knitr::rmarkdown}
@@ -19,9 +20,8 @@ linkcolor: blue
 - Provide bases of functions of the date: trigonometric, polynomial, ...
 
 - Fit time-varying and non-stationary *POT models* with emphasis on
-the sensitivity to the *threshold choice*, thanks to dedicated classes
-of objects that we may call "TLists" for *list by threshold*.
-
+  the sensitivity to the *threshold choice*, thanks to dedicated classes
+  of objects that we may call "TLists" for *list by threshold*.
 
 # Data classes and data manipulation functions
 
@@ -140,6 +140,38 @@ for.
 
 # Functions and classes for analyses and models
 
+
+## Peaks Over Threshold (POT) models
+
+The package focusses on so-called *Poisson-GP* POT models for random
+observations $y(t)$ where $t$ denotes a continuous time index. The
+model involves a *time-varying threshold* $u(t)$ and a *time-varying
+Generalized Pareto distribution* for the excess $y(t) - u(t)$ as
+recorded at an exceedance time $y(t) > u(t)$. The exceedance times are
+assumed to occur according to a Non-Homogeneous Poisson Process
+(NHPPP) with rate $\lambda(t)$. The excesses $y(t) - u(t)$ at the
+exceedances are asumed to follow the two-parameter Generalised Pareto
+(GP) distribution with scale $\sigma(t)>0$ and shape $\xi(t)$. The survival
+function of the two-parameter GP distribution is given by
+$$
+   S_{\texttt{GP2}}(x;\,\sigma,\,\xi) = 
+   \begin{cases} 
+   \left[1 + \xi \, x/\sigma \right]_+^{-1/\xi} & \xi \neq 0\\
+   \exp\{- x/ \sigma \} & \xi = 0
+   \end{cases}
+$$
+where $z_+:= \max\{z,\, 0\}$ denotes the positive part or a real number $z$.
+
+In practice, we will consider *daily* discrete-time timeseries $y_t$
+where $t$ denotes the day i.e., the date. Similarly, the threshold
+$u_t$, the rate $\lambda_t$ and the GP parameters $\sigma_t$ and
+$\xi_t$ will be daily non random) timeseries. Provided that the
+exceedance rate is small enough, a discrete-time framework can be
+deduced from the continuous-time one. This model can also be related
+as well to the Binomial-GP model where the daily exceedance
+probabillity is small enough.
+
+
 ## Using *TList*s
 
 ### What are TLists?
@@ -152,7 +184,7 @@ quantile regression.
 - A `rqTList` object is a list of `rq` objects differing only by their
   probability `tau`, hence related to the same data, same formula, ...
 
-- A `fevdTList`object is a list of `fevd` objects representing
+- A `fevdTList` object is a list of `fevd` objects representing
   Poisson-GP POT models differing *only by their threshold* which is
   given by quantile regression and corresponds to different
   probabilities `tau`. Again the `fevd`objects are related to the same
@@ -175,16 +207,19 @@ specified by using a devoted formula for $\log \lambda$.
 
 **Caution** The development of `pgpTList` class and of the relevant
 methods is far from being achieved. Some major changes are likely to occur.
+For now the methods are as follows.
 
 
-
+```{r TLIstMethods}
+methods(class = "pgpTList")
+``` 
 
 ### Some important remarks
 
 - A `rq` object does not encode a full distribution nor even a tail
   distribution. The `rq` objects may fail to be consistent and the
-  quantile may fail to increase with the probability $\tau$. See XXX
-  Northrop.
+  quantile may fail to increase with the probability $\tau$. See
+  [@NorthropEtAl_NSExtremes].
 
 - Strictly speaking, the `fevd` objects in a `fevdTList` object are
   *different* Poisson-GP models, although they must have the same
@@ -208,7 +243,7 @@ autoplot(Rq)
 By default the creator `rqTList`
 
 
-- Uses some defined probabilities $\tau$ for the quantiles?. These can
+- Uses some defined probabilities $\tau$ for the quantiles. These can
   be assessed by the `tau` method.
 
 - Uses a `formula` which defines a yearly seasonality for the
@@ -230,7 +265,7 @@ By default the creator `rqTList`
 
 More precisely the quantile $q(\tau)$ of the meteorological variable is
 considered as a trigonometric polynomial function $q_d(\tau)$ of the
-day in the year a.k.a Julian day $d$ ($1 \leqslant d \leqslant 366$)
+day in the year $d$ ($1 \leqslant d \leqslant 366$)
 
 \begin{equation}
 \tag{1}
@@ -243,7 +278,6 @@ pseudo-exponent $q$ in the coefficients $\alpha$ and $\beta$ is used
 to recall that they describe a quantile. The default number of
 harmonics $K$ is $3$. The quantile regression provides the estimated
 coefficients $\hat{\alpha}_k^{q}(\tau)$ and $\hat{\beta}_k^{q}(\tau)$.
-
 
 
 ```{r rqTList1, message=FALSE, fig.width=8, fig.height=6} 
@@ -262,7 +296,6 @@ becomes significant, although their standard error increases because
 they are based on a smaller number of observations. This suggests that
 the $3$-rd harmonic plays a role in the seasonality of the extremes,
 although it will be difficult to assess.
-
 
 As may be guessed from the plot of quantiles, the fitted phases
 corresponding to the different harmonics are quite similar across
@@ -319,11 +352,13 @@ increases.
 ## Seasonality in (time-varying) POT models
 
 ### Why seasonality matters
+
 Using a suitable description of the seasonality is a major concern in
-POT modelling. Concerning our meteorological variables, a natural idea
-is to use GP or GEV parameters depending on the date through the
-Julian day $d$ since it is clear that the marginal distribution heavily
-depends on $d$.
+POT modelling [@ColesTawn_SeasonalSurges], [@ColesTawn_UsesMisuses],
+[@NorthropEtAl_NSExtremes]. Concerning our meteorological variables, a
+natural idea is to use GP or GEV parameters depending on the date
+through the day in year $d$ since it is clear that the marginal
+distribution heavily depends on $d$.
 
 There are also many reasons to use a seasonally time-varying threshold
 $u(d)$ depending as well on $d$. One motivation is the efficiency of
@@ -337,11 +372,12 @@ threshold. For instance, if a constant threshold is used for all the
 JJA period, the weight of the early June and late August will be
 smaller when the threshold is increased.
 
-### Poisson-GP models
+### Seasonal Poisson-GP models
 
 In order to describe the yearly seasonality, a natural idea is to use
 a trigonometric polynomial as described above. For instance the GP
-scale parameter $\sigma$ could depend on the Julian day $d$ as in
+scale parameter $\sigma$ could depend on $t$ though the day in year
+$d$ as in
 
 $$
  \sigma_d = \alpha_0^{\sigma} + \sum_{k=1}^K \alpha_k^{\sigma} \cos\{2\pi k d/D\} +
@@ -389,8 +425,8 @@ argument `tauRef` can be used.
 Rq <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
 Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = Rq,
                 declust = TRUE, fitLambda = TRUE, logLambda.fun = ~ YearNum - 1)
-p <- predict(Pgp1, lastFullYear = TRUE)
-autoplot(p, facet = FALSE)
+pred <- predict(Pgp1, lastFullYear = TRUE)
+autoplot(pred, facet = FALSE)
 ``` 
 
 The output of the code was not shown because the
@@ -437,14 +473,102 @@ contributions corresponding to the GP and the time-Poisson parts, see
 Northrop et Al.
 
 
-
 ```{r phases, message=FALSE} 
 Phi <- phases(coef(Rq))
 
 ``` 
 
+## Investigating the distribution of the maximum
+
+### Goal
+
+One often wants to investigate the distribution of the maximum $M :=
+\max_t y_t$ where the maximum is taken on a "new" period of interest,
+typically a period in the near future. By using a Poisson-GP POT model
+one can only investigate the *tail-distribution* of $M$. More
+precisely the Poisson-GP model allows the computation of $\text{Pr}\{M
+\leqslant m\}$ when $m$ is larger than the maximum of the thresholds
+on the period of interest $m> \max_t u(t)$. The reason is that when
+this condition holds the condition $M > m$ is equivalent to
+$M_{\texttt{peak}} > m$ where $M_{\texttt{peak}}$ denotes the maximum
+of the peaks on the same period. 
+
+One can show that
+$$
+   \log \text{Pr}\{M \leqslant m \} = -\int \lambda_u(t) \,
+    S_{\texttt{GP2}}\{m - u(t);\, \sigma_u(t), \, \xi(t)\}\,
+		\text{d}t, \qquad \text{for } m \text{ large},
+$$
+where the time integral is on the period of interest, 
+and the discrete-time approximation is
+$$
+  \log \Pr\{ M \leqslant m \}
+      \approx - \frac{1}{365.25} \, \sum_t
+      \lambda_{u,t} \, S_{\texttt{GP2}}(m - u_t;\, \sigma_t,\, \xi_t),
+      \qquad \text{for } m \text{ large}.
+$$	
+
+In both cases the condition $m \text{ large}$ is more precisely $m >
+\max_t u(t)$ or $m> \max_t u_t$. 
+
+Note that $M$ does *not* follow a Generalized Extreme Value (GEV)
+distribution, even in its tail, but has the same tail as a mixture of
+GEV distributions. In particular if the shape $\xi_t$ is chosen to be
+time-varying then the largest values of $\xi_t$ will have a
+disproportionate impact on the high quantiles.
 
 
+### Using the `quantile` method
+
+The `quantile` method can be used to compute the tail quantiles 
+from a `pgpTList` object
+```{r pgpQuant, message=FALSE, results ="hide", fig.width=10, fig.height=7, out.width="100%"}
+Date <- seq(from = as.Date("2020-01-01"), to = as.Date("2050-01-01"), by = "day")
+qMax <- quantile(Pgp1, newdata = Date)
+qMax <- quantile(Pgp1)
+autoplot(qMax)
+```
+
+We can display the quantiles in a table
+```{r pgpQuant2, message=FALSE}
+knitr::kable(subset(format(qMax), tau == 0.96))
+```
+Note that the class `"pgpTList"` has a `format` method used here. This method
+rounds the quantiles and confidence limit `digits` but it also selects
+"round" exceedance probabilities such as `0.1`, `0.01` as is often needed
+in reports. To save space, only the quantiles corresponding to one value of 
+$\tau$ are shown here.
+
+### Using the `simulate` method
+
+As an alternative we can simulate the (declustered) exceedances on the 
+period of interest. By default only the large exceedances will be simulated. 
+More precisely, for each value of $\tau$ a new threshold $v := \max_{t} u(t)$ 
+is defined and only the exceedances over $v$ will be considered. These events
+occur in summer.
+
+```{r pgpSim, message=FALSE, warning=FALSE, fig.width=10, fig.height=7, out.width="100%"}
+sim <- simulate(Pgp1)
+autoplot(sim)
+```
+
+By default, only one simulation is done. But by using the formal argument `nsim` 
+with a large value (say `nsim = 1000` or more) we can compute estimate quantiles, see
+the help `?simulate.PgpTList`. For each simulation $k=1$, $\dots$, $K$
+where $K$ is given by `nsim`, the `simulate` method provides the random exceedance 
+times $T_i^{[k]}$ and the related random marks $Y_i^{[k]}$ for $i=1$, $\dots$, 
+$N^{[k]}$ where $N^{[k]}$ is random and varies across simulations. 
+We then have a sample of $K$ maxima
+$M^{[k]} := \max_i Y_i^{[k]}$ and the sample quantiles of the $M^{[k]}$ should 
+be close to those given by the `quantile` method. 
+
+Mind that a large value of $K$ used must be chosen large to estimate
+the quantiles and that the `simulate` method can be quite slow. Also
+some warnings are likely to be thrown related to rounding the
+exceedance times. The explanation is that the simulation of the
+exceedance times $T_i$ is based on a continuous-time Poisson Process,
+so that some rounding is needed to get dates and this can lead
+"ex-aequo" that must be discarded.
 
 # Appendix
 
@@ -472,7 +596,7 @@ Phi <- phases(coef(Rq))
   because an attempt is made to find the threshold from the stored
   `call`, but the corresponding objects are most often not found.
   
-### Related to **HHPoisson**
+### Related to **NHPoisson**
 
 - There is no formula interface for `fitPP.fun`. The covariates are
   given in a numeric matrix. The coefficients do not have appealing
@@ -481,3 +605,5 @@ Phi <- phases(coef(Rq))
 
 - The class `"mlePP"` corresponding to the objects created by
   `fitPP.mle` does not have a `predict` method.
+
+# References

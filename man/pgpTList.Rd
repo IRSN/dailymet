@@ -22,12 +22,16 @@ pgpTList(
 \item{dailyMet}{An object with class \code{"dailyMet"} containing
 the data.}
 
-\item{subset}{A condition used to subset the data, typically to
-select a period within the year e.g., summer. Note that the
-condition is applied \emph{after declustering} and there are
-side effects: The exceedances in the first two days or last
-two days of a period within year may be lost. \emph{NOT
-IMPLEMENTED YET}.}
+\item{subset}{A character defining a condition used to subset the
+data, typically to select a period within the year e.g.,
+summer. Note that the condition is applied \emph{after
+declustering} and there are side effects: The exceedances in
+the first two days or last two days of a period within year
+may be lost. \emph{NOT IMPLEMENTED YET}. Note that the
+condition is used only for the Extreme Value part of the
+model, not on the determination of the threshold. Therefore,
+\emph{the fitted thresholds remain unchanged} whether the the
+condition is used or not.}
 
 \item{thresholds}{An object with class \code{"rqTList"} containing
 the thresholds.}
@@ -108,6 +112,17 @@ the function \code{NHPoisson::fitPP.fun} so it should be discarded
 from the formula when covariates are used. For instance in order
 to use the covariare \code{YearNum} we must use the formla
 \code{~ YearNum -1}.
+}
+\note{
+The use of \code{subset}, still experimental, is aimed to
+    focus the estimation on a period \emph{within the year},
+    typically summer or winter. This should not be used to use a
+    shorter timeseries. The rate of the temporal Poisson process
+    is computed on the basis of the full times series, not on the
+    basis of the cumulated duration of the subset. For instance if
+    \code{subset} selects 6 months in a year and if the timeseries
+    duration is 60 year, then the rate is still computed on the
+    basis of a 60-year duration, not on a 30-year duration.
 }
 \section{Caution}{
  At the time being, a \code{pgpTList} object is

@@ -5,14 +5,20 @@
 \title{Compute Quantiles for the Maximum the Marks of a Poisson-GP
     Model}
 \usage{
-\method{quantile}{pgpTList}(x, prob = NULL, ...)
+\method{quantile}{pgpTList}(x, newdata = NULL, prob = NULL, level = 0.95, ...)
 }
 \arguments{
 \item{x}{An object with class \code{"predict.pgpTList"} as created
 by applying the \code{predict} method on an object with class
 \code{"pgpTList"}.}
 
+\item{newdata}{A "new" data frame or \code{Date} vector used to
+define the "new" period. The quantiles will be the those of
+the random maximum \eqn{M} of the marks on this period.}
+
 \item{prob}{Vector of probabilities.}
+
+\item{level}{The confidence level.}
 
 \item{...}{Not used yet.}
 }
@@ -39,6 +45,7 @@ Date <- seq(from = as.Date("2020-01-01"), to = as.Date("2050-01-01"), by = "day"
 ## compute the quantile for the maximum on the "new" period
 qMax <- quantile(Pgp1, newdata = Date)
 autoplot(qMax)
+
 
 }
 \seealso{

@@ -30,9 +30,18 @@ coSd.mlePP <- function(object, sOnly = FALSE, ...) {
     noquote(text)
 }
 
+## lambda <- function(object, ...) {
+##     UseMethod("lambda")
+## }
 
+## lambda.mlePP <- function(object, lambdaBar, ...) {
+##     ## mind that we need  a correction.
+##     object@lambdafit /
+##         mean(object@lambdafit) * lambdaBar
+    
+## }
 
 modelMatrices.mlePP <- function(object, ...) {
-
+    
 
 }

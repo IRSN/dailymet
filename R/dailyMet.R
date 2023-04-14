@@ -273,3 +273,19 @@ print.summary.dailyMet <- function(x, ...) {
 print.dailyMet <- function(x, ...) {
     print(summary(x, ...))
 }
+
+## *****************************************************************************
+##' @method head dailyMet
+##' @export
+##' @noRd
+head.dailyMet <- function(x, ...) {
+   head(as.data.frame(x), ...)
+}
+
+## *****************************************************************************
+##' @method tail dailyMet
+##' @export
+##' @noRd
+tail.dailyMet <- function(x, ...) {
+   tail(as.data.frame(x), ...)
+}

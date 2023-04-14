@@ -204,14 +204,26 @@ predict.pgpTList <- function(object, newdata = NULL,
     
     pu <- predict(object$thresholds, newdata = newdata,
                   lastFullYear = lastFullYear)
-
+    
     if (lastFullYear) {
         indLY <- lastFullYear(format(newdata$Date, "%Y-%m-%d"),
-                                         out = "logical")
+                              out = "logical")
         newdata <- newdata[indLY, , drop = FALSE]
     } else {
         indLY <- rep(TRUE, nrow(newdata))
     }
+
+    ## Compute "IndPred"
+    IndPred <- rep(TRUE, nrow(newdata))
+
+    if (!is.null(object$subset)) {
+        Ind <- 1:nrow(newdata)
+        newdata <- data.frame(newdata, .Ind = Ind)
+        IndKeep <- subset(newdata,
+                          subset = eval(parse(text = object$subset)))$.Ind
+        IndPred[setdiff(Ind, IndKeep)] <- FALSE
+    } 
+    
     
     LambdaHat <- MuStar <- SigmaStar <- RL100 <- nExceed <- list()
     lambdaBar <- numeric(0)
@@ -224,7 +236,7 @@ predict.pgpTList <- function(object, newdata = NULL,
             Xtime <- model.matrix(object$logLambda.fun, data = newdata)
             Xtime <- cbind("b0" = rep(1, nrow(newdata)), Xtime)
             timeNH <- TRUE
-        } 
+        }
     } 
     
     for (i in seq_along(tau1)) {
@@ -234,7 +246,7 @@ predict.pgpTList <- function(object, newdata = NULL,
         MetWithu <- data.frame(newdata,
                                subset(pu, tau == tau1[i]))
         MetWithu <- within(MetWithu, Ex <- TX > u)
-
+        
         if (missNewData) {
             ## mind that we need  a correction.
             LambdaHat[[i]] <- object$timePoisson[[i]]@lambdafit /
@@ -269,6 +281,13 @@ predict.pgpTList <- function(object, newdata = NULL,
         
         RL100[[i]] <- MuStar[[i]] + SigmaStar[[i]] *
             ((-log(1 - 1 / 100))^(-Theta[ , "shape"]) - 1) / Theta[ , "shape"]
+
+        if (!is.null(object$subset)) {
+            MuStar[[i]][!IndPred] <- NA
+            RL100[[i]][!IndPred] <- NA
+            SigmaStar[[i]][!IndPred] <- NA
+            Theta[!IndPred, ] <- NA
+        }
         
         dfRebuildi <- data.frame(TX = MetWithu$TX,
                                  Date = MetWithu$Date,
@@ -278,6 +297,7 @@ predict.pgpTList <- function(object, newdata = NULL,
                                  u = MetWithu$u,
                                  tau = MetWithu$tau,
                                  lambda = LambdaHat[[i]],
+                                 IndPred = IndPred,
                                  muStar = MuStar[[i]],
                                  sigma = Theta[ , "scale"],
                                  sigmaStar = SigmaStar[[i]],
@@ -307,9 +327,15 @@ predict.pgpTList <- function(object, newdata = NULL,
 
     ind <- as.integer(dfRebuild$tau)
     dfRebuild$v <- tapply(dfRebuild$u, INDEX = dfRebuild$tau, FUN = max)[ind]
+
+    lambdav <- rep(NA, nrow(dfRebuild))
+    lambdav[IndPred] <- dfRebuild$lambda[IndPred] *
+        (1 - nieve::pGPD2((dfRebuild$v - dfRebuild$u)[IndPred],
+                          dfRebuild$sigma[IndPred],
+                          dfRebuild$xiStar[IndPred]))
+    dfRebuild$lambdav <- lambdav
     
     dfRebuild <- within(dfRebuild, {
-        lambdav <- lambda * (1 - nieve::pGPD2(v - u, sigma, xiStar));
         sigmav <- sigma  + xiStar * (v - u);
         omega <- ifelse(xiStar < 0, u - sigma / xiStar, Inf)})
 
@@ -347,12 +373,19 @@ predict.pgpTList <- function(object, newdata = NULL,
 ##'     by applying the \code{predict} method on an object with class
 ##'     \code{"pgpTList"}.
 ##' 
+##' @param newdata A "new" data frame or \code{Date} vector used to
+##'     define the "new" period. The quantiles will be the those of
+##'     the random maximum \eqn{M} of the marks on this period.
+##' 
 ##' @param prob Vector of probabilities.
+##' 
+##' @param level The confidence level.
 ##' 
 ##' @param ... Not used yet.
 ##' 
 ##' @return A data frame with columns \code{Prob} and \code{Quant}.
 ##'
+##' @importFrom stats qnorm
 ##' @method quantile pgpTList
 ##' @export
 ##'
@@ -366,8 +399,143 @@ predict.pgpTList <- function(object, newdata = NULL,
 ##' ## compute the quantile for the maximum on the "new" period
 ##' qMax <- quantile(Pgp1, newdata = Date)
 ##' autoplot(qMax)
-##' 
+##'
+##'
 quantile.pgpTList <- function(x,
+                              newdata = NULL,
+                              prob = NULL,
+                              level = 0.95,
+                              ...) {
+    Prob <- ProbExc <- NULL
+    
+    if (!is.null(x$subset)) {
+        stop("The computation of quantiles is not possible ",
+             "when 'x$subset' is not 'NULL'")
+    }
+
+    pred <- predict(x, newdata = newdata, ...)
+
+    modMat <- modelMatrices(x, newdata = newdata)
+    covMat <- vcov(x)
+    parInfo <- parInfo(x)
+    
+    tau1 <- attr(pred, "tau")
+    nM <- 40
+    L <- list()
+    pred <- as.data.frame(pred)
+    
+    if (is.null(prob)) {
+        prob <- 1 - c(0.06, 0.05, 0.04, 0.03, 0.02, 0.01,
+                      0.0075,  0.005, 0.0025,
+                      0.001, 0.002, 0.005)
+    }
+    
+    indScale <- 1:parInfo$length$GP["scale"]
+    indShape <- parInfo$length$GP["scale"] + (1:parInfo$length$GP["shape"])
+    indLambda <- parInfo$length$GP["scale"] + parInfo$length$GP["shape"] +
+        (1:parInfo$length$timePoisson)
+    p <- parInfo$length$GP["scale"] + parInfo$length$GP["shape"] +
+        parInfo$length$timePoisson
+
+    
+    for (i in seq_along(tau1)) {
+
+        predi <- subset(pred, tau == tau1[i])
+        mL <- max(predi$v, na.rm = TRUE)
+        mU <- max(predi$omega, na.rm = TRUE)
+        m <- seq(from = mL,  to = mU, length.out = nM)
+        
+        FM <- fM <- se <- rep(NA, nM)
+        
+        dFBeta <- array(NA, dim = c(nM, p))
+            
+        for (j in seq_along(m)) {
+
+            FVec <- nieve::pGPD2(m[j] - predi$u,
+                                 scale = predi$sigma,
+                                 shape = predi$xiStar,
+                                 deriv = TRUE)
+            
+            lambdaS <- predi$lambda * (1 - FVec)
+            attr(lambdaS, "gradient") <- NULL
+            FM[j] <- exp(-sum(lambdaS) / 365.25)
+            fM[j] <- FM[j] * sum(predi$lambda *
+                                 nieve::dGPD2(m[j] - predi$u,
+                                              scale = predi$sigma,
+                                              shape = predi$xiStar)) / 365.25
+            
+            ## =================================================================
+            ## In any model matrix, the rows match times and the
+            ## columns match the 'beta' parameters for the
+            ## corresponding Poisson-GP parameter. The sum over the
+            ## times can be obtained with a matrix multiplication.
+            ## =================================================================
+            
+            mat <- modMat[["scale"]]
+            weights <- predi$lambda * attr(FVec, "gradient")[ , "scale"]
+            
+            dFBeta[j, indScale] <- - drop(t(mat) %*% weights) * FM[j] / 365.25
+            
+            mat <- modMat[["shape"]]
+            weights <- predi$lambda * attr(FVec, "gradient")[ , "shape"] 
+            dFBeta[j, indShape] <- - drop(t(mat) %*% weights) * FM[j] / 365.25
+            
+            mat <- modMat[["logLambda"]]
+            dFBeta[j, indLambda] <- - drop(t(mat) %*% lambdaS) * FM[j] / 365.25
+            
+            se[j] <- sqrt(t(dFBeta[j, ]) %*% covMat[[i]] %*% dFBeta[j, ]) / fM[j]
+            
+        }
+        
+        probL <- (1 - level) / 2
+        probU <- 1 - probL
+        qLU <- qnorm(cbind(probL, probU), mean = 0.0, sd = 1.0)
+        if (FALSE) {
+            dfi <- data.frame(tau = unname(tau1[i]),
+                              Prob = prob,
+                              ProbExc = 1 - prob,
+                              Quant = approx(x = FM, y = m, xout = prob)$y)
+        } else {
+            
+            dfi <- data.frame(tau = unname(tau1[i]),
+                              Prob = FM,
+                              ProbExc = 1 - FM,
+                              Quant = m)
+            
+            dfi <- cbind(dfi, 
+                         L = dfi$Quant + qLU[1] * se,
+                         U = dfi$Quant + qLU[2] * se)
+
+            if (TRUE) {
+                roundQuant <- approx(x = dfi$Prob, y = dfi$Quant, xout = prob)$y
+                roundL <- approx(x = dfi$Prob, y = dfi$L, xout = prob)$y
+                roundU <- approx(x = dfi$Prob, y = dfi$U, xout = prob)$y
+                roundDfi <- data.frame(tau = unname(tau1[i]),
+                                   Prob = prob,
+                                   ProbExc = 1 - prob,
+                                   Quant = roundQuant,
+                                   L = roundL,
+                                   U = roundU)
+                
+                dfi <- rbind(dfi, roundDfi)
+                dfi <- dfi[order(dfi$tau, dfi$Prob), ]
+            }
+        }
+        
+        L[[i]] <- dfi 
+        
+    }
+    
+    res <- data.table::rbindlist(L)
+    res$tau <- factor(res$tau)
+    res <- subset(res, Prob <= 1 - 1e-5 & Prob > 1e-5)
+    attr(res, "level") <- level
+    class(res) <- c("quantile.pgpTList", "data.frame")
+    res
+    
+}
+
+BAKquantile.pgpTList <- function(x,
                               prob = NULL,
                               ...) {
     pred <- predict(x, ...)
@@ -425,8 +593,62 @@ quantile.predict.pgpTList <- function(x,
     
 }
 
+##' Round the values of the quantiles and confidence limits and select
+##' those corresponding to "round" exceedance probabilities.
+##'
+##' It is often needed to show a table of quantiles corresponding to
+##' round exceedance probabilities such as \code{0.01},
+##' \code{0.001}. Moreover the quantiles and confidence limits as
+##' printed by default with number of digits which may be higher than
+##' needed. Most often, a number of digits between 0 and 2 is hight
+##' enough in relation with the precision of the data used to compute
+##' the quantiles.
+##'
+##' @title Round and Format Quantiles
+##'
+##' @param x An object with class \code{"quantile.pgpgTList"} as
+##'     computed by the \code{quantile} method of the
+##'     \code{"pgpgTList"} class.
+##' 
+##' @param digits The number of digits to be used for the colums
+##'     \code{Quant}, \code{L} and \code{U} columns representing the
+##'     quantile and the confidence limits.
+##' 
+##' @param probExc A numeric vector giving the exceedances
+##'     probabilities to be displayed among those available in
+##'     \code{x}. The default values correspond to 12 values
+##'     \code{0.5}, \code{0.2}, \code{0.1}, ..., \code{1e-4}.
+##' 
+##' @param ... Not used.
+##'
+##' @return A data frame with the rounded quantiles and confidence
+##'     limits at the" chosen "round" exceedance probabilities.
+##'
+##' @export
+##' @method format quantile.pgpTList
+##' 
+format.quantile.pgpTList <- function(x,
+                                     digits = 2,
+                                     probExc = as.vector(
+                                         outer(c(5, 2, 1),
+                                               c(1e-1, 1e-2, 1e-3, 1e-4))),
+                                     ...) {
 
-
+    ProbExc <- NULL
+    
+    if (!is.null(probExc)) {
+        xp <- subset(as.data.frame(x), subset = round(ProbExc, digits = 6) %in% probExc)
+    } else {
+        xp <- as.data.frame(x)
+    }
+    xp <- within(xp, {
+        Quant <- round(Quant, digits = digits);
+        L <- round(L, digits = digits);
+        U <- round(U, digits = digits);
+    })
+    
+    xp
+}
 
 
 ##' @method print predict.pgpTList
@@ -457,6 +679,15 @@ head.predict.pgpTList <- function(x, n = 6L, ...) {
 
     head(as.data.frame(x), n = n, ...)
 
+}
+
+##' @importFrom utils tail
+##' @method tail predict.pgpTList
+##' @export
+tail.predict.pgpTList <- function(x, n = 6L, ...) {
+
+    tail(as.data.frame(x), n = n, ...)
+    
 }
 
 ## *****************************************************************************
@@ -501,9 +732,9 @@ head.predict.pgpTList <- function(x, n = 6L, ...) {
 ##'     only for tail events. More precisely only for each of the
 ##'     threshold \eqn{u_i(t)} corresponding to a non-exceedance
 ##'     probability \eqn{\tau_i} the maximum \eqn{v_i:=\max_t
-##'     \u_i(t)\}} of the the thresholds over the predicted period is
+##'     u_i(t)} of the the thresholds over the predicted period is
 ##'     computed, and the simulated events correspond to exceedances
-##'     over $v_i$.
+##'     over \eqn{v_i}.
 ##' 
 ##' @param tau If provided, the simulation is only made for the
 ##'     provided value of \code{tau}.
@@ -749,32 +980,42 @@ modelMatrices.pgpTList <- function(object,
         missNewData <- TRUE
         newdata <- object$data
     }
-    
-    if (object$fitLambda) {
-        lambdaNH <- !(all.equal(object$logLambda.fun, ~1) == TRUE)
-        if (lambdaNH) {
-            Xtime <- model.matrix(object$logLambda.fun, data = newdata)
-            Xtime <- cbind("b0" = rep(1, nrow(newdata)), Xtime)
-            timeNH <- TRUE
-        } else
-            Xtime <- cbind("b0" = rep(1, nrow(newdata)))
-    }
 
     ## we MUST pass 'threshold' here because object$GP[[1]] does not
     ## stroe the threshold !
     L <- modelMatrices(object$GP[[1]],
                        newdata = newdata,
                        threshold = object$thresholds[[1]]$formula)
-    L[["logLambda"]] <- Xtime
+    
+
+    if (object$fitLambda) {
+        lambdaNH <- !(all.equal(object$logLambda.fun, ~1) == TRUE)
+        if (lambdaNH) {
+            Xtime <- model.matrix(object$logLambda.fun, data = newdata)
+            Xtime <- cbind("b0" = rep(1, nrow(newdata)), Xtime)
+            timeNH <- TRUE
+        } else {
+            Xtime <- cbind("b0" = rep(1, nrow(newdata)))
+        }
+        L[["logLambda"]] <- Xtime
+    }
+
     L
     
 }
 
 
+##' This S3 generic function is defined in order to allow the
+##' implementation of methods.
+##' 
 ##' @title Provide Information about the Parameters of a Fitted Model
 ##'     Object
 ##'
 ##' @export
+##' 
+##' @param object The object for which the information will be shown.
+##'
+##' @param ...  Other arguments for methods.
 ##' 
 parInfo <- function(object, ...) {
     UseMethod("parInfo")
@@ -804,22 +1045,24 @@ parInfo <- function(object, ...) {
 ##' 
 parInfo.pgpTList <- function(object, 
                              ...) {
-    
+
+    coLambda <- object$timePoisson[[1]]@coef
+        
     p <- list()
     p$GP <- unlist(object$GP[[1]]$results$num.pars)
-    p$timePoisson <- length(coef(object$timePoisson[[1]]))
+    p$timePoisson <- length(coLambda)
     
     pn <- list()
     pn$GP <- list()
     n <- 0
-    allNames <- names(coef(Pgp1$GP[[1]]))
+    allNames <- names(coef(object$GP[[1]]))
     for (i in seq_along(p$GP)) {
         pn$GP[[i]] <- allNames[(n + 1):(n + p$GP[i])]
         n <- n + p$GP[i]
     }
     pn$GP[[3]] <- allNames
     names(pn$GP) <- c(names(p$GP), "all")
-    pn$timePoisson[["all"]] <- names(coef(object$timePoisson[[1]]))
+    pn$timePoisson[["all"]] <- names(coLambda)
 
     list(length = p,
          names = pn) 
@@ -844,7 +1087,7 @@ vcov.pgpTList <- function(object,
                      dim = c(pLengthTot, pLengthTot),
                      dimnames = list(pNamesTot,  pNamesTot))
         mat[indGP, indGP] <- vcov(object$GP[[i]])
-        mat[indTimePoisson, indTimePoisson] <- vcov(object$timePoisson[[i]])
+        mat[indTimePoisson, indTimePoisson] <- object$timePoisson[[i]]@vcov
         covList[[i]] <- mat                              
     }
     names(covList) <- names(object$GP)

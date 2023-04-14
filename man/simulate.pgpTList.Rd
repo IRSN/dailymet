@@ -42,9 +42,9 @@ used.}
 only for tail events. More precisely only for each of the
 threshold \eqn{u_i(t)} corresponding to a non-exceedance
 probability \eqn{\tau_i} the maximum \eqn{v_i:=\max_t
-\u_i(t)\}} of the the thresholds over the predicted period is
+u_i(t)} of the the thresholds over the predicted period is
 computed, and the simulated events correspond to exceedances
-over $v_i$.}
+over \eqn{v_i}.}
 
 \item{tau}{If provided, the simulation is only made for the
 provided value of \code{tau}.}

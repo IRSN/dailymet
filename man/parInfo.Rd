@@ -7,7 +7,12 @@
 \usage{
 parInfo(object, ...)
 }
+\arguments{
+\item{object}{The object for which the information will be shown.}
+
+\item{...}{Other arguments for methods.}
+}
 \description{
-Provide Information about the Parameters of a Fitted Model
-    Object
+This S3 generic function is defined in order to allow the
+implementation of methods.
 }

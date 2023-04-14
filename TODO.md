@@ -9,7 +9,7 @@ dependency on the publicly released package **nieve**.
 
 ## Documentation
 
-\[ \] Add a `.bib` file with the citations for the packages and cite the
+\[o\] Add a `.bib` file with the citations for the packages and cite the
 packages in the vignette.
 
 ## R objects and functions, short-term
@@ -21,9 +21,9 @@ object.
 \[ \] Add methods to coerce a `dailyMet` into suitable **zoo**
 object(s).
 
-\[ \] Add methods for the `pgpTList` class.
+\[o\] Add methods for the `pgpTList` class.
 
-\[ \] Change the `simulate` method for the class `"pgpTList"` so that it
+\[x\] Change the `simulate` method for the class `"pgpTList"` so that it
 simulates the marks that are are exceeds a *high threshold* chosen as
 the threshold `v` now given by the `predict` method which computes the
 corresponding rate `lambdav`as well. By doing so the maximum of the
