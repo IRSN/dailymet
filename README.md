@@ -34,8 +34,7 @@ be the `TX`.
 
 # News
 
-See the
-[NEWS.md](https://github.com/yvesdeville/dailymet/blob/main/NEWS.md)
+See the [NEWS.md](https://github.com/IRSN/dailymet/blob/main/NEWS.md)
 file
 
 # Install release version from GitHub
@@ -46,7 +45,7 @@ Provided that the **remotes** package is installed, the installation of
 **dailymet** from github can be done by using
 
 ``` r
-remotes::install_github("yvesdeville/dailymet", dependencies = TRUE, auth_token = myToken)
+remotes::install_github("IRSN/dailymet", dependencies = TRUE, auth_token = myToken)
 ```
 
 where `myToken` stands for *your* token. This should install the package
@@ -64,7 +63,7 @@ If you do not have yet a local `dailymet` repository, use `git clone` to
 clone the `dailymet` repository
 
 ``` bash
-git clone https://github.com/yvesdeville/dailymet
+git clone https://github.com/IRSN/dailymet
 ```
 
 This will create a `dailymet` sub-directory of the current directory,
