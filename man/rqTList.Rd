@@ -9,7 +9,8 @@ rqTList(
   formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
   dailyMet,
   tau = c(0.5, 0.7, 0.8, 0.9, 0.95, 0.97, 0.98, 0.99),
-  design = list(trigo = list(type = "trigo", df = 7))
+  design = list(trigo = list(what = "tsDesign", args = list(type = "trigo", df = 7))),
+  trace = 0
 )
 }
 \arguments{
@@ -23,11 +24,13 @@ the design function specified \code{design}.}
 \item{tau}{A vector of probabilities.}
 
 \item{design}{A list of arguments to be passed to
-\code{\link{tsDesign}}. For each element of this list, the
+\code{\link{designVars}}. For each element of this list, the
 variables of the design are added to the data frame given in
 \code{dailyMet} before fiiting the model. The default creates
 seven trigonometric basis functions for the first three
 harmonics of the yearly seasonality.}
+
+\item{trace}{Integer level of verbosity.}
 }
 \value{
 An object with class \code{"rqTList"}.
@@ -37,8 +40,39 @@ Create a \code{qrList} object by calling \code{\link{rq}} for each
 of the probabilities given in \code{tau}, using the same formula
 and data for all fits.
 }
+\details{
+When \code{extradesign} is used, any design function used should
+fulfill the following requirements.
+
+\enumerate{
+    \item The first argument must be the date. The name of this
+      argument will not be used in the call.
+    \item  The returned value should be an object inheriting from
+       the \code{"matrix"} class with suitable column names. It can also
+       be a list containing the design
+       matrix as its element named \code{"X"}.
+}
+The call to a design function should mention \code{Date} as the
+first argument. This call refers to the \code{dailyMet} object
+used, from which the \code{Date} column will be used.
+}
 \examples{
 Rq <- rqTList(dailyMet = Rennes)
 coef(Rq)
 autoplot(Rq)
+if (require("NSGEV")) {
+
+   Rq1 <- rqTList(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + t1_1970 - 1,
+                  dailyMet = Rennes,
+                  design = list("trigo" = list(what = "tsDesign",
+                                               args = list(type = "trigo", df = 7)),
+                                "breaks"= list(what = "NSGEV::breaksX",
+                                               args = list(breaks = c('1970-01-01', '1990-01-01')))))
+   p1 <- predict(Rq1,
+                  newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
+                                       to = as.Date("2054-01-01"),
+                                       by = "day")))
+   autoplot(p1)
+}
+
 }

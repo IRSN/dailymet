@@ -1,6 +1,21 @@
- ##' Create a \code{qrList} object by calling \code{\link{rq}} for each
+##' Create a \code{qrList} object by calling \code{\link{rq}} for each
 ##' of the probabilities given in \code{tau}, using the same formula
 ##' and data for all fits.
+##'
+##' When \code{extradesign} is used, any design function used should
+##' fulfill the following requirements.
+##' 
+##' \enumerate{
+##'     \item The first argument must be the date. The name of this
+##'       argument will not be used in the call.
+##'     \item  The returned value should be an object inheriting from
+##'        the \code{"matrix"} class with suitable column names. It can also
+##'        be a list containing the design
+##'        matrix as its element named \code{"X"}.
+##' }
+##' The call to a design function should mention \code{Date} as the
+##' first argument. This call refers to the \code{dailyMet} object
+##' used, from which the \code{Date} column will be used.
 ##' 
 ##' @title Create A \code{rqTList} Object by Repeated Calls to
 ##'     \code{rq}
@@ -15,13 +30,14 @@
 ##' @param tau A vector of probabilities.
 ##'
 ##' @param design A list of arguments to be passed to
-##'     \code{\link{tsDesign}}. For each element of this list, the
+##'     \code{\link{designVars}}. For each element of this list, the
 ##'     variables of the design are added to the data frame given in
 ##'     \code{dailyMet} before fiiting the model. The default creates
 ##'     seven trigonometric basis functions for the first three
 ##'     harmonics of the yearly seasonality.
-##' 
 ##'
+##' @param trace Integer level of verbosity.
+##' 
 ##' @return An object with class \code{"rqTList"}.
 ##'
 ##' @importFrom quantreg rq
@@ -31,10 +47,35 @@
 ##' Rq <- rqTList(dailyMet = Rennes)
 ##' coef(Rq)
 ##' autoplot(Rq)
+##' if (require("NSGEV")) {
+##' 
+##'    Rq1 <- rqTList(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + t1_1970 - 1,
+##'                   dailyMet = Rennes,
+##'                   design = list("trigo" = list(what = "tsDesign",
+##'                                                args = list(type = "trigo", df = 7)),
+##'                                 "breaks"= list(what = "NSGEV::breaksX",
+##'                                                args = list(breaks = c('1970-01-01', '1990-01-01')))))
+##'    p1 <- predict(Rq1,
+##'                   newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
+##'                                        to = as.Date("2054-01-01"),
+##'                                        by = "day")))
+##'    autoplot(p1)
+##' }
+##' 
 rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,
                     dailyMet,
                     tau = c(0.5, 0.70, 0.80, 0.90, 0.95, 0.97, 0.98, 0.99),
-                    design = list("trigo" = list(type = "trigo", df = 7))) {
+                    design = list("trigo" = list(what = "tsDesign", args = list(type = "trigo", df = 7))),
+                    trace = 0) {
+    
+    mc <- match.call()
+    
+    if (is.null(mc$design)) {
+        ## mc$design <- formals(rqTList)$design
+        mc$design <- eval(formals(rqTList)$design)
+    } else {
+        mc$design <- eval(mc$design)
+    }
     
     if (!inherits(dailyMet, "dailyMet")) {
         stop("'dailyMet' must be an object with class \"dailyMet\"")
@@ -43,20 +84,42 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
     attrList <- list(metVar = attr(dailyMet, "metVar"),
                      station = attr(dailyMet, "station"),
                      code = attr(dailyMet, "code"))
-    
-    for (ides in seq_along(design)) {
-        argList <- design[[ides]]
-        argList <- c(list(dt = dailyMet$Date), design[[ides]])
-        des <- do.call("tsDesign", argList)
-        dailyMet <- data.frame(dailyMet, des$X)
+
+    if (trace) {
+        cat("o Adding the design variables\n")
     }
-        
+    X <- designVars(designList = mc$design, dt = dailyMet$Date, trace = trace)
+    dailyMet <- data.frame(dailyMet, X)
+    
+    ## for (ides in seq_along(design)) {
+    ##     argList <- design[[ides]]
+    ##     argList <- c(list(dt = dailyMet$Date), design[[ides]])
+    ##     des <- do.call("tsDesign", argList)
+    ##     dailyMet <- data.frame(dailyMet, des$X)
+    ## }
+    
+    ## for (ides in seq_along(extraDesign)) {
+    ##     if (is.character(ed <- extraDesign[[ides]])) {
+    ##         X <- eval(parse(text = ed), envir = dailyMet)
+    ##         if (inherits(X, "matrix")) {
+    ##             X <- unclass(X)
+    ##         } else if (inherits(X, "list")) {
+    ##             if (inherits(X$X, "matrix")) {
+    ##                 X <- X$X
+    ##             } else {
+    ##                 stop("Unsuitable result from design function")
+    ##             }
+    ##         }
+    ##         dailyMet <- data.frame(dailyMet, X)
+    ##     } 
+    ## }
+    
     fit <- u <- list()
     
     for (i in seq_along(tau)) {
         
-        fit[[i]] <- rq(formula = substitute(formula), data = dailyMet, tau = tau[i],
-                       na.action = "na.exclude")
+        fit[[i]] <- rq(formula = substitute(formula), data = dailyMet,
+                       tau = tau[i], na.action = "na.exclude")
         
         u[[i]] <- predict(fit[[i]], newdata = dailyMet, na.action = na.pass)
 
@@ -85,6 +148,7 @@ rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 +
         attr(fit, nm) <- attrList[[nm]]
     }
 
+    attr(fit, "call") <- mc
     attr(fit, "data") <- dailyMet
     class(fit) <- c("rqTList", "list")
     
@@ -273,6 +337,8 @@ tau.rqTList <- function(object, ...) {
 ##'     long format is useful when ggplots areto be produced.
 ##'
 ##' @param na.action See \code{\link[quantreg]{predict.rq}}.
+##'
+##' @param trace Integer level of verbosity.
 ##' 
 ##' @param ... Further arguments passed to the \code{predict} method
 ##'     of the class \code{"rq"}.
@@ -311,6 +377,7 @@ predict.rqTList <- function(object,
                             lastFullYear,
                             out = c("long", "short"),
                             na.action = na.pass,
+                            trace = 0,
                             ...)  {
 
     TX <- u <- NULL
@@ -326,7 +393,7 @@ predict.rqTList <- function(object,
         ## =====================================================================
         ## XXX We check the existence of the variables in 'newdata'
         ## before (possibly re-) creating them. Yet this should be
-        ## made more general since some other design can be
+        ## made more general since some other designs can be
         ## used. Hopefully, if some variables are still missing, the
         ## error message thrown will be easy to understand.
         ## =====================================================================
@@ -342,6 +409,14 @@ predict.rqTList <- function(object,
                 newdata <- data.frame(newdata, des$X)
             }
         }
+        
+        mc <- attr(object, "call")
+        
+        if (!is.null(mc$design)) {
+            X <- designVars(designList = mc$design, dt = newdata$Date, trace = trace)
+            newdata <- data.frame(newdata, X)
+        }
+        
     }
     
     ## ==========================================================================
@@ -415,7 +490,6 @@ print.rqTList <- function(x, ...) {
 xi <- function(object, ...) {
     UseMethod("xi")
 }
-
 
 ## *****************************************************************************
 ##' Estimate the tail coefficient \eqn{\xi} from quantiles.

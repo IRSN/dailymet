@@ -10,6 +10,7 @@
   lastFullYear,
   out = c("long", "short"),
   na.action = na.pass,
+  trace = 0,
   ...
 )
 }
@@ -34,6 +35,8 @@ columns \code{Date}, \code{u} and \code{tau} is returned.  The
 long format is useful when ggplots areto be produced.}
 
 \item{na.action}{See \code{\link[quantreg]{predict.rq}}.}
+
+\item{trace}{Integer level of verbosity.}
 
 \item{...}{Further arguments passed to the \code{predict} method
 of the class \code{"rq"}.}

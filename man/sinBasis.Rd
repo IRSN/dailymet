@@ -20,8 +20,8 @@ are to be evaluated.}
 1.0 is added as a first column.}
 
 \item{keepTrig}{Logical. If \code{TRUE}, the cos-sin functions are
-are joined as columns of the result. So the returned matrix
-then does not correspond to a basis. Used mainly for tests.}
+joined as columns of the result. So the returned matrix then
+does not correspond to a basis. Used mainly for tests.}
 }
 \value{
 A numeric matrix containing as columns the \eqn{K} basis
