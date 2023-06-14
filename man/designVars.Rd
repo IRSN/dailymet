@@ -28,7 +28,8 @@ character vector with a suitable format.}
 be dropped when they are duplicated across designs.}
 }
 \value{
-A data frame with the new variables
+A data frame with \code{length(dt)} rows containing the
+    new variables.
 }
 \description{
 By "design function" we a function building a "design matrix"
@@ -56,8 +57,11 @@ requirements.
 The call to a design function should mention \code{Date} as the
 first argument. This call refers to the \code{dailyMet} object
 used, from which the \code{Date} column will be used.
-
- @title Design Variables
+}
+\note{
+The naming of the elements of the list given in
+    \code{designList} is arbitrary and does not impact the result.
+    The names can be used to make code clearer.
 }
 \section{Caution}{
  When several designs are used, some conflit may

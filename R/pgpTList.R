@@ -63,11 +63,26 @@
 ##'     \bold{Details}. Mind that \emph{only numeric covariates can be
 ##'     used}.
 ##'
-##' @param scale.fun,shape.fun Formulas for the GP scale and shape as
-##' in \code{\link[extRemes]{fevd}}.
+##' @param scale.fun,shape.fun formulas for the scale and the shape
+##'     parameters of the Generalized Pareto distribution for the
+##'     exceedances over the threshold.
+##'
+##' @param extraDesign A list with a specific structure used to
+##'     generate extra "design variables" that can be used in
+##'     formulas, see \bold{Examples} and the help of
+##'     \code{\link{designVars}} and \code{\link{rqTList}} for
+##'     examples of syntax. By default a trigonometric design with
+##'     three harmonics is used, along with the sinus waves basis
+##'     corresponding to the phases of the reference threshold defined
+##'     by \code{tauRef}. The sinus wave variables are created by
+##'     using the \code{\link{sinBasis}} function with the relevant
+##'     value of \code{phi}.
 ##' 
 ##' @param trace Integer level of verbosity. 
 ##'
+##' @param scale.fun,shape.fun Formulas for the GP scale and shape as
+##' in \code{\link[extRemes]{fevd}}.
+##' 
 ##' @return An object with class \code{"pgpTList"}. This is a list with
 ##'     the following elements
 ##'     \itemize{
@@ -140,7 +155,7 @@
 ##' gYear <- autoplot(predYear, facet = FALSE)
 ##' gYear
 ##' 
-##' ## show the evolution of the exceedance rate on the lon-run
+##' ## show the evolution of the exceedance rate on the long-run
 ##' predAll <- predict(Pgp1, last = FALSE)
 ##' exceed <- exceed(Pgp1)
 ##' gAll <- autoplot(predAll, which = "lambda", size = 1.2) +
@@ -148,6 +163,30 @@
 ##'                 ggtitle(paste("Fitted rate 'lambda' and annual number of",
 ##'                               "declustered exceedances"))
 ##' gAll
+##'
+##' ## Add an extra design corresponding to broken line splines. This
+##' ## creates a new variable 't1_1970' that can be used in formula to
+##' ## assess a possible change in the trend at the beginning of the seventies.
+##' Pgp3 <-
+##'     pgpTList(dailyMet = Rennes, thresholds = Rq,
+##'              declust = TRUE,
+##'              fitLambda = TRUE,
+##'              logLambda.fun = ~ YearNum + t1_1970 - 1,
+##'              extraDesign =
+##'                  list("breaks" = list(what = "NSGEV::breaksX",
+##'                                       args = list(breaks = c("1970-01-01", "1990-01-01")))))
+##' p3 <- predict(Pgp3,
+##'               newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
+##'                                    to = as.Date("2054-01-01"),
+##'                                    by = "day")))
+##' autoplot(p3, facet = FALSE)
+##'
+##' ## simulate 
+##' s3 <- simulate(Pgp3, nsim = 10,
+##'               newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
+##'                                    to = as.Date("2054-01-01"),
+##'                                    by = "day")))
+##' autoplot(s3)
 ##' 
 pgpTList <- function(dailyMet,
                      subset = NULL,
@@ -158,9 +197,11 @@ pgpTList <- function(dailyMet,
                      logLambda.fun = ~1,
                      scale.fun = ~Cst + sinjPhi1 + sinjPhi2 + sinjPhi3 - 1,
                      shape.fun = ~1,
+                     extraDesign = NULL,
                      trace = 1) {
-
+    
     .Ind <- NULL
+                         
     
     logLambda.fun <- as.formula(logLambda.fun)
     
@@ -231,7 +272,17 @@ pgpTList <- function(dailyMet,
             cat("No trigonometric variables needed.\n")
         }
     }
-    
+
+    ## =========================================================================
+    ## Add extra design variables if needed.
+    ## 
+    ## =========================================================================
+
+    if (!is.null(extraDesign)) {
+        X <- designVars(designList = extraDesign, dt = dailyMet$Date, trace = trace)
+        dailyMet <- data.frame(dailyMet, X)
+    }
+   
     tun <- sprintf("%6.2f/year", nrow(dailyMet) / duration)
     cat(sprintf("o Sampling rate : %s\n", tun))
     
@@ -373,6 +424,7 @@ pgpTList <- function(dailyMet,
                 logLambda.fun = logLambda.fun,
                 scale.fun = scale.fun,
                 shape.fun = shape.fun,
+                extraDesign = extraDesign,
                 fitLambda = fitLambda,
                 timePoisson = FitLambda,
                 GP = as.fevdTList(FitGP))

@@ -23,9 +23,14 @@ the design function specified \code{design}.}
 
 \item{tau}{A vector of probabilities.}
 
-\item{design}{A list of arguments to be passed to
-\code{\link{designVars}}. For each element of this list, the
-variables of the design are added to the data frame given in
+\item{design}{A list to be passed to the \code{\link{designVars}}
+function. Each element of this list is itself a named list
+with an element \code{what} describing the "design function"
+to call, and an argument \code{args} describing the arguments
+to be passed to the design function, except its first
+argument. For each element of the \code{design} list, a design
+matrix \code{X} is obtained by using \code{\link{do.call}} and
+the columns of \code{X} are added to the data frame given in
 \code{dailyMet} before fiiting the model. The default creates
 seven trigonometric basis functions for the first three
 harmonics of the yearly seasonality.}

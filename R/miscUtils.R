@@ -359,7 +359,6 @@ getFun <- function(x) {
 ##' first argument. This call refers to the \code{dailyMet} object
 ##' used, from which the \code{Date} column will be used.
 ##'
-##'  @title Design Variables
 ##'
 ##' @param designList A list with a specific structure describing the
 ##'     design functions to evaluate, and the arguments (except the
@@ -380,7 +379,8 @@ getFun <- function(x) {
 ##' @param dropDup Character giving the names of variables that must
 ##'     be dropped when they are duplicated across designs.
 ##' 
-##' @return A data frame with the new variables
+##' @return A data frame with \code{length(dt)} rows containing the
+##'     new variables.
 ##'
 ##' @section Caution: When several designs are used, some conflit may
 ##'     arise because some names in the design matrices are
@@ -392,6 +392,10 @@ getFun <- function(x) {
 ##'     of confusion, and good options could be either to drop this
 ##'     variable or to wrap the design function into another function
 ##'     which uses different column names.
+##'
+##' @note The naming of the elements of the list given in
+##'     \code{designList} is arbitrary and does not impact the result.
+##'     The names can be used to make code clearer.
 ##' 
 ##' @export
 ##' 
@@ -449,5 +453,44 @@ designVars <- function(designList, dt, trace = 0, dropDup = "Cst") {
     }
     
     Xall
+    
+}
+
+##' @title Rough Check for a List of Designs
+##'
+##' @param designList A list of (definitions of) designs as can be
+##'     used in \code{\link{designVars}}.
+##'
+##' @param dt Date or time to check the calls. 
+##'
+##'
+##' @param dropDup
+##'
+##' @return \code{TRUE} if the check is OK.
+##'
+##' @keywords internal
+##'
+##' @export
+##' 
+##' @examples
+##' dl <- list("breaks" = list(what = "NSGEV::breaksX",
+##'             args = list(breaks = c("1970-01-01", "1990-01-01"))))
+##' checkDesign(dl)
+##' dl <- list("breaks" = list(what = "NSGEV::breaksX",
+##'             foo = list(breaks = c("1970-01-01", "1990-01-01"))))
+##' checkDesign(dl)
+##' 
+checkDesign <- function(designList, dt, dropDup = "Cst") {
+
+    looksDes <- function(x) {
+        is(x, "list") && setequal(names(x), c("what", "args"))
+    }
+    
+    if (!is.list(designList) || !all(sapply(designList, looksDes))) {
+        return(paste0("Bad design list: expect a named list with names ",
+                      "\"what\" and \"args\""))
+    }
+    
+    TRUE
     
 }

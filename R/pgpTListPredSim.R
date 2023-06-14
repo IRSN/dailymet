@@ -118,8 +118,18 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
             cat("No trigonometric variables needed.\n")
         }
     }
-    ## Now prepare the time variables
 
+    ## =========================================================================
+    ## Now prepare the extra design  variables if needed
+    ## =========================================================================
+    
+    if (!is.null(object$extraDesign)) {
+        if (trace) cat("o Adding variables relates to extra design\n")
+        X <- designVars(designList = object$extraDesign, dt = newdata$Date,
+                        trace = trace)
+        newdata <- data.frame(newdata, X)
+    }
+   
     class(newdata) <- c("dailyMet", "data.frame")
     newdata
     
