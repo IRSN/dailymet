@@ -319,7 +319,7 @@ namesFromDates <- function(date) {
 ##' @keywords internal
 ##'
 ##' @examples
-##' getfun("lme4::lmer")
+##' getFun("lme4::lmer")
 ##' 
 getFun <- function(x) {
     if(length(grep("::", x)) > 0) {
@@ -400,19 +400,21 @@ getFun <- function(x) {
 ##' @export
 ##' 
 ##' @examples
-##' desList <-
-##'     list("sinAndCos" = list(what = "tsDesign",
-##'                             args = list(type = "trigo", df = 7)),
-##'           "polys" = list(what = "tsDesign",
-##'                          args = list(type = "polynom", df = 3)),
-##'           "breaks" = list(what = "NSGEV::breaksX",
-##'                           args = list(breaks = c('1970-01-01', '1990-01-01'))))
 ##'
-##' des1 <- designVars(desList, dt = c("2021-01-01", "2021-01-02"), trace = 1)
-##' des2 <- designVars(desList, dt = Rennes$Date, trace = 1)
-##' des1
-##' head(des2)
-##' 
+##' if (require(NSGEV)) {
+##'   desList <-
+##'       list("sinAndCos" = list(what = "tsDesign",
+##'                               args = list(type = "trigo", df = 7)),
+##'            "polys" = list(what = "tsDesign",
+##'                           args = list(type = "polynom", df = 3)),
+##'            "breaks" = list(what = "NSGEV::breaksX",
+##'                            args = list(breaks = c("1970-01-01", "1990-01-01"))))
+##'
+##'   des1 <- designVars(desList, dt = c("2021-01-01", "2021-01-02"), trace = 1)
+##'   des2 <- designVars(desList, dt = Rennes$Date, trace = 1)
+##'   des1
+##'   head(des2)
+##' }
 designVars <- function(designList, dt, trace = 0, dropDup = "Cst") {
 
     dt <- as.Date(dt)

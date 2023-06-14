@@ -174,7 +174,7 @@
 ##'              logLambda.fun = ~ YearNum + t1_1970 - 1,
 ##'              extraDesign =
 ##'                  list("breaks" = list(what = "NSGEV::breaksX",
-##'                                       args = list(breaks = c("1970-01-01", "1990-01-01")))))
+##'                                       args = list(breaks = "1970-01-01"))))
 ##' p3 <- predict(Pgp3,
 ##'               newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
 ##'                                    to = as.Date("2054-01-01"),

@@ -52,19 +52,20 @@
 ##' Rq <- rqTList(dailyMet = Rennes)
 ##' coef(Rq)
 ##' autoplot(Rq)
-##' if (require("NSGEV")) {
 ##' 
-##'    Rq1 <- rqTList(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + t1_1970 - 1,
-##'                   dailyMet = Rennes,
-##'                   design = list("trigo" = list(what = "tsDesign",
-##'                                                args = list(type = "trigo", df = 7)),
-##'                                 "breaks"= list(what = "NSGEV::breaksX",
-##'                                                args = list(breaks = c('1970-01-01', '1990-01-01')))))
-##'    p1 <- predict(Rq1,
-##'                   newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
-##'                                        to = as.Date("2054-01-01"),
-##'                                        by = "day")))
-##'    autoplot(p1)
+##' if (require("NSGEV")) {
+##'  Rq1 <-
+##'    rqTList(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + t1_1970 - 1,
+##'            dailyMet = Rennes,
+##'            design = list("trigo" = list(what = "tsDesign",
+##'                                         args = list(type = "trigo", df = 7)),
+##'                          "breaks"= list(what = "NSGEV::breaksX",
+##'                                         args = list(breaks = c('1970-01-01', '1990-01-01')))))
+##'  p1 <- predict(Rq1,
+##'                newdata = data.frame(Date = seq(from = as.Date("2024-01-01"),
+##'                                     to = as.Date("2054-01-01"),
+##'                                     by = "day")))
+##'  autoplot(p1)
 ##' }
 ##' 
 rqTList <- function(formula = TX ~ Cst + cosj1 + sinj1 + cosj2 + sinj2 + cosj3 + sinj3 - 1,

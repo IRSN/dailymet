@@ -17,7 +17,7 @@ A reference that can be used as 1-st argument in
 Find the Name of a Function within a Namespace
 }
 \examples{
-getfun("lme4::lmer")
+getFun("lme4::lmer")
 
 }
 \author{
