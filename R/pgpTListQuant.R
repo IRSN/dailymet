@@ -38,7 +38,8 @@
 ##'
 ##' @section Caution: This method is planned to be renamed as
 ##'     \code{quantMax}, to make a clearer difference with the
-##'     marginal quantiles.
+##'     marginal quantiles. The \code{\link{quantMax.pgpTList}}
+##'     should thus be used.
 ##' 
 ##' @examples
 ##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
@@ -337,10 +338,57 @@ quantMax <- function(x, ...) {
 }
 
 
+
+
+
+## *****************************************************************************
+
+##' The Poisson-GP model given in \code{x} only describes the tail of
+##' the distribution of the maximum. So when a probability is too
+##' small the quantile may be \code{NA}.
+##'
+##' The computation of the quantiles without any inference result can
+##' be performed at a lower cost by using the results of a
+##' \code{predict} step it these have already been computed. Of course
+##' the "new" period will be that which was used in the \code{predict}
+##' step and can not be changed.
+##' 
+##' @title Compute Quantiles for the Maximum the Marks of a Poisson-GP
+##'     Model
+##'
+##' @param x An object with class \code{"predict.pgpTList"} as created
+##'     by applying the \code{predict} method on an object with class
+##'     \code{"pgpTList"}.
+##' 
+##' @param newdata A "new" data frame or \code{Date} vector used to
+##'     define the "new" period. The quantiles will be the those of
+##'     the random maximum \eqn{M} of the marks on this period.
+##' 
+##' @param prob Vector of probabilities.
+##' 
+##' @param level The confidence level.
+##' 
+##' @param ... Not used yet.
+##' 
+##' @return A data frame with columns \code{Prob} and \code{Quant}.
+##'
 ##' @importFrom stats qnorm
+##' 
 ##' @method quantMax pgpTList
+##'
 ##' @export
 ##'
+##' @seealso \code{\link{predict.pgpTList}}.
+##' 
+##' @examples
+##' RqU <- rqTList(dailyMet = Rennes, tau = c(0.94, 0.95, 0.96, 0.97, 0.98, 0.99))
+##' Pgp1 <- pgpTList(dailyMet = Rennes, thresholds = RqU, declust = TRUE,
+##'                  fitLambda = TRUE, logLambda.fun = ~YearNum - 1)
+##' Date <- seq(from = as.Date("2020-01-01"), to = as.Date("2050-01-01"), by = "day")
+##' ## compute the quantile for the maximum on the "new" period
+##' qMax <- quantMax(Pgp1, newdata = Date)
+##' autoplot(qMax)
+##' 
 quantMax.pgpTList <- function(x,
                               newdata = NULL,
                               prob = NULL,

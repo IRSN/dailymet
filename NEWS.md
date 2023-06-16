@@ -2,6 +2,21 @@
 **dailymet** Package News
 ===========================
 
+# New in version 0.1.5
+
+## Enhancements
+- In both in `rqTList` and `pgpTList` it is now possible to use quite
+  arbitrary "design" functions to create variables entering in the
+  formula(s) defining the model objects. The `designVars` function has
+  been added to simplify the managment of the variables in fitting,
+  prediction and simulation steps.
+  
+- A new generic `quantMax` and the corresponding method for the
+  `"pgpTList"` class have been added. This method should be used in
+  place of `quantile` to avoid possible confusions between the
+  quantile of the maximum and the marginal quantiles.
+
+
 # New in version 0.1.4
 
 ## Enhancements

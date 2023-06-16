@@ -44,6 +44,7 @@ residuals.pgpTList <- function(object,
                            type = c("exp", "unif"),
                            ...) {
     
+    TX <- u <- sigma <- xiStar <- NULL 
     type <- match.arg(type)
     pred <- predict(object)
     pred <- subset(pred, TX > u)
@@ -65,6 +66,8 @@ residuals.pgpTList <- function(object,
 ##' @export
 autoplot.resid.pgpTList <- function(object, seas = FALSE, ...) {
 
+    Date <- DateRef <- resid <- NULL
+    
     g <- ggplot(data = object)
     if (!seas) {
         g <- g + geom_point(mapping = aes(x = Date, y = resid),

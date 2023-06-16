@@ -523,9 +523,9 @@ disproportionate impact on the high quantiles.
 The `quantile` method can be used to compute the tail quantiles 
 from a `pgpTList` object
 ```{r pgpQuant, message=FALSE, results ="hide", fig.width=10, fig.height=7, out.width="100%"}
-Date <- seq(from = as.Date("2020-01-01"), to = as.Date("2050-01-01"), by = "day")
-qMax <- quantile(Pgp1, newdata = Date)
-qMax <- quantile(Pgp1)
+Date <- seq(from = as.Date("2020-01-01"),
+            to = as.Date("2050-01-01"), by = "day")
+qMax <- quantMax(Pgp1, newdata = Date)
 autoplot(qMax)
 ```
 
@@ -552,15 +552,16 @@ sim <- simulate(Pgp1)
 autoplot(sim)
 ```
 
-By default, only one simulation is done. But by using the formal argument `nsim` 
-with a large value (say `nsim = 1000` or more) we can compute estimate quantiles, see
-the help `?simulate.PgpTList`. For each simulation $k=1$, $\dots$, $K$
-where $K$ is given by `nsim`, the `simulate` method provides the random exceedance 
-times $T_i^{[k]}$ and the related random marks $Y_i^{[k]}$ for $i=1$, $\dots$, 
-$N^{[k]}$ where $N^{[k]}$ is random and varies across simulations. 
-We then have a sample of $K$ maxima
-$M^{[k]} := \max_i Y_i^{[k]}$ and the sample quantiles of the $M^{[k]}$ should 
-be close to those given by the `quantile` method. 
+By default, only one simulation is done. But by using the formal
+argument `nsim` with a large value (say `nsim = 1000` or more) we can
+compute estimate quantiles, see the help `?simulate.PgpTList`. For
+each simulation $k=1$, $\dots$, $K$ where $K$ is given by `nsim`, the
+`simulate` method provides the random exceedance times $T_i^{[k]}$ and
+the related random marks $Y_i^{[k]}$ for $i=1$, $\dots$, $N^{[k]}$
+where $N^{[k]}$ is random and varies across simulations.  We then have
+a sample of $K$ maxima $M^{[k]} := \max_i Y_i^{[k]}$ and the sample
+quantiles of the $M^{[k]}$ should be close to those given by the
+`quantile` method.
 
 Mind that a large value of $K$ used must be chosen large to estimate
 the quantiles and that the `simulate` method can be quite slow. Also

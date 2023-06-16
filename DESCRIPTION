@@ -1,7 +1,7 @@
 Package: dailymet
 Type: Package
 Title: Utility Functions to Model Daily Meteorological Variables
-Version: 0.1.4
+Version: 0.1.5 
 Author: Yves Deville  
 Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Provide utility functions to model meteorological variables
