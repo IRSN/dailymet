@@ -406,63 +406,63 @@ autoplot.simulate.pgpTList <- function(object, ...) {
     
 }
 
-##' @export
-##' @method autoplot quantile.pgpTList
-##' 
-autoplot.quantile.pgpTList <- function(object, facet = TRUE,
-                                       ...) {
+## ##' @export
+## ##' @method autoplot quantile.pgpTList
+## ##' 
+## autoplot.quantile.pgpTList <- function(object, facet = TRUE,
+##                                        ...) {
     
-    g <- ggplot(data = object)
+##     g <- ggplot(data = object)
     
-        ## geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
-        ##                               colour = "tau"))
+##         ## geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
+##         ##                               colour = "tau"))
     
-    g <- g + scale_x_continuous(trans = .gumbel_trans_p,
-                                breaks = .gumBreaks_p,
-                                minor_breaks = .gumBreaks_p) +
-        xlab("Prob. of exceedance") + ylab("Quantile") +
-        ggtitle(sprintf(paste("Tail distribution for the maximum with %2.0f %%",
-                        "confidence interval"),
-                        100 * attr(object, "level")))
+##     g <- g + scale_x_continuous(trans = .gumbel_trans_p,
+##                                 breaks = .gumBreaks_p,
+##                                 minor_breaks = .gumBreaks_p) +
+##         xlab("Prob. of exceedance") + ylab("Quantile") +
+##         ggtitle(sprintf(paste("Tail distribution for the maximum with %2.0f %%",
+##                         "confidence interval"),
+##                         100 * attr(object, "level")))
        
-    if (facet) {
-        g <- g +
-            geom_ribbon(
-                data = object,
-                mapping = aes_string(x = "ProbExc", ymin = "L", ymax = "U"),
-                fill = "SteelBlue3", alpha = 0.3)
-        g <- g +
-            geom_line(
-                data = object,
-                mapping = aes_string(x = "ProbExc", y = "L"),
-                colour = "SteelBlue3")
-        g <- g +
-            geom_line(
-                data = object,
-                mapping = aes_string(x = "ProbExc", y = "U"),
-                colour = "SteelBlue4")
-        g <- g + geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
-                                                colour = "tau"), size = 0.6)
+##     if (facet) {
+##         g <- g +
+##             geom_ribbon(
+##                 data = object,
+##                 mapping = aes_string(x = "ProbExc", ymin = "L", ymax = "U"),
+##                 fill = "SteelBlue3", alpha = 0.3)
+##         g <- g +
+##             geom_line(
+##                 data = object,
+##                 mapping = aes_string(x = "ProbExc", y = "L"),
+##                 colour = "SteelBlue3")
+##         g <- g +
+##             geom_line(
+##                 data = object,
+##                 mapping = aes_string(x = "ProbExc", y = "U"),
+##                 colour = "SteelBlue4")
+##         g <- g + geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
+##                                                 colour = "tau"), size = 0.6)
         
-        g <- g + scale_colour_brewer(palette = "Set2")
-        g <- g + facet_wrap(tau ~ ., labeller = label_both)
-    } else {
-        g <- g +
-            geom_line(
-                data = object,
-                mapping = aes_string(x = "ProbExc", y = "L", colour = "tau"),
-                linetype = "dashed")
-        g <- g +
-            geom_line(
-                data = object,
-                mapping = aes_string(x = "ProbExc", y = "U", colour = "tau"),
-                linetype = "dashed")
-        g <- g + geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
-                                                colour = "tau"), size = 0.6)
+##         g <- g + scale_colour_brewer(palette = "Set2")
+##         g <- g + facet_wrap(tau ~ ., labeller = label_both)
+##     } else {
+##         g <- g +
+##             geom_line(
+##                 data = object,
+##                 mapping = aes_string(x = "ProbExc", y = "L", colour = "tau"),
+##                 linetype = "dashed")
+##         g <- g +
+##             geom_line(
+##                 data = object,
+##                 mapping = aes_string(x = "ProbExc", y = "U", colour = "tau"),
+##                 linetype = "dashed")
+##         g <- g + geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
+##                                                 colour = "tau"), size = 0.6)
         
-        g <- g + scale_colour_brewer(palette = "Set2")
-    }
+##         g <- g + scale_colour_brewer(palette = "Set2")
+##     }
    
-    g
+##     g
 
-}
+## }
