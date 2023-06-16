@@ -1,15 +1,21 @@
 Package: dailymet
 Type: Package
 Title: Utility Functions to Model Daily Meteorological Variables
-Version: 0.1.5 
-Author: Yves Deville  
+Version: 0.1.5
+Author: Yves Deville
+Authors@R:
+    c(person(given = "Yves",
+             family = "Deville",
+             role = c("cre", "aut"),
+             email = "deville.yves@alpestat.com",
+	     comment = c(ORCID = "0000-0002-1233-488X")))
 Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Provide utility functions to model meteorological variables
     on a daily basis with emphasis on the extremes and Peaks Over Threshold
     (POT) models.
-Depends: R (>= 4.0.0), extRemes, quantreg, NHPoisson, ggplot2, scales
-Imports: methods, nieve, utils, data.table
-Suggests: NSGEV, leaflet, knitr, rmarkdown
+Depends: R (>= 4.0.0), extRemes, quantreg, NHPoisson, ggplot2, NSGEV
+Imports: methods, nieve, utils, data.table, scales
+Suggests: leaflet, knitr, rmarkdown
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

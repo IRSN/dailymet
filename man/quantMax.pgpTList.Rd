@@ -5,10 +5,10 @@
 \title{Compute Quantiles for the Maximum the Marks of a Poisson-GP
     Model}
 \usage{
-\method{quantMax}{pgpTList}(x, newdata = NULL, prob = NULL, level = 0.95, ...)
+\method{quantMax}{pgpTList}(object, newdata = NULL, prob = NULL, level = 0.95, ...)
 }
 \arguments{
-\item{x}{An object with class \code{"predict.pgpTList"} as created
+\item{object}{An object with class \code{"predict.pgpTList"} as created
 by applying the \code{predict} method on an object with class
 \code{"pgpTList"}.}
 

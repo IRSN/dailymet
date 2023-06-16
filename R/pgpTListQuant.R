@@ -304,38 +304,38 @@ format.quantile.pgpTList <- function(x,
 ## =============================================================================
 
 
-##' 
-##' The (S3) generic function \code{quantMax} evaluates the quantiles
-##' for a maximum as is often of interest in Extreme-Value
-##' modelling. The methods for this function should require the
-##' definition of a period of time, a region in space or a
-##' spatio-temporal domain on which the (random) maximum is computed
-##' and the probability of interest, usually close to one.
-##'
-##' Note that for some tasks such as building return level plots it to
-##' have a large number of probabilities, yet one usually focus on
-##' "pretty" or round probabilities such as \code{0.9}, \code{0.99}
-##' and \code{0.999} to summarize the results.
-##' 
-##' @title Compute Quantiles for a Maximum
-##' 
-##' @param x An object representing a fitted model from which the
-##'     distribution of the maximum (or at least its tail) can be
-##'     found.
-##' 
-##' @param ... Arguments for methods.
-##'
-##' @return An object containing the wanted quantiles. As a rule this
-##'     object could have a (S3) class extending the data frame class,
-##'     and the returned object could have columns corresponding to
-##'     the probability and the quantile, plus other columns such as
-##'     confidence limits and possibly a confidence level.
-##'
-##' @export
-##' 
-quantMax <- function(x, ...) {
-    UseMethod("quantMax")
-}
+## ##' 
+## ##' The (S3) generic function \code{quantMax} evaluates the quantiles
+## ##' for a maximum as is often of interest in Extreme-Value
+## ##' modelling. The methods for this function should require the
+## ##' definition of a period of time, a region in space or a
+## ##' spatio-temporal domain on which the (random) maximum is computed
+## ##' and the probability of interest, usually close to one.
+## ##'
+## ##' Note that for some tasks such as building return level plots it to
+## ##' have a large number of probabilities, yet one usually focus on
+## ##' "pretty" or round probabilities such as \code{0.9}, \code{0.99}
+## ##' and \code{0.999} to summarize the results.
+## ##' 
+## ##' @title Compute Quantiles for a Maximum
+## ##' 
+## ##' @param x An object representing a fitted model from which the
+## ##'     distribution of the maximum (or at least its tail) can be
+## ##'     found.
+## ##' 
+## ##' @param ... Arguments for methods.
+## ##'
+## ##' @return An object containing the wanted quantiles. As a rule this
+## ##'     object could have a (S3) class extending the data frame class,
+## ##'     and the returned object could have columns corresponding to
+## ##'     the probability and the quantile, plus other columns such as
+## ##'     confidence limits and possibly a confidence level.
+## ##'
+## ##' @export
+## ##' 
+## quantMax <- function(x, ...) {
+##     UseMethod("quantMax")
+## }
 
 
 
@@ -356,7 +356,7 @@ quantMax <- function(x, ...) {
 ##' @title Compute Quantiles for the Maximum the Marks of a Poisson-GP
 ##'     Model
 ##'
-##' @param x An object with class \code{"predict.pgpTList"} as created
+##' @param object An object with class \code{"predict.pgpTList"} as created
 ##'     by applying the \code{predict} method on an object with class
 ##'     \code{"pgpTList"}.
 ##' 
@@ -373,6 +373,7 @@ quantMax <- function(x, ...) {
 ##' @return A data frame with columns \code{Prob} and \code{Quant}.
 ##'
 ##' @importFrom stats qnorm
+##' @importFrom NSGEV quantMax
 ##' 
 ##' @method quantMax pgpTList
 ##'
@@ -389,13 +390,13 @@ quantMax <- function(x, ...) {
 ##' qMax <- quantMax(Pgp1, newdata = Date)
 ##' autoplot(qMax)
 ##' 
-quantMax.pgpTList <- function(x,
+quantMax.pgpTList <- function(object,
                               newdata = NULL,
                               prob = NULL,
                               level = 0.95,
                               ...) {
 
-  quantile.pgpTList(x,
+  quantile.pgpTList(object,
                     newdata = NULL,
                     prob = NULL,
                     level = 0.95,
@@ -404,11 +405,11 @@ quantMax.pgpTList <- function(x,
 
 ##' @method quantMax predict.pgpTList
 ##' @export
-quantMax.predict.pgpTList <- function(x,
+quantMax.predict.pgpTList <- function(object,
                                       prob = NULL,
                                       ...) {
 
-    quantile.predict.pgpTList(x,
+    quantile.predict.pgpTList(object,
                               prob = NULL,
                               ...) 
 }
