@@ -2,6 +2,13 @@
 **dailymet** Package News
 ===========================
 
+# New in version 0.1.6
+
+## Bug fixes
+
+- The arguments `newdata` and `prob` of the `quantMax` method for the 
+  class `"pgpTList"` were not used.
+
 # New in version 0.1.5
 
 ## Enhancements

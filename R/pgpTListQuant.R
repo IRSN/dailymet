@@ -397,9 +397,9 @@ quantMax.pgpTList <- function(object,
                               ...) {
 
   quantile.pgpTList(object,
-                    newdata = NULL,
-                    prob = NULL,
-                    level = 0.95,
+                    newdata = newdata,
+                    prob = prob,
+                    level = level,
                     ...) 
 }
 
@@ -410,7 +410,7 @@ quantMax.predict.pgpTList <- function(object,
                                       ...) {
 
     quantile.predict.pgpTList(object,
-                              prob = NULL,
+                              prob = prob,
                               ...) 
 }
 
@@ -426,9 +426,7 @@ format.quantMax.pgpTList <- function(x,
 
     format.quantile.pgpTList(x,
                              digits = 2,
-                             probExc = as.vector(
-                                 outer(c(5, 2, 1),
-                                       c(1e-1, 1e-2, 1e-3, 1e-4))),
+                             probExc = probExc,
                              ...) 
         
 
