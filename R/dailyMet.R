@@ -289,3 +289,39 @@ head.dailyMet <- function(x, ...) {
 tail.dailyMet <- function(x, ...) {
    tail(as.data.frame(x), ...)
 }
+
+## *****************************************************************************
+
+##' @title Subset the data part of a \code{dailyMet} object
+##'
+##' @param x An objects with class \code{"dailyMet"}.
+##' 
+##' @param ... Arguments passed to the \code{subset} method of
+##' the \code{"data.frame"} class.
+##'
+##' @return An object with class \code{"dailyMet"} corresponding to
+##'     the subsetted data.
+##'
+##' @section Caution: this method is only intended to be used to
+##'     \code{subset} (observations), not to \code{select}
+##'     (variables). It works by giving a "subsetting condition" as
+##'     illustrated in \bold{Examples}.
+##'
+##' 
+##' @export
+##' @method subset dailyMet
+##' 
+##' @examples
+##' Rennes1 <- subset(Rennes, Date < as.Date("2020-01-01"))
+##' 
+subset.dailyMet <- function(x,
+                            ...) {
+    attNms <- c("class", "metVar", "periods", "station", "duration", "id")
+    aL <- list()
+    for (nm in attNms) aL[[nm]] <- attr(x, nm)
+    d <- as.data.frame(x)
+    d <- subset(d,
+                ...)
+    dailyMet(d, dateVar = "Date", metVar = aL[["metVar"]],
+             station = aL[["station"]], id = aL[["id"]])
+}

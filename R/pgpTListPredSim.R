@@ -978,7 +978,7 @@ head.simulate.pgpTList <- function(x, ...) {
 ##' @export
 modelMatrices.pgpTList <- function(object, 
                                    newdata = NULL,
-                                   trace = 1,
+                                   trace = 0,
                                    ...) {
    
     if (!missing(newdata) && !is.null(newdata)) {

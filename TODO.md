@@ -44,3 +44,9 @@ of the package.
 \[x\] Allow the ML estimation, prediction, … for a full Poisson-GP
 model, with a formula for the rate. This eventually should the
 dependency on **extRemes** and **NHPoisson**.
+
+## Consistency wih **NSGEV**
+
+\[ \] The `quantMax` method of the class `"rqTList"` uses the argument
+`newdata` where the same method for the class `"TVGEV"` of **NSGEV**
+uses date. This should be made consistent.

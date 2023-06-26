@@ -170,6 +170,9 @@ seasCenter <- function(data, j, sw = 45) {
     if (is.character(j)) {
         j <- as.numeric(format(as.Date(paste0("1970-", j)) , "%j"))
     }
+    
+    data <- as.data.frame(data)
+    
     left <- j - sw
     right <- j + sw
     if (left < 0) {

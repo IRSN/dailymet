@@ -2,11 +2,21 @@
 **dailymet** Package News
 ===========================
 
+# New in version 0.1.7
+
+- In `quantMax` the misleading warning in `quantMax` is no longer
+  thrown and the deailed steps of `modelMatrices` are no longer shown
+  when `trace = 0`.
+  
+- In the output of `quantMax`, the confidence level is added as a
+  column `Level`, for compatibility with the `quantMax` method of the
+  class `TVGEV"` of the **NSGEV** package.
+
 # New in version 0.1.6
 
 ## Bug fixes
 
-- The arguments `newdata` and `prob` of the `quantMax` method for the 
+- The arguments `newdata` and `prob` of the `quantMax` method for the
   class `"pgpTList"` were not used.
 
 # New in version 0.1.5

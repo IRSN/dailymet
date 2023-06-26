@@ -57,11 +57,13 @@ quantile.pgpTList <- function(x,
                               level = 0.95,
                               ...) {
 
-    warning("Please use the `quantMax` method to compute the quantiles ",
-            "of the maximum.\n Since the name 'quantile' creates an ambiguity ",
-            "with the marginal quantiles,\n this function might change in the ",
-            "future")
-    
+    if (FALSE) {
+        warning("Please use the `quantMax` method to compute the quantiles ",
+                "of the maximum.\n Since the name 'quantile' creates an ambiguity ",
+                "with the marginal quantiles,\n this function might change in the ",
+                "future")
+    }
+
     Prob <- ProbExc <- NULL
     
     if (!is.null(x$subset)) {
@@ -160,7 +162,8 @@ quantile.pgpTList <- function(x,
             
             dfi <- cbind(dfi, 
                          L = dfi$Quant + qLU[1] * se,
-                         U = dfi$Quant + qLU[2] * se)
+                         U = dfi$Quant + qLU[2] * se,
+                         Level = level)
 
             if (TRUE) {
                 roundQuant <- approx(x = dfi$Prob, y = dfi$Quant, xout = prob)$y
@@ -171,8 +174,8 @@ quantile.pgpTList <- function(x,
                                    ProbExc = 1 - prob,
                                    Quant = roundQuant,
                                    L = roundL,
-                                   U = roundU)
-                                   ## Level = level
+                                   U = roundU,
+                                   Level = level)
                 
                 dfi <- rbind(dfi, roundDfi)
                 dfi <- dfi[order(dfi$tau, dfi$Prob), ]
