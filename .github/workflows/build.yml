@@ -1,4 +1,4 @@
-name: R-CMD-INSTALL
+name: R-CMD-INSTALL-build
 
 on:
   push:
