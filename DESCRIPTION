@@ -15,7 +15,7 @@ Description: Provide utility functions to model meteorological variables
     (POT) models.
 Depends: R (>= 4.0.0), extRemes, quantreg, NHPoisson, ggplot2
 Imports: methods, nieve, utils, data.table, scales
-Remotes: github::IRSN/NSGEV
+Remotes: https://github.com/IRSN/NSGEV
 Suggests: leaflet, knitr, rmarkdown
 License: GPL (>= 2)
 Encoding: UTF-8
