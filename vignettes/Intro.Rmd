@@ -151,8 +151,9 @@ recorded at an exceedance time $y(t) > u(t)$. The exceedance times are
 assumed to occur according to a Non-Homogeneous Poisson Process
 (NHPPP) with rate $\lambda(t)$. The excesses $y(t) - u(t)$ at the
 exceedances are asumed to follow the two-parameter Generalised Pareto
-(GP) distribution with scale $\sigma(t)>0$ and shape $\xi(t)$. The survival
-function of the two-parameter GP distribution is given by
+(GP) distribution with scale $\sigma(t)>0$ and shape $\xi(t)$. This
+distribution has support $(0, \,\infty)$ and the value of the survival
+function is given for $x >0$ by
 $$
    S_{\texttt{GP2}}(x;\,\sigma,\,\xi) = 
    \begin{cases} 

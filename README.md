@@ -26,7 +26,7 @@ the yearly seasonality and the trend. The package scope is as follows.
   lists of `rq` or `fevd`objects “by threshold” i.e., differing only by
   their threshold. These classes are helpful to assess the sensitivity
   of the results to the threshold choice, which generally remains highly
-  subective.
+  subjective.
 
 For now, the package focuses on univariate approaches in which the
 analysis is for only *one* meteorological timeseries, often assumed to
@@ -45,11 +45,10 @@ Provided that the **remotes** package is installed, the installation of
 **dailymet** from github can be done by using
 
 ``` r
-remotes::install_github("IRSN/dailymet", dependencies = TRUE, auth_token = myToken)
+remotes::install_github("IRSN/dailymet", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
-where `myToken` stands for *your* token. This should install the package
-and make it ready to use.
+This should install the package and make it ready to use.
 
 You can also select a specific branch or a specific commit by using the
 suitable syntax for `install_github`, see the **remotes** package
