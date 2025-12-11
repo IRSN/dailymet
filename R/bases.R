@@ -60,12 +60,61 @@ checkTrigNames <- function(names) {
     if (!hasCos) return(0)
 
     ## now 'hasCos' is TRUE ...
-    if (!hasSin || !all.equal(cosHarm, sinHarm)) {
+    if (!hasSin || !setequal(cosHarm, sinHarm)) {
         stop("mismatch between 'cos' and 'sin' harmonics")
     }
     K <- max(sinHarm)
-    if (!all.equal(sinHarm, 1:K)) {
+    if (!setequal(sinHarm, 1:K)) {
         stop("The vector of harmonics must have the form 1:K")
+    }
+    K
+}
+
+##' Check whether the names of trigonometric terms with given phase
+##' are used in a character vector or formula. A name is such
+##' trigonometric term if it is obtained by pasting \code{"sinPhij"}
+##' with an integer giving the harmonic. We expect that the harmonics
+##' used form an interval \code{1:K} where \code{K} is the order.
+##'
+##' @title Check a Vector of Names for Trigonometric Components with
+##'     Given Phase
+##' 
+##' @param names A character vector containing names of variables,
+##'     possibly embeding trigonometric variables. Can also be a
+##'     formula from which the names are extracted.
+##'
+##' @return The positive integer \code{K} such that the names
+##'     \code{"sinPhij1"}, ..., \code{"sinPhiK"}, are found in
+##'     \code{name}. If no trigonometric term is found then the value
+##'     \code{0} is returned. If the harmonics do not form an interval
+##'     \code{12:K}, an error is thrown.
+##'
+##' @export
+##' 
+##' @examples
+##' nm <- c("Cst", "sinjPhi1", "sinjPhi2", "sinjPhi3")
+##' checkSinPhiNames(nm)
+##' ## error: no 'sinjPhi1' term
+##' try(checkSinPhiNames(c("Cst", "sinjPhi2")))
+##' 
+checkSinPhiNames <- function(names) {
+
+    if (inherits(names, "formula")) {
+        names <- attr(terms(names), "term.labels") 
+    }
+    
+    sinPhiInd <- grep("sinjPhi[1-9]*", names)
+    hasSinPhi <- length(sinPhiInd)
+    if (hasSinPhi) {
+        sinPhiHarm <- sort(as.integer(gsub("sinjPhi", "", names[sinPhiInd])))
+        if (any(is.na(sinPhiHarm))) stop("bad 'sinPhi' term name")
+    } else {
+        return(0)
+    }
+    K <- max(sinPhiHarm)
+    if (!setequal(sinPhiHarm, 1:K)) {
+        stop("When `sinjPhi` terms are used, the  vector of harmonics must ",
+             "have the form 1:K")
     }
     K
 }
@@ -103,7 +152,7 @@ checkTrigNames <- function(names) {
 ##'     be \emph{named} with suitable element names in order to allow a
 ##'     reliable extraction of the coefficients \eqn{\alpha_k} and
 ##'     \eqn{\beta_k}. These correspond to the names
-##'     \itemize{
+##'     \describe{
 ##'        \item{"cosj1", "cosj2", ... }{coefficients for the cosine terms
 ##'            \eqn{\alpha_1}, \eqn{\alpha_2}, ..., \eqn{\alpha_K}}
 ##'        \item{"sinj1", "sinj2", ... }{coefficients for the sine terms
@@ -255,7 +304,7 @@ print.phasesMatrix <- function(x, digits = 3, ...) {
 ##' used to describe a trend) and trigonometric functions with period
 ##' one year (365.25 days) that can be used for the seasonality.
 ##'
-##' \itemize{
+##' \describe{
 ##'  
 ##'     \item{"polynom" }{
 ##'
@@ -395,7 +444,7 @@ tsDesign <- function(dt,
 ##'  \deqn{s_k(t) := \sin\{2 \pi k [j_t - \phi_k] / 365.25)}{
 ##'    s_k(t) := sin(2 * pi * k * [j_t - \phi_k] / 365.25)}
 ##'
-##' for \eqn{k=1} to {K}, where \eqn{j_t} is the Julian day
+##' for \eqn{k=1} to \eqn{K}, where \eqn{j_t} is the Julian day
 ##' corresponding to \eqn{t}. This function is useful to provide a
 ##' basis of functions with yearly seasonality that are suitable for
 ##' meteorological variables. For instance the phase for the first

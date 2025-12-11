@@ -27,7 +27,7 @@ delimiter. It is found in the directory defined by the
 }
 \details{
 The fields are as follows.
-\itemize{  
+\describe{  
    \item{\code{Code} }{
        Character: the code to be used for the station}
    \item{\code{Date} }{

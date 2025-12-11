@@ -71,7 +71,7 @@ value of \code{phi}.}
 \value{
 An object with class \code{"pgpTList"}. This is a list with
     the following elements
-    \itemize{
+    \describe{
         \item{\code{tau} }{
 
             The vector of probabilities extracted from
@@ -101,23 +101,26 @@ in the \code{rqTList} object \code{thresholds} corresponding to a
 vector of probability.
 }
 \details{
-For each probability \code{tau[i]}
-\itemize{
-    \item{ }{
+For each probability \code{tau[i]}, one proceeds to the following
+steps
+
+\describe{
+    \item{Exceedances }{
         Find the exceedances over the threshold corresponding
         to the probability \code{tau[i]}, and decluster these
         if wanted.
     }
-    \item{ }{
+    \item{GP part}{
         Fit a non-stationary GP model using
         \code{extRemes::fevd} with \code{type = "GP"} and
         with the formulas prescribed.
      }
-     \item{ }{
+     \item{Temporal part}{
         Fit a non-stationary temporal Poisson process model using
         \code{NHPoisson::fitPP.fun}. 
      }
 }
+
 The formula given in \code{logLambda.fun} will typically involve
 \code{YearNum}. Note that the constant is alaways included by
 the function \code{NHPoisson::fitPP.fun} so it should be discarded

@@ -2,6 +2,7 @@
 % Please edit documentation in R/dailymetPkg.R
 \docType{package}
 \name{dailymet-package}
+\alias{dailymet}
 \alias{dailymet-package}
 \title{\packageTitle{dailymet}}
 \description{
@@ -16,4 +17,15 @@ some missing methods for the \code{"fevd"} class from the
 \pkg{extRemes} package. It focusses on the use of non-stationary
 POT models and especially on Poisson-GP models, in view of
 deriving a dedicated Weather Generator.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://irsn.github.io/dailymet/}
+}
+
+}
+\author{
+\strong{Maintainer}: Yves Deville \email{deville.yves@alpestat.com} (\href{https://orcid.org/0000-0002-1233-488X}{ORCID})
+
 }

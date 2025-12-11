@@ -3,7 +3,7 @@
 ##' @title Stations Météo-France
 ##' 
 ##' @description  A data frame with the following columns
-##' \itemize{
+##' \describe{
 ##'      \item{\code{Id}, \code{Name} }{
 ##'         Identifier and name for the MF station.
 ##'      }
@@ -22,7 +22,7 @@
 ##'           A factor giving the climatic class, with the following
 ##'           codes.
 ##' 
-##'           \itemize{
+##'           \describe{
 ##'              \item{\code{"C"} }{\emph{Modified Oceanic}, mainly
 ##'                  for a Central zone located at the North of
 ##'                  Clermont-Ferrand.}

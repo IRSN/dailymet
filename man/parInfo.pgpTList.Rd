@@ -14,7 +14,7 @@
 }
 \value{
 A list with two elements
-\itemize{
+\describe{
     \item{length }{
         A list containing the lengths of the blocks.
     }

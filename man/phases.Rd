@@ -40,7 +40,7 @@ vector.
     be \emph{named} with suitable element names in order to allow a
     reliable extraction of the coefficients \eqn{\alpha_k} and
     \eqn{\beta_k}. These correspond to the names
-    \itemize{
+    \describe{
        \item{"cosj1", "cosj2", ... }{coefficients for the cosine terms
            \eqn{\alpha_1}, \eqn{\alpha_2}, ..., \eqn{\alpha_K}}
        \item{"sinj1", "sinj2", ... }{coefficients for the sine terms

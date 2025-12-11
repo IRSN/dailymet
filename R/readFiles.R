@@ -69,7 +69,7 @@ readECA <-  function(file, out = c("dailyMet", "data.frame"),
 ##' \code{metData} environment variable.
 ##'
 ##' The fields are as follows.
-##' \itemize{  
+##' \describe{  
 ##'    \item{\code{Code} }{
 ##'        Character: the code to be used for the station}
 ##'    \item{\code{Date} }{

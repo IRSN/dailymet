@@ -49,7 +49,7 @@ The choice is for now between polynomial functions that can be
 used to describe a trend) and trigonometric functions with period
 one year (365.25 days) that can be used for the seasonality.
 
-\itemize{
+\describe{
  
     \item{"polynom" }{
 

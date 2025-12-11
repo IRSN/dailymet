@@ -8,13 +8,16 @@ output: github_document
 
 ## Package scope and management 
 
-[x] Replace the dependency on the **NSGEV** and the **potomax** by a
-    dependency on the publicly released package **nieve**.
+[x] Replace the dependency on the `{NSGEV}` and the `{potomax}`
+    packages by a dependency on the publicly released package
+    `{nieve}`.
   
 ## Documentation
 
 [o] Add a `.bib` file with the citations for the packages and
     cite the packages in the vignette.
+
+[ ] Add examples in the `README` file with graphics, ...
 
 ## R objects and functions, short-term
 
@@ -34,7 +37,24 @@ output: github_document
     maximum of the simulated marks will also be the simulate maximum
     for all the marks on the period of interest.
 
+[ ] Make a systematic use of `{data.table}` for data manipulation:
+    subsetting, renaming, ... The class `"dailyMet"` would thus
+    inherit from `"data.table"` and no longer inherit directly from
+    `"data.frame"`.
+
 ## Interface 
+
+[ ] Allow the observations to be censored by a low or moderate
+    threshold $u_0^$ as in `{Renext}`. So instead of imposing a daily
+    framework with one observation by day, only the exceedances over
+    $u_0$ would be assumed to be recorded. However there would still
+    be a need to describe gaps or missing periods, since it is
+    essential to have *all* the exceedances over $u_0$ for each
+    "non-gap" period. In a first appproach this could be done with a
+    `dailyMet` object with say `-Inf` value for the observations below
+    the threshold. Yet to cope with gaps one should cease to rely on
+    `{extRemes}` and implement the maximisation of the log-likelihood.
+	
 
 [ ] Allow some renaming of the coefficients both for the GP part and
     for the time Poisson part. For the GP part, the coefficients could
@@ -46,10 +66,10 @@ output: github_document
 ## Long-term
 
 [x] Allow the ML estimation, prediction, ... for a full Poisson-GP
-    model, with a formula for the rate. This eventually should the
-    dependency on **extRemes** and **NHPoisson**.
+    model, with a formula for the rate. This eventually should make
+    the dependency on `{extRemes}` and `{NHPoisson}` unnecessary.
 
-## Consistency wih **NSGEV**
+## Consistency wih `{NSGEV}`
 
 [ ] The `quantMax` method of the class `"rqTList"` uses the argument
 `   newdata` where the same method for the class `"TVGEV"` of **NSGEV**

@@ -46,7 +46,7 @@ by
  \deqn{s_k(t) := \sin\{2 \pi k [j_t - \phi_k] / 365.25)}{
    s_k(t) := sin(2 * pi * k * [j_t - \phi_k] / 365.25)}
 
-for \eqn{k=1} to {K}, where \eqn{j_t} is the Julian day
+for \eqn{k=1} to \eqn{K}, where \eqn{j_t} is the Julian day
 corresponding to \eqn{t}. This function is useful to provide a
 basis of functions with yearly seasonality that are suitable for
 meteorological variables. For instance the phase for the first

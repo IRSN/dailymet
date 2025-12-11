@@ -101,6 +101,9 @@ quantile.pgpTList <- function(x,
         predi <- subset(pred, tau == tau1[i])
         mL <- max(predi$v, na.rm = TRUE)
         mU <- max(predi$omega, na.rm = TRUE)
+        if (!is.finite(mU)) {
+            mU <- max(predi$RL1e4, na.rm = TRUE)
+        }
         m <- seq(from = mL,  to = mU, length.out = nM)
         
         FM <- fM <- se <- rep(NA, nM)
@@ -341,9 +344,6 @@ format.quantile.pgpTList <- function(x,
 ## }
 
 
-
-
-
 ## *****************************************************************************
 
 ##' The Poisson-GP model given in \code{x} only describes the tail of
@@ -471,7 +471,7 @@ autoplot.quantile.pgpTList <- function(object, facet = TRUE,
                 colour = "SteelBlue4")
         g <- g + geom_line(mapping = aes_string(x = "ProbExc", y = "Quant",
                                                 colour = "tau"), size = 0.6)
-        
+         
         g <- g + scale_colour_brewer(palette = "Set2")
         g <- g + facet_wrap(tau ~ ., labeller = label_both)
     } else {

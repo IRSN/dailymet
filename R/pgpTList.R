@@ -4,23 +4,26 @@
 ##' in the \code{rqTList} object \code{thresholds} corresponding to a
 ##' vector of probability.
 ##'
-##' For each probability \code{tau[i]}
-##' \itemize{
-##'     \item{ }{
+##' For each probability \code{tau[i]}, one proceeds to the following
+##' steps
+##' 
+##' \describe{
+##'     \item{Exceedances }{
 ##'         Find the exceedances over the threshold corresponding
 ##'         to the probability \code{tau[i]}, and decluster these
 ##'         if wanted.
 ##'     }
-##'     \item{ }{
+##'     \item{GP part}{
 ##'         Fit a non-stationary GP model using
 ##'         \code{extRemes::fevd} with \code{type = "GP"} and
 ##'         with the formulas prescribed.
 ##'      }
-##'      \item{ }{
+##'      \item{Temporal part}{
 ##'         Fit a non-stationary temporal Poisson process model using
 ##'         \code{NHPoisson::fitPP.fun}. 
 ##'      }
 ##' }
+##' 
 ##' The formula given in \code{logLambda.fun} will typically involve
 ##' \code{YearNum}. Note that the constant is alaways included by
 ##' the function \code{NHPoisson::fitPP.fun} so it should be discarded
@@ -85,7 +88,7 @@
 ##' 
 ##' @return An object with class \code{"pgpTList"}. This is a list with
 ##'     the following elements
-##'     \itemize{
+##'     \describe{
 ##'         \item{\code{tau} }{
 ##'
 ##'             The vector of probabilities extracted from
@@ -110,6 +113,7 @@
 ##'     }
 ##'
 ##' @importFrom NHPoisson fitPP.fun
+##' @importFrom stats na.omit
 ##' 
 ##' @export
 ##'
@@ -245,11 +249,16 @@ pgpTList <- function(dailyMet,
     trigDesign <- tsDesign(dt = dailyMet$Date,
                            type = "trigo", df = 2 * Kthresh + 1)
     dailyMet <- data.frame(dailyMet, trigDesign$X)
-    
-    ## Kscale <- checkTrigNames(scale.fun)
-    ##  Kshape <- checkTrigNames(shape.fun)
-    ##  K <- max(c(Kscale, Kshape))
-    K <- 3
+
+    if (FALSE) {
+        Kscale <- checkTrigNames(scale.fun)
+        Kshape <- checkTrigNames(shape.fun)
+        K <- max(c(Kscale, Kshape))
+    } else {
+        Kscale <- checkSinPhiNames(scale.fun)
+        Kshape <- checkSinPhiNames(shape.fun)
+        K <- max(c(Kscale, Kshape))
+    }
     
     if (trace) cat("o Adding new variables \n")
     Phi <- phases(coef(thresholds))
@@ -267,7 +276,6 @@ pgpTList <- function(dailyMet,
         dailyMet <- data.frame(dailyMet, sinDesignX)
         
     } else {        
-        
         if (trace) {
             cat("No trigonometric variables needed.\n")
         }
@@ -346,6 +354,7 @@ pgpTList <- function(dailyMet,
         ## the vector of coefficients and the formula.
         ## =====================================================================
         
+        ## indClust <- !is.na(Met2[[metVar]])
         FitGP[[i]] <- fevd(x = Met2[[metVar]][indClust],
                            data = Met2[indClust, ],
                            threshold = coef(thresholds[[i]]),
@@ -353,7 +362,8 @@ pgpTList <- function(dailyMet,
                            type = "GP",
                            scale.fun = scale.fun,
                            shape.fun = shape.fun,
-                           time.units = tun)
+                           time.units = tun,
+                           na.action = na.omit)
         
         lambdaBar[i] <- nrow(Met2[IndLambda[[i]], ]) / duration
         
@@ -362,7 +372,7 @@ pgpTList <- function(dailyMet,
         ## =====================================================================
         
         if (fitLambda) {
-
+            
             ## we must use 'all.equal' here and not 'identical', because
             ## the two formulas do not have the same environement!
 
@@ -376,23 +386,27 @@ pgpTList <- function(dailyMet,
                 Covs <- model.matrix(logLambda.fun, data = Met2)
                 L <- rep(0, ncol(Covs))
                 names(L) <-  paste0("b", 1:ncol(Covs))
-            
+                ii <- IndLambda[[i]]
+                ii <- ii[!is.na(ii)]
                 FitLambda[[i]] <-
                     NHPoisson::fitPP.fun(tind = TRUE,
-                                         covariates = Covs, 
-                                         posE = IndLambda[[i]],
+                                         covariates = Covs,
+                                         posE = ii,
+                                         ## posE = IndLambda[[i]],
                                          dplot = FALSE,
                                          start = c(list(b0 = 10), as.list(L)))   
             } else {
 
                 if (trace) cat("\no Fit the temporal Poisson process:",
                                " homogeneous\n")
-          
+                ii <- IndLambda[[i]]
+                ii <- ii[!is.na(ii)]
                 FitLambda[[i]] <-
                     NHPoisson::fitPP.fun(tind = TRUE,
                                          nobs = nrow(Met2),
-                                         covariates = NULL, 
-                                         posE = IndLambda[[i]],
+                                         covariates = NULL,
+                                         posE = ii,
+                                         ## posE = IndLambda[[i]],
                                          dplot = FALSE,
                                          start = list(b0 = 10)) 
             }

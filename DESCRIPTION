@@ -1,15 +1,13 @@
 Package: dailymet
 Type: Package
 Title: Utility Functions to Model Daily Meteorological Variables
-Version: 0.1.7
-Author: Yves Deville
+Version: 0.1.8
 Authors@R:
     c(person(given = "Yves",
              family = "Deville",
              role = c("cre", "aut"),
              email = "deville.yves@alpestat.com",
 	     comment = c(ORCID = "0000-0002-1233-488X")))
-Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Provide utility functions to model meteorological variables
     on a daily basis with emphasis on the extremes and Peaks Over Threshold
     (POT) models.
@@ -20,6 +18,6 @@ Suggests: leaflet, knitr, rmarkdown
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 URL: https://irsn.github.io/dailymet/

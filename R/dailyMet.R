@@ -3,66 +3,47 @@
 ##'
 ##' The \code{"dailyMet"} class essentially a daily time series with
 ##' precomputed time variables such as the Julian day, ...
-##' \itemize{
+##' \describe{
 ##'    \item{\bold{Regular sampling} }{
 ##'       The rows must correspond to a sequence of successive days.
 ##'       So missing values will generally be present.
 ##'     }
-##' 
 ##'     \item{\bold{Precomputed variables} }{ These variables are
 ##'         functions of the date that are repeatedly used, hence
 ##'         which can be computed only once. They include for instance
 ##'         the Julian day.}
-##' 
 ##' }
 ##'
 ##' The precomputed variables include the following ones.
 ##' 
-##' \itemize{
-##'
+##' \describe{
 ##'     \item{\code{Day}, \code{DateRef} }{
-##'
 ##'          Day in the year a.k.a. Julian day, and reference Date.
 ##'          \code{Day} takes integer value between 1 and
 ##'          366. \code{DateRef} is a refrence date, corresponding to
 ##'          the day but in a non leap year taken as reference.  This
 ##'          date allows to plot the series against the day in the
-##'           year still using months on the x axis.
-##'     }
-##' 
+##'           year still using months on the x axis.}
 ##'     \item{\code{DayW}, \code{DateRefW} }{
-##'
 ##'          Similar to \code{Day} and \code{DateRef}, but for
 ##'          "winter years" centered on winter. A winter year begins
 ##'          on the 1-st of August and ends on the next 31-th of
 ##'          July. Winter years are useful when the interest is on
 ##'          event that usually happen in winter (extreme sea levels,
-##'          extreme snowfall, ...).
-##' 
-##'     }
-##' 
+##'          extreme snowfall, ...).}
 ##'     \item{\code{JJA}, \code{DJF} }{
-##'
 ##'          Logical variables indicating the periods
 ##'          \emph{June-July-August} and
 ##'          \emph{December-January-Febuary} which are sometimes used
-##'          in the study of summer and winter extremes.
-##' 
-##'     }
-##'
+##'          in the study of summer and winter extremes.}
 ##'     \item{\code{YearNum} }{
-##'
 ##'          Numeric variable representing the time \emph{in years}
 ##'          from the so-called \emph{Unix epoch} 
 ##'          \code{1970-01-01}. For example \code{YearNum} is nearly
 ##'          50.5 when \code{Date} is \code{"2020-07-02"},
-##'          corresponding to 50.5 years elapsed from the epoch.
-##' 
-##'     }
-##'
+##'          corresponding to 50.5 years elapsed from the epoch.}
 ##'     Of course other variables related to the date can easily be
 ##'     created.
-##' 
 ##' }
 ##' 
 ##' @title Create an Object with S3 Class \code{"dailyMet"}  
@@ -98,7 +79,7 @@
 ##' 
 ##' @export
 ##'
-##' @note We recommend ehen possible to use the station Id and name as
+##' @note We recommend when possible to use the station Id and name as
 ##'     given in \code{\link{stationsMF}}. 
 ##'
 ##' @section Caution: Althouch some methods inherited from the

@@ -96,7 +96,16 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
     ## Kscale <- checkTrigNames(scale.fun)
     ##  Kshape <- checkTrigNames(shape.fun)
     ##  K <- max(c(Kscale, Kshape))
-    K <- 3
+    ## K <- 3
+    if (FALSE) {
+        Kscale <- checkTrigNames(scale.fun)
+        Kshape <- checkTrigNames(shape.fun)
+        K <- max(c(Kscale, Kshape))
+    } else {
+        Kscale <- checkSinPhiNames(object$scale.fun)
+        Kshape <- checkSinPhiNames(object$shape.fun)
+        K <- max(c(Kscale, Kshape))
+    }
     
     if (trace) cat("o Adding new variables \n")
     Phi <- phases(coef(object$threshold))
@@ -107,12 +116,10 @@ makeNewData.pgpTList <- function(object, newdata = NULL, trace = 0, ...) {
             cat("o Using K =", K, "and the following phases\n")
             print(round(phi, digits = 2))
         }
-        
         sinDesignX <- sinBasis(dt = newdata[["Date"]],
                                df = 2 * K + 1,
                                phi = phi)
         newdata <- data.frame(newdata, sinDesignX)
-        
     } else {        
         if (trace) {
             cat("No trigonometric variables needed.\n")
@@ -235,7 +242,7 @@ predict.pgpTList <- function(object, newdata = NULL,
     } 
     
     
-    LambdaHat <- MuStar <- SigmaStar <- RL100 <- nExceed <- list()
+    LambdaHat <- MuStar <- SigmaStar <- RL100 <- RL1e4 <- nExceed <- list()
     lambdaBar <- numeric(0)
     tau1 <- object$tau
 
@@ -291,7 +298,10 @@ predict.pgpTList <- function(object, newdata = NULL,
         
         RL100[[i]] <- MuStar[[i]] + SigmaStar[[i]] *
             ((-log(1 - 1 / 100))^(-Theta[ , "shape"]) - 1) / Theta[ , "shape"]
-
+        
+        RL1e4[[i]] <- MuStar[[i]] + SigmaStar[[i]] *
+            ((-log(1 - 1 / 1e4))^(-Theta[ , "shape"]) - 1) / Theta[ , "shape"]
+        
         if (!is.null(object$subset)) {
             MuStar[[i]][!IndPred] <- NA
             RL100[[i]][!IndPred] <- NA
@@ -312,7 +322,8 @@ predict.pgpTList <- function(object, newdata = NULL,
                                  sigma = Theta[ , "scale"],
                                  sigmaStar = SigmaStar[[i]],
                                  xiStar = Theta[ , "shape"],
-                                 RL100 = RL100[[i]])
+                                 RL100 = RL100[[i]],
+                                 RL1e4 = RL1e4[[i]])
 
         ## The computations on the exceedances have been moved into
         ## the `exceed` method
@@ -1040,7 +1051,7 @@ parInfo <- function(object, ...) {
 ##' @param ... Not used.
 ##' 
 ##' @return A list with two elements
-##' \itemize{
+##' \describe{
 ##'     \item{length }{
 ##'         A list containing the lengths of the blocks.
 ##'     }

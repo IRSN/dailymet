@@ -4,10 +4,10 @@
 ##' This class is intended to be used for models differing only by
 ##' their threshold.
 ##' 
-##' \itemize{
-##'    \item{ }{All the objects must have the same type and \code{"GP"} or
+##' \describe{
+##'    \item{Same type }{All the objects must have the same type and \code{"GP"} or
 ##'      \code{"PP"}.}
-##'    \item{ }{All the objects must have the same formulas:
+##'    \item{Same formulas }{All the objects must have the same formulas:
 ##'         \code{threshold.fun}, \code{location.fun}, \code{scale.fun}
 ##'         and \code{shape.fun}}
 ##' }

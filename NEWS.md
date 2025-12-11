@@ -2,6 +2,22 @@
 **dailymet** Package News
 ===========================
 
+
+# New in version 0.1.8
+
+## Bug fixes
+
+- The order of the trigonometric `K` had been fixed to `3`. One can
+  now use values between `1` and `9` although `K = 1` and `K = 2` may
+  be the only possible choices for short period of observation.
+
+- The `checkTrigNames` function did not work correctly because 
+  `all.equal` was used where `setequal` was intended.
+  
+- The `quantMax` function did not work when the GPD shape is `> 0` for
+  some thresholds, because the code made use of the upper end-point
+  `omega`, assumed to be finite.
+
 # New in version 0.1.7
 
 - In `quantMax` the misleading warning in `quantMax` is no longer
